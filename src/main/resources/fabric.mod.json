@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "actionbar",
+  "version": "${version}",
+  "name": "Actionbar",
+  "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel",
+  "authors": ["Gabix"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.Gabix.ActionbarStorage"
+    ],
+    "client": [
+      "me.Gabix.ActionbarStorageClient"
+    ]
+  },
+  "mixins": [
+    "actionbar-snapshot.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.0",
+    "fabric-api": "*",
+    "minecraft": ">=1.19.0"
+  }
+}

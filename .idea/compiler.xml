@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="&quot;-AoutRefMapFile=C:\Users\User\IdeaProjects\Actionbar Snapshot\build\classes\java\main\actionbar-refmap.json&quot; -AdefaultObfuscationEnv=named:intermediary -Aquiet=true &quot;-AoutMapFileNamedIntermediary=C:\Users\User\IdeaProjects\Actionbar Snapshot\build\loom-cache\mixin-map-net.fabricmc.yarn.1_19_4.1.19.4+build.2-v2.main.tiny&quot; -AinMapFileNamedIntermediary=C:\Users\User\.gradle\caches\fabric-loom\1.19.4\net.fabricmc.yarn.1_19_4.1.19.4+build.2-v2\mappings.tiny" />
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Actionbar_Snapshot.test" options="&quot;-AoutRefMapFile=C:\Users\User\IdeaProjects\Actionbar Snapshot\build\classes\java\test\test-actionbar-refmap.json&quot; -AdefaultObfuscationEnv=named:intermediary -Aquiet=true &quot;-AoutMapFileNamedIntermediary=C:\Users\User\IdeaProjects\Actionbar Snapshot\build\loom-cache\mixin-map-net.fabricmc.yarn.1_19_4.1.19.4+build.2-v2.test.tiny&quot; -AinMapFileNamedIntermediary=C:\Users\User\.gradle\caches\fabric-loom\1.19.4\net.fabricmc.yarn.1_19_4.1.19.4+build.2-v2\mappings.tiny" />
+    </option>
+  </component>
+</project>

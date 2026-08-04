@@ -1,0 +1,44 @@
+{
+  "minecraft:recipes/misc/book": {
+    "criteria": {
+      "has_paper": "2026-07-10 17:19:33 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/decorations/crafting_table": {
+    "criteria": {
+      "unlock_right_away": "2026-07-10 17:19:33 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/decorations/cartography_table": {
+    "criteria": {
+      "has_paper": "2026-07-10 17:19:33 +0200"
+    },
+    "done": true
+  },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:snowy_slopes": "2026-07-10 17:24:31 +0200",
+      "minecraft:savanna_plateau": "2026-07-10 17:25:12 +0200",
+      "minecraft:river": "2026-07-10 17:19:34 +0200",
+      "minecraft:meadow": "2026-07-10 17:20:59 +0200",
+      "minecraft:savanna": "2026-07-10 17:25:15 +0200",
+      "minecraft:plains": "2026-07-10 17:19:36 +0200"
+    },
+    "done": false
+  },
+  "minecraft:recipes/misc/firework_rocket_simple": {
+    "criteria": {
+      "has_gunpowder": "2026-07-10 17:19:33 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/redstone/tnt": {
+    "criteria": {
+      "has_gunpowder": "2026-07-10 17:19:33 +0200"
+    },
+    "done": true
+  },
+  "DataVersion": 3337
+}

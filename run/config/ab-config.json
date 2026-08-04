@@ -1,0 +1,58 @@
+{
+  "hudSlotsEnabled": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "autoBossDetection": true,
+  "showMana": true,
+  "showDamage": true,
+  "noRenderTimerEnabled": true,
+  "noRenderMinutes": 5,
+  "noRenderSeconds": 0,
+  "manaX": 1,
+  "manaY": 202,
+  "manaScale": 1.0000001,
+  "damageX": 1,
+  "damageY": 218,
+  "damageScale": 1.0,
+  "hudSlotsX": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "hudSlotsY": [
+    13,
+    34,
+    55,
+    76,
+    97,
+    118,
+    139,
+    160,
+    181
+  ],
+  "hudSlotsScale": [
+    1.2,
+    1.2,
+    1.2,
+    1.2,
+    1.2,
+    1.2,
+    1.2,
+    1.2,
+    1.2
+  ]
+}
