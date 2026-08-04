@@ -3,14 +3,17 @@
   "minVersion": "0.8",
   "package": "me.Gabix.mixin",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [],
+  "mixins": [
+    "MixinExperienceOrb",
+    "ExperienceOrbAccess"
+  ],
   "client": [
     "ActionbarMixin",
+    "BlockEntityRenderMixin",
+    "FogMixin",
     "FullbrightMixin",
     "InGameHudMixin",
-    "LevelRendererMixin",
-    "FogMixin",
-    "BlockEntityRenderMixin"
+    "LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

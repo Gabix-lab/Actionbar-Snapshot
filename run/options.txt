@@ -125,6 +125,8 @@ key_Cooldown Nullázása:key.keyboard.semicolon
 key_Kész Felirat Mód Váltás:key.keyboard.apostrophe
 key_3D Renderelés Ki/Be:key.keyboard.f6
 key_NoRender Időzítő Ki/Be:key.keyboard.f7
+key_NoRender Ablak Inaktívnál:key.keyboard.f8
+key_Item Info Megjelenítése:key.keyboard.i
 soundCategory_master:0.0
 soundCategory_music:0.0
 soundCategory_record:1.0

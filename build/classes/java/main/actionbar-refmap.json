@@ -6,6 +6,10 @@
     "me/Gabix/mixin/BlockEntityRenderMixin": {
       "render": "Lnet/minecraft/class_824;method_3555(Lnet/minecraft/class_2586;FLnet/minecraft/class_4587;Lnet/minecraft/class_4597;)V"
     },
+    "me/Gabix/mixin/ExperienceOrbAccess": {
+      "amount": "field_6159:I",
+      "health": "field_6161:I"
+    },
     "me/Gabix/mixin/FogMixin": {
       "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
     },
@@ -25,6 +29,15 @@
       "Lnet/minecraft/client/world/ClientWorld;getEntities()Ljava/lang/Iterable;": "Lnet/minecraft/class_638;method_18112()Ljava/lang/Iterable;",
       "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
       "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
+    },
+    "me/Gabix/mixin/MixinExperienceOrb": {
+      "Lnet/minecraft/entity/ExperienceOrbEntity;discard()V": "Lnet/minecraft/class_1303;method_31472()V",
+      "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;)Z": "Lnet/minecraft/class_1303;method_31494(Lnet/minecraft/class_1303;)Z",
+      "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z": "Lnet/minecraft/class_1303;method_31495(Lnet/minecraft/class_1303;II)Z",
+      "merge(Lnet/minecraft/entity/ExperienceOrbEntity;)V": "Lnet/minecraft/class_1303;method_31497(Lnet/minecraft/class_1303;)V",
+      "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V": "Lnet/minecraft/class_1303;method_5694(Lnet/minecraft/class_1657;)V",
+      "readCustomDataFromNbt": "Lnet/minecraft/class_1303;method_5749(Lnet/minecraft/class_2487;)V",
+      "writeCustomDataToNbt": "Lnet/minecraft/class_1303;method_5652(Lnet/minecraft/class_2487;)V"
     },
     "me/Gabix/mixin/NoRenderMixin$FogMixin": {
       "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
@@ -49,6 +62,10 @@
       "me/Gabix/mixin/BlockEntityRenderMixin": {
         "render": "Lnet/minecraft/class_824;method_3555(Lnet/minecraft/class_2586;FLnet/minecraft/class_4587;Lnet/minecraft/class_4597;)V"
       },
+      "me/Gabix/mixin/ExperienceOrbAccess": {
+        "amount": "field_6159:I",
+        "health": "field_6161:I"
+      },
       "me/Gabix/mixin/FogMixin": {
         "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
       },
@@ -68,6 +85,15 @@
         "Lnet/minecraft/client/world/ClientWorld;getEntities()Ljava/lang/Iterable;": "Lnet/minecraft/class_638;method_18112()Ljava/lang/Iterable;",
         "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
         "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
+      },
+      "me/Gabix/mixin/MixinExperienceOrb": {
+        "Lnet/minecraft/entity/ExperienceOrbEntity;discard()V": "Lnet/minecraft/class_1303;method_31472()V",
+        "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;)Z": "Lnet/minecraft/class_1303;method_31494(Lnet/minecraft/class_1303;)Z",
+        "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z": "Lnet/minecraft/class_1303;method_31495(Lnet/minecraft/class_1303;II)Z",
+        "merge(Lnet/minecraft/entity/ExperienceOrbEntity;)V": "Lnet/minecraft/class_1303;method_31497(Lnet/minecraft/class_1303;)V",
+        "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V": "Lnet/minecraft/class_1303;method_5694(Lnet/minecraft/class_1657;)V",
+        "readCustomDataFromNbt": "Lnet/minecraft/class_1303;method_5749(Lnet/minecraft/class_2487;)V",
+        "writeCustomDataToNbt": "Lnet/minecraft/class_1303;method_5652(Lnet/minecraft/class_2487;)V"
       },
       "me/Gabix/mixin/NoRenderMixin$FogMixin": {
         "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
