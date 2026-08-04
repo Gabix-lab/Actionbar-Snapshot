@@ -9,7 +9,6 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -25,7 +24,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public static KeyBinding toggleContinuousKeyBinding;
     public static KeyBinding noRenderKeyBinding;
     public static KeyBinding noRenderTimerKeyBinding;
-    public static KeyBinding itemInfoKeyBinding;   // <-- ÚJ
+    public static KeyBinding itemInfoKeyBinding;
 
     private ManaManager manaManager;
     private CloneManager cloneManager;
@@ -57,7 +56,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "3D Renderelés Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, "Actionbar Storage Mod"));
         noRenderTimerKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "NoRender Időzítő Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, "Actionbar Storage Mod"));
-        itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(   // <-- ÚJ
+        itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Actionbar Storage Mod"));
 
         ActionbarReader.init();
@@ -75,17 +74,23 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 client.setScreen(new StorageConfigScreen(savedConfig));
             }
 
-            // --- ÚJ: Item Info kezelése ---
+            while (noRenderTimerKeyBinding.wasPressed()) {
+                savedConfig.noRenderTimerEnabled = !savedConfig.noRenderTimerEnabled;
+                if (client.player != null) {
+                    client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Időzítő: " +
+                            (savedConfig.noRenderTimerEnabled ? "§aBE" : "§cKI")), true);
+                }
+                savedConfig.save();
+            }
+
             while (itemInfoKeyBinding.wasPressed()) {
                 ItemStack held = client.player.getMainHandStack();
                 if (held.isEmpty()) {
                     client.player.sendMessage(Text.literal("§c[Item Info] Nincs tárgy a kezedben!"), false);
                 } else {
-                    // Név
                     String name = held.getName().getString();
                     client.player.sendMessage(Text.literal("§a[Item Info] §fNév: §e" + name), false);
 
-                    // Custom Model Data
                     int cmd = 0;
                     boolean hasCmd = false;
                     if (held.hasNbt() && held.getNbt().contains("CustomModelData")) {
@@ -98,16 +103,16 @@ public class ActionbarStorageClient implements ClientModInitializer {
                         client.player.sendMessage(Text.literal("§a[Item Info] §fCMD: §7nincs"), false);
                     }
 
-                    // Lore
                     if (held.hasNbt() && held.getNbt().contains("display")) {
                         NbtCompound display = held.getNbt().getCompound("display");
-                        if (display.contains("Lore", 9)) { // 9 = LIST
-                            NbtList loreList = display.getList("Lore", 8); // 8 = STRING
+                        if (display.contains("Lore", 9)) {
+                            NbtList loreList = display.getList("Lore", 8);
                             client.player.sendMessage(Text.literal("§a[Item Info] §fLore:"), false);
                             for (int i = 0; i < loreList.size(); i++) {
                                 String jsonText = loreList.getString(i);
                                 try {
-                                    Text line = Text.Serializer.fromJson(jsonText);                                    if (line != null) {
+                                    Text line = Text.Serializer.fromJson(jsonText);
+                                    if (line != null) {
                                         client.player.sendMessage(Text.literal("§7- §f").append(line), false);
                                     } else {
                                         client.player.sendMessage(Text.literal("§7- §c[hibás JSON]"), false);

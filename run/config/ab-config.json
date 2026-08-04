@@ -13,7 +13,7 @@
   "autoBossDetection": true,
   "showMana": true,
   "showDamage": true,
-  "noRenderTimerEnabled": true,
+  "noRenderTimerEnabled": false,
   "noRenderMinutes": 5,
   "noRenderSeconds": 0,
   "manaX": 1,
