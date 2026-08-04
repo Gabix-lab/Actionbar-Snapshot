@@ -10,18 +10,37 @@ public class NoRenderManager {
     private static int idleTicksCount = 0;
     private static double lastX, lastY, lastZ;
     private static float lastYaw, lastPitch;
+    private static boolean wasWindowFocused = true;
 
     public static void init(StorageConfig config) {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
+
+            boolean isWindowFocused = client.isWindowFocused();
+
+            // Ablak inaktív állapot figyelése (azonnali kapcsolás)
+            if (config.noRenderOnInactive) {
+                if (!isWindowFocused && !enabled) {
+                    enabled = true;
+                    idleTicksCount = 0;
+                    client.player.sendMessage(Text.literal("§7[GabixMod] §fAblak inaktív - 3D Renderelés §cKIKAPCSOLVA"), true);
+                } else if (isWindowFocused && enabled && !wasWindowFocused) {
+                    enabled = false;
+                    client.player.sendMessage(Text.literal("§7[GabixMod] §fAblak aktív - 3D Renderelés §aBEKAPCSOLVA"), true);
+                }
+            }
+
             while (ActionbarStorageClient.noRenderKeyBinding.wasPressed()) {
                 toggleNoRender(client);
             }
-            if (config.noRenderTimerEnabled) {
+
+            if (!config.noRenderOnInactive && config.noRenderTimerEnabled) {
                 handleIdleDetection(client, config);
-            } else {
+            } else if (!config.noRenderTimerEnabled) {
                 idleTicksCount = 0;
             }
+
+            wasWindowFocused = isWindowFocused;
         });
     }
 

@@ -106,6 +106,7 @@ public class StorageConfigScreen extends Screen {
             this.addEntry(new HudSlotsToggleEntry(config));
             this.addEntry(new DisplayTogglesEntry(config));
             this.addEntry(new NoRenderTimerEntry(config));
+            this.addEntry(new NoRenderInactiveEntry(config));
 
             if (config.normalItems != null) {
                 for (StorageConfig.ItemPreset preset : config.normalItems) {
@@ -361,6 +362,41 @@ public class StorageConfigScreen extends Screen {
                 this.secPlusBtn.setX(x + 277);
                 this.secPlusBtn.setY(y + 1);
                 this.secPlusBtn.render(matrices, mouseX, mouseY, delta);
+            }
+
+            @Override
+            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
+            @Override
+            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
+        }
+
+        private class NoRenderInactiveEntry extends Entry {
+            private final StorageConfig config;
+            private final ButtonWidget toggleBtn;
+            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
+            private final List<ButtonWidget> selectables = new ArrayList<>();
+
+            public NoRenderInactiveEntry(StorageConfig config) {
+                this.config = config;
+                this.toggleBtn = ButtonWidget.builder(
+                        Text.literal(config.noRenderOnInactive ? "§aBE" : "§cKI"),
+                        btn -> {
+                            config.noRenderOnInactive = !config.noRenderOnInactive;
+                            btn.setMessage(Text.literal(config.noRenderOnInactive ? "§aBE" : "§cKI"));
+                        }
+                ).dimensions(0, 0, 45, 18).build();
+
+                this.children.add(this.toggleBtn);
+                this.selectables.add(this.toggleBtn);
+            }
+
+            @Override
+            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
+                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6NoRender Ablak Inaktívnál:", x + 6, y + 5, 0xFFFFFF);
+                this.toggleBtn.setX(x + entryWidth - 55);
+                this.toggleBtn.setY(y + 1);
+                this.toggleBtn.render(matrices, mouseX, mouseY, delta);
             }
 
             @Override

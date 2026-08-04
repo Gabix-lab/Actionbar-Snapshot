@@ -25,6 +25,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public static KeyBinding noRenderKeyBinding;
     public static KeyBinding noRenderTimerKeyBinding;
     public static KeyBinding itemInfoKeyBinding;
+    public static KeyBinding noRenderInactiveKeyBinding;
 
     private ManaManager manaManager;
     private CloneManager cloneManager;
@@ -56,6 +57,8 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "3D Renderelés Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, "Actionbar Storage Mod"));
         noRenderTimerKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "NoRender Időzítő Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, "Actionbar Storage Mod"));
+        noRenderInactiveKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "NoRender Ablak Inaktívnál", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F8, "Actionbar Storage Mod"));
         itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Actionbar Storage Mod"));
 
@@ -79,6 +82,15 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 if (client.player != null) {
                     client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Időzítő: " +
                             (savedConfig.noRenderTimerEnabled ? "§aBE" : "§cKI")), true);
+                }
+                savedConfig.save();
+            }
+
+            while (noRenderInactiveKeyBinding.wasPressed()) {
+                savedConfig.noRenderOnInactive = !savedConfig.noRenderOnInactive;
+                if (client.player != null) {
+                    client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Ablak Inaktívnál: " +
+                            (savedConfig.noRenderOnInactive ? "§aBE" : "§cKI")), true);
                 }
                 savedConfig.save();
             }

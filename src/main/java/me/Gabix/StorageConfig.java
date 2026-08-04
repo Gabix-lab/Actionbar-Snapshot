@@ -30,6 +30,8 @@ public class StorageConfig {
     public int noRenderMinutes = 5;
     public int noRenderSeconds = 0;
 
+    public boolean noRenderOnInactive = false;
+
     public int manaX = 1;
     public int manaY = 202;
     public float manaScale = 1.0000001f;
@@ -82,7 +84,7 @@ public class StorageConfig {
         amethystSword.levels.add(new ItemLevel("MAXIMUM SZINT", 0, 600, 0, 12));
         list.add(amethystSword);
 
-        LeveledItemPreset amethystStaff = new LeveledItemPreset("Amethyst staff", "minecraft:paper", 569, 20, 1200, 2, 18, 2, 0);
+        LeveledItemPreset amethystStaff = new LeveledItemPreset("Amethyst staff", "minecraft:paper", 569, 20, 1200, 2, 18, 1, 0);
         amethystStaff.levels.add(new ItemLevel("2. szint", 20, 1000, 2, 18));
         amethystStaff.levels.add(new ItemLevel("3. szint", 17, 1000, 1, 18));
         amethystStaff.levels.add(new ItemLevel("4. szint", 17, 1000, 1, 15));

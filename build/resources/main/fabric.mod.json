@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "actionbar",
-  "version": "1.4.1-alfa",
+  "version": "1.4.2-alfa",
   "name": "Actionbar",
   "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel",
   "authors": ["Gabix"],
