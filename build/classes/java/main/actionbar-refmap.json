@@ -52,6 +52,10 @@
       "Lnet/minecraft/client/world/ClientWorld;getEntities()Ljava/lang/Iterable;": "Lnet/minecraft/class_638;method_18112()Ljava/lang/Iterable;",
       "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
       "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
+    },
+    "me/Gabix/mixin/ParticleManagerMixin": {
+      "addBlockBreakParticles": "Lnet/minecraft/class_702;method_3046(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;)V",
+      "addBlockBreakingParticles": "Lnet/minecraft/class_702;method_3054(Lnet/minecraft/class_2338;Lnet/minecraft/class_2350;)V"
     }
   },
   "data": {
@@ -108,6 +112,10 @@
         "Lnet/minecraft/client/world/ClientWorld;getEntities()Ljava/lang/Iterable;": "Lnet/minecraft/class_638;method_18112()Ljava/lang/Iterable;",
         "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
         "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
+      },
+      "me/Gabix/mixin/ParticleManagerMixin": {
+        "addBlockBreakParticles": "Lnet/minecraft/class_702;method_3046(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;)V",
+        "addBlockBreakingParticles": "Lnet/minecraft/class_702;method_3054(Lnet/minecraft/class_2338;Lnet/minecraft/class_2350;)V"
       }
     }
   }

@@ -107,6 +107,7 @@ public class StorageConfigScreen extends Screen {
             this.addEntry(new DisplayTogglesEntry(config));
             this.addEntry(new NoRenderTimerEntry(config));
             this.addEntry(new NoRenderInactiveEntry(config));
+            this.addEntry(new HideBlockBreakingParticlesEntry(config));
 
             if (config.normalItems != null) {
                 for (StorageConfig.ItemPreset preset : config.normalItems) {
@@ -394,6 +395,41 @@ public class StorageConfigScreen extends Screen {
             public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
                 fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
                 StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6NoRender Ablak Inaktívnál:", x + 6, y + 5, 0xFFFFFF);
+                this.toggleBtn.setX(x + entryWidth - 55);
+                this.toggleBtn.setY(y + 1);
+                this.toggleBtn.render(matrices, mouseX, mouseY, delta);
+            }
+
+            @Override
+            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
+            @Override
+            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
+        }
+
+        private class HideBlockBreakingParticlesEntry extends Entry {
+            private final StorageConfig config;
+            private final ButtonWidget toggleBtn;
+            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
+            private final List<ButtonWidget> selectables = new ArrayList<>();
+
+            public HideBlockBreakingParticlesEntry(StorageConfig config) {
+                this.config = config;
+                this.toggleBtn = ButtonWidget.builder(
+                        Text.literal(config.hideBlockBreakingParticles ? "§cKI" : "§aBE"),
+                        btn -> {
+                            config.hideBlockBreakingParticles = !config.hideBlockBreakingParticles;
+                            btn.setMessage(Text.literal(config.hideBlockBreakingParticles ? "§cKI" : "§aBE"));
+                        }
+                ).dimensions(0, 0, 45, 18).build();
+
+                this.children.add(this.toggleBtn);
+                this.selectables.add(this.toggleBtn);
+            }
+
+            @Override
+            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
+                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6Block Break Részecskék:", x + 6, y + 5, 0xFFFFFF);
                 this.toggleBtn.setX(x + entryWidth - 55);
                 this.toggleBtn.setY(y + 1);
                 this.toggleBtn.render(matrices, mouseX, mouseY, delta);

@@ -44,6 +44,8 @@ public class StorageConfig {
     public int[] hudSlotsY = {13, 34, 55, 76, 97, 118, 139, 160, 181};
     public float[] hudSlotsScale = {1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
 
+    public boolean hideBlockBreakingParticles = false;
+
     public StorageConfig() {
         this.selectedBossNotification = "Ki";
         this.normalItems = createDefaultNormalItems();

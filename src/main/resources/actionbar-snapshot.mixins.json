@@ -13,7 +13,8 @@
     "FogMixin",
     "FullbrightMixin",
     "InGameHudMixin",
-    "LevelRendererMixin"
+    "LevelRendererMixin",
+    "ParticleManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
