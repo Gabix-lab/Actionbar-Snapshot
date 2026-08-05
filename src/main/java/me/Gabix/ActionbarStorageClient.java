@@ -24,8 +24,9 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public static KeyBinding toggleContinuousKeyBinding;
     public static KeyBinding noRenderKeyBinding;
     public static KeyBinding noRenderTimerKeyBinding;
-    public static KeyBinding itemInfoKeyBinding;
     public static KeyBinding noRenderInactiveKeyBinding;
+    public static KeyBinding itemInfoKeyBinding;
+    public static KeyBinding fullbrightKeyBinding;
 
     private ManaManager manaManager;
     private CloneManager cloneManager;
@@ -61,6 +62,8 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "NoRender Ablak Inaktívnál", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F8, "Actionbar Storage Mod"));
         itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Actionbar Storage Mod"));
+        fullbrightKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "Fullbright Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "Actionbar Storage Mod"));
 
         ActionbarReader.init();
         NoRenderManager.init(savedConfig);
@@ -93,6 +96,10 @@ public class ActionbarStorageClient implements ClientModInitializer {
                             (savedConfig.noRenderOnInactive ? "§aBE" : "§cKI")), true);
                 }
                 savedConfig.save();
+            }
+
+            while (fullbrightKeyBinding.wasPressed()) {
+                FullbrightManager.toggle(client);
             }
 
             while (itemInfoKeyBinding.wasPressed()) {
