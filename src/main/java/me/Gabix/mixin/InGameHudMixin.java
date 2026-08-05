@@ -63,7 +63,6 @@ public class InGameHudMixin {
                 String fullStatusText = leftStatus + " §f| " + rightStatus;
                 client.textRenderer.drawWithShadow(matrices, fullStatusText, slotX + slotSize + 4, slotY + (int)(5 * scale), 0xFFFFFF);
 
-                // FOGLALT jelzés Lunar VP esetén, ha mindkét klón aktív
                 if (settings.cooldownKey().startsWith("minecraft:paper:581") && cloneManager != null && cloneManager.getActiveClonesCount() >= 2) {
                     int nextExpiry = cloneManager.getNextExpiryTick();
                     int remTicks = Math.max(0, nextExpiry - globalTick);

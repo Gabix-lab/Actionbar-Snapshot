@@ -108,6 +108,7 @@ public class StorageConfigScreen extends Screen {
             this.addEntry(new NoRenderTimerEntry(config));
             this.addEntry(new NoRenderInactiveEntry(config));
             this.addEntry(new HideBlockBreakingParticlesEntry(config));
+            this.addEntry(new FireOverlayEntry(config));
 
             if (config.normalItems != null) {
                 for (StorageConfig.ItemPreset preset : config.normalItems) {
@@ -433,6 +434,60 @@ public class StorageConfigScreen extends Screen {
                 this.toggleBtn.setX(x + entryWidth - 55);
                 this.toggleBtn.setY(y + 1);
                 this.toggleBtn.render(matrices, mouseX, mouseY, delta);
+            }
+
+            @Override
+            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
+            @Override
+            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
+        }
+
+        private class FireOverlayEntry extends Entry {
+            private final StorageConfig config;
+            private final ButtonWidget toggleBtn;
+            private final ButtonWidget settingsBtn;
+            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
+            private final List<ButtonWidget> selectables = new ArrayList<>();
+
+            public FireOverlayEntry(StorageConfig config) {
+                this.config = config;
+
+                this.toggleBtn = ButtonWidget.builder(
+                        Text.literal(config.hideFireOverlay ? "§cKI" : "§aBE"),
+                        btn -> {
+                            config.hideFireOverlay = !config.hideFireOverlay;
+                            btn.setMessage(Text.literal(config.hideFireOverlay ? "§cKI" : "§aBE"));
+                            config.save();
+                        }
+                ).dimensions(0, 0, 32, 18).build();
+
+                this.settingsBtn = ButtonWidget.builder(Text.literal("Beállítás"), btn -> {
+                    if (StorageConfigScreen.this.client != null) {
+                        StorageConfigScreen.this.client.setScreen(new FireOverlayConfigScreen(config, StorageConfigScreen.this));
+                    }
+                }).dimensions(0, 0, 60, 18).build();
+
+                addButton(toggleBtn);
+                addButton(settingsBtn);
+            }
+
+            private void addButton(ButtonWidget btn) {
+                this.children.add(btn);
+                this.selectables.add(btn);
+            }
+
+            @Override
+            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
+                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44CC5500);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§cTűz Overlay:", x + 6, y + 5, 0xFFFFFF);
+
+                this.toggleBtn.setX(x + 130);
+                this.toggleBtn.setY(y + 1);
+                this.toggleBtn.render(matrices, mouseX, mouseY, delta);
+
+                this.settingsBtn.setX(x + 170);
+                this.settingsBtn.setY(y + 1);
+                this.settingsBtn.render(matrices, mouseX, mouseY, delta);
             }
 
             @Override

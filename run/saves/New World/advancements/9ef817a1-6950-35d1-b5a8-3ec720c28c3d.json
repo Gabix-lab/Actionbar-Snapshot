@@ -55,9 +55,16 @@
   },
   "minecraft:adventure/adventuring_time": {
     "criteria": {
+      "minecraft:old_growth_birch_forest": "2026-08-05 21:07:41 +0200",
       "minecraft:savanna": "2026-07-05 18:19:44 +0200"
     },
     "done": false
+  },
+  "minecraft:recipes/decorations/chest": {
+    "criteria": {
+      "has_lots_of_items": "2026-08-05 21:07:40 +0200"
+    },
+    "done": true
   },
   "DataVersion": 3337
 }

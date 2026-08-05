@@ -46,6 +46,9 @@ public class StorageConfig {
 
     public boolean hideBlockBreakingParticles = false;
 
+    public boolean hideFireOverlay = false;
+    public int fireOverlayHeight = 100;
+
     public StorageConfig() {
         this.selectedBossNotification = "Ki";
         this.normalItems = createDefaultNormalItems();

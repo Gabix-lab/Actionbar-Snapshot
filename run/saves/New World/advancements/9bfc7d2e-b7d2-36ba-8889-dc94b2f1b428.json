@@ -29,6 +29,14 @@
     },
     "done": true
   },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:savanna_plateau": "2026-07-05 17:15:52 +0200",
+      "minecraft:old_growth_birch_forest": "2026-08-05 21:03:45 +0200",
+      "minecraft:savanna": "2026-07-05 17:02:53 +0200"
+    },
+    "done": false
+  },
   "minecraft:adventure/root": {
     "criteria": {
       "killed_something": "2026-07-05 17:03:47 +0200"
@@ -42,24 +50,35 @@
     },
     "done": false
   },
-  "minecraft:recipes/misc/bone_meal": {
-    "criteria": {
-      "has_bone": "2026-07-05 17:04:40 +0200"
-    },
-    "done": true
-  },
   "minecraft:adventure/kill_a_mob": {
     "criteria": {
       "minecraft:zombie": "2026-07-05 17:03:47 +0200"
     },
     "done": true
   },
-  "minecraft:adventure/adventuring_time": {
+  "minecraft:recipes/misc/bone_meal": {
     "criteria": {
-      "minecraft:savanna_plateau": "2026-07-05 17:15:52 +0200",
-      "minecraft:savanna": "2026-07-05 17:02:53 +0200"
+      "has_bone": "2026-07-05 17:04:40 +0200"
     },
-    "done": false
+    "done": true
+  },
+  "minecraft:recipes/misc/book": {
+    "criteria": {
+      "has_paper": "2026-08-05 21:03:44 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/decorations/chest": {
+    "criteria": {
+      "has_lots_of_items": "2026-08-05 21:03:44 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/decorations/cartography_table": {
+    "criteria": {
+      "has_paper": "2026-08-05 21:03:44 +0200"
+    },
+    "done": true
   },
   "DataVersion": 3337
 }

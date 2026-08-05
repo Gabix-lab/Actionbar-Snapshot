@@ -10,6 +10,7 @@
   "client": [
     "ActionbarMixin",
     "BlockEntityRenderMixin",
+    "FireOverlayMixin",
     "FogMixin",
     "FullbrightMixin",
     "InGameHudMixin",

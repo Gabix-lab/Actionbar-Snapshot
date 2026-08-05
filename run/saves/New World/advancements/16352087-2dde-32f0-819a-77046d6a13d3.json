@@ -5,12 +5,6 @@
     },
     "done": true
   },
-  "minecraft:recipes/misc/book": {
-    "criteria": {
-      "has_paper": "2026-07-05 17:22:06 +0200"
-    },
-    "done": true
-  },
   "minecraft:recipes/food/cooked_chicken": {
     "criteria": {
       "has_chicken": "2026-07-05 17:21:16 +0200"
@@ -20,12 +14,6 @@
   "minecraft:recipes/food/cooked_chicken_from_smoking": {
     "criteria": {
       "has_chicken": "2026-07-05 17:21:16 +0200"
-    },
-    "done": true
-  },
-  "minecraft:adventure/shoot_arrow": {
-    "criteria": {
-      "shot_arrow": "2026-07-05 17:23:02 +0200"
     },
     "done": true
   },
@@ -47,18 +35,37 @@
     },
     "done": true
   },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:savanna_plateau": "2026-07-05 17:21:16 +0200",
+      "minecraft:old_growth_birch_forest": "2026-08-05 21:16:45 +0200",
+      "minecraft:savanna": "2026-07-05 17:21:32 +0200"
+    },
+    "done": false
+  },
+  "minecraft:recipes/misc/book": {
+    "criteria": {
+      "has_paper": "2026-07-05 17:22:06 +0200"
+    },
+    "done": true
+  },
   "minecraft:recipes/decorations/cartography_table": {
     "criteria": {
       "has_paper": "2026-07-05 17:22:06 +0200"
     },
     "done": true
   },
-  "minecraft:adventure/adventuring_time": {
+  "minecraft:adventure/shoot_arrow": {
     "criteria": {
-      "minecraft:savanna_plateau": "2026-07-05 17:21:16 +0200",
-      "minecraft:savanna": "2026-07-05 17:21:32 +0200"
+      "shot_arrow": "2026-07-05 17:23:02 +0200"
     },
-    "done": false
+    "done": true
+  },
+  "minecraft:recipes/decorations/chest": {
+    "criteria": {
+      "has_lots_of_items": "2026-08-05 21:16:44 +0200"
+    },
+    "done": true
   },
   "DataVersion": 3337
 }

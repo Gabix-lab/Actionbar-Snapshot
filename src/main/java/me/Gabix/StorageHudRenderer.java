@@ -21,7 +21,7 @@ public class StorageHudRenderer {
         int startX = 5;
         int slotSize = 20;
         int totalHotbarHeight = 9 * slotSize;
-        int startY = (height - totalHotbarHeight) / 2;   // Középre igazított függőleges hotbar
+        int startY = (height - totalHotbarHeight) / 2;
 
         CloneManager cloneManager = ActionbarStorageClient.getInstance().getCloneManager();
 
@@ -31,10 +31,8 @@ public class StorageHudRenderer {
             int slotY = startY + i * slotSize;
             ItemStack stack = inventory.getStack(i);
 
-            // Slot háttér
             DrawableHelper.fill(matrices, startX, slotY, startX + slotSize, slotY + slotSize, 0x66000000);
 
-            // Aktív slot keret
             if (inventory.selectedSlot == i) {
                 DrawableHelper.fill(matrices, startX, slotY, startX + slotSize, slotY + 1, 0xFFFFFFFF);
                 DrawableHelper.fill(matrices, startX, slotY + slotSize - 1, startX + slotSize, slotY + slotSize, 0xFFFFFFFF);
@@ -42,13 +40,11 @@ public class StorageHudRenderer {
                 DrawableHelper.fill(matrices, startX + slotSize - 1, slotY, startX + slotSize, slotY + slotSize, 0xFFFFFFFF);
             }
 
-            // Item ikon
             if (!stack.isEmpty()) {
                 itemRenderer.renderInGuiWithOverrides(matrices, stack, startX + 2, slotY + 2);
                 itemRenderer.renderGuiItemOverlay(matrices, textRenderer, stack, startX + 2, slotY + 2);
             }
 
-            // Cooldown szöveg
             ActionbarStorageClient.SlotSettings settings = ActionbarStorageClient.getSlotSettings(i);
             if (settings != null && settings.cooldownKey() != null) {
                 String key = settings.cooldownKey();
@@ -76,7 +72,6 @@ public class StorageHudRenderer {
 
                 textRenderer.drawWithShadow(matrices, leftStr + " §f| " + rightStr, startX + slotSize + 4, slotY + 2, 0xFFFFFF);
 
-                // Klón foglaltság jelzés
                 if (key.startsWith("minecraft:paper:581") && cloneManager != null && cloneManager.getActiveClonesCount() >= 2) {
                     int nextExpiry = cloneManager.getNextExpiryTick();
                     int remTicks = Math.max(0, nextExpiry - globalTickCounter);
@@ -89,7 +84,6 @@ public class StorageHudRenderer {
             }
         }
 
-        // Mana és sebzés a hotbar alatt (fix pozíció)
         int infoY = startY + totalHotbarHeight + 4;
         textRenderer.drawWithShadow(matrices, "Mana: " + manaManager.getCurrentMana(), startX, infoY, 0x55FFFF);
 

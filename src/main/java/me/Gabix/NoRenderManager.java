@@ -18,7 +18,6 @@ public class NoRenderManager {
 
             boolean isWindowFocused = client.isWindowFocused();
 
-            // Ablak inaktív állapot figyelése (azonnali kapcsolás)
             if (config.noRenderOnInactive) {
                 if (!isWindowFocused && !enabled) {
                     enabled = true;

@@ -55,5 +55,8 @@
     1.2,
     1.2,
     1.2
-  ]
+  ],
+  "hideBlockBreakingParticles": false,
+  "hideFireOverlay": false,
+  "fireOverlayHeight": 50
 }
