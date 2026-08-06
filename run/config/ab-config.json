@@ -15,8 +15,13 @@
   "showDamage": true,
   "noRenderTimerEnabled": false,
   "noRenderMinutes": 0,
-  "noRenderSeconds": 10,
+  "noRenderSeconds": 5,
   "noRenderOnInactive": true,
+  "fpsLimitImmediateOnInactive": true,
+  "fpsLimitOnInactive": false,
+  "fpsLimitMinutes": 0,
+  "fpsLimitSeconds": 5,
+  "fpsLimitValue": 2,
   "manaX": 1,
   "manaY": 202,
   "manaScale": 1.0000001,
@@ -58,5 +63,5 @@
   ],
   "hideBlockBreakingParticles": true,
   "hideFireOverlay": false,
-  "fireOverlayHeight": 25
+  "fireOverlayHeight": 30
 }

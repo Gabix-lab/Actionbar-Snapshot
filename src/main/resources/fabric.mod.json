@@ -18,7 +18,8 @@
     "client": [
       "me.Gabix.ActionbarStorageClient",
       "me.Gabix.fullbirghtnesstoggle.FullbrightModClient",
-      "me.Gabix.norender.NoRenderModClient"
+      "me.Gabix.norender.NoRenderModClient",
+      "me.Gabix.developer.DeveloperModClient"
     ]
   },
   "mixins": [

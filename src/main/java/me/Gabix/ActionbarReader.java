@@ -4,6 +4,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.text.Text;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
@@ -150,21 +154,79 @@ public class ActionbarReader {
                 client.player.sendMessage(Text.literal("§a[Mod] Kész felirat: §eCsak egyszer villan fel"), false);
             }
         }
+    }
 
-        while (ActionbarStorageClient.readActionbarKeyBinding.wasPressed()) {
-            if (lastRawActionbarText == null || lastRawActionbarText.isEmpty()) {
-                client.player.sendMessage(Text.literal("§c[Actionbar] Jelenleg nincs aktív Actionbar a képernyőn!"), false);
+    public static void handleReadActionbar(MinecraftClient client) {
+        if (lastRawActionbarText == null || lastRawActionbarText.isEmpty()) {
+            client.player.sendMessage(Text.literal("§c[Actionbar] Jelenleg nincs aktív Actionbar a képernyőn!"), false);
+        } else {
+            String formattedWithAmpersand = lastRawActionbarText.replace("§", "&");
+            client.player.sendMessage(Text.literal("§a[Actionbar] Aktív Actionbar adatok:"), false);
+            client.player.sendMessage(Text.literal("§e - Tiszta név: §f" + lastCleanActionbarText), false);
+            client.player.sendMessage(Text.literal("§e   Színezett/Kódolt (&): §f" + formattedWithAmpersand), false);
+        }
+    }
+
+    public static void handleReadBossBars(MinecraftClient client) {
+        readBossBars(client);
+    }
+
+    public static void handleItemInfo(MinecraftClient client) {
+        ItemStack held = client.player.getMainHandStack();
+        if (held.isEmpty()) {
+            client.player.sendMessage(Text.literal("§c[Item Info] Nincs tárgy a kezedben!"), false);
+            return;
+        }
+
+        StringBuilder result = new StringBuilder();
+        result.append("§a[Item Info]\n");
+        result.append("§fNév: §e").append(held.getName().getString()).append("\n");
+
+        // Item ID (Registry név)
+        String itemId = Registries.ITEM.getId(held.getItem()).toString();
+        result.append("§fID: §e").append(itemId).append("\n");
+
+        int cmd = 0;
+        boolean hasCmd = false;
+        if (held.hasNbt() && held.getNbt().contains("CustomModelData")) {
+            cmd = held.getNbt().getInt("CustomModelData");
+            hasCmd = true;
+        }
+        result.append("§fCMD: ").append(hasCmd ? "§b" + cmd : "§7nincs").append("\n");
+
+        result.append("§fLore:\n");
+        if (held.hasNbt() && held.getNbt().contains("display")) {
+            NbtCompound display = held.getNbt().getCompound("display");
+            if (display.contains("Lore", 9)) {
+                NbtList loreList = display.getList("Lore", 8);
+                boolean hasLore = false;
+                for (int i = 0; i < loreList.size(); i++) {
+                    String jsonText = loreList.getString(i);
+                    try {
+                        Text line = Text.Serializer.fromJson(jsonText);
+                        if (line != null) {
+                            result.append("§7- §f").append(line.getString()).append("\n");
+                            hasLore = true;
+                        } else {
+                            result.append("§7- §c[hibás JSON]\n");
+                            hasLore = true;
+                        }
+                    } catch (Exception e) {
+                        result.append("§7- §c[hibás formátum]\n");
+                        hasLore = true;
+                    }
+                }
+                if (!hasLore) {
+                    result.append("§7- (üres)\n");
+                }
             } else {
-                String formattedWithAmpersand = lastRawActionbarText.replace("§", "&");
-                client.player.sendMessage(Text.literal("§a[Actionbar] Aktív Actionbar adatok:"), false);
-                client.player.sendMessage(Text.literal("§e - Tiszta név: §f" + lastCleanActionbarText), false);
-                client.player.sendMessage(Text.literal("§e   Színezett/Kódolt (&): §f" + formattedWithAmpersand), false);
+                result.append("§7nincs\n");
             }
+        } else {
+            result.append("§7nincs\n");
         }
 
-        while (ActionbarStorageClient.readBossBarsKeyBinding.wasPressed()) {
-            readBossBars(client);
-        }
+        client.player.sendMessage(Text.literal(result.toString()), false);
     }
 
     public static void readBossBars(MinecraftClient client) {

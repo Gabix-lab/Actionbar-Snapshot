@@ -29,8 +29,12 @@ public class StorageConfig {
     public boolean noRenderTimerEnabled = true;
     public int noRenderMinutes = 5;
     public int noRenderSeconds = 0;
-
     public boolean noRenderOnInactive = false;
+    public boolean fpsLimitImmediateOnInactive = false;
+    public boolean fpsLimitOnInactive = false;
+    public int fpsLimitMinutes = 0;
+    public int fpsLimitSeconds = 0;
+    public int fpsLimitValue = 30;
 
     public int manaX = 1;
     public int manaY = 202;

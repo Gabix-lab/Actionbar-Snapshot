@@ -108,6 +108,8 @@ public class StorageConfigScreen extends Screen {
             this.addEntry(new DisplayTogglesEntry(config));
             this.addEntry(new NoRenderTimerEntry(config));
             this.addEntry(new NoRenderInactiveEntry(config));
+            this.addEntry(new FpsLimitEntry(config));
+            this.addEntry(new FpsLimitImmediateEntry(config));
             this.addEntry(new HideBlockBreakingParticlesEntry(config));
             this.addEntry(new FireOverlayEntry(config));
 
@@ -397,6 +399,178 @@ public class StorageConfigScreen extends Screen {
             public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
                 fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
                 StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6NoRender Ablak Inaktívnál:", x + 6, y + 5, 0xFFFFFF);
+                this.toggleBtn.setX(x + entryWidth - 55);
+                this.toggleBtn.setY(y + 1);
+                this.toggleBtn.render(matrices, mouseX, mouseY, delta);
+            }
+
+            @Override
+            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
+            @Override
+            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
+        }
+
+        private class FpsLimitEntry extends Entry {
+            private final StorageConfig config;
+            private final ButtonWidget toggleBtn;
+            private final ButtonWidget minMinusBtn, minPlusBtn;
+            private final ButtonWidget secMinusBtn, secPlusBtn;
+            private final net.minecraft.client.gui.widget.TextFieldWidget fpsTextField;
+            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
+            private final List<ButtonWidget> selectables = new ArrayList<>();
+
+            public FpsLimitEntry(StorageConfig config) {
+                this.config = config;
+
+                this.toggleBtn = ButtonWidget.builder(Text.literal(config.fpsLimitOnInactive ? "§aBE" : "§cKI"), btn -> {
+                    config.fpsLimitOnInactive = !config.fpsLimitOnInactive;
+                    btn.setMessage(Text.literal(config.fpsLimitOnInactive ? "§aBE" : "§cKI"));
+                    config.save();
+                }).dimensions(0, 0, 32, 18).build();
+
+                this.minMinusBtn = ButtonWidget.builder(Text.literal("-"), btn -> {
+                    if (config.fpsLimitMinutes > 0) config.fpsLimitMinutes--;
+                    config.save();
+                }).dimensions(0, 0, 16, 18).build();
+
+                this.minPlusBtn = ButtonWidget.builder(Text.literal("+"), btn -> {
+                    if (config.fpsLimitMinutes < 60) config.fpsLimitMinutes++;
+                    config.save();
+                }).dimensions(0, 0, 16, 18).build();
+
+                this.secMinusBtn = ButtonWidget.builder(Text.literal("-"), btn -> {
+                    if (config.fpsLimitSeconds >= 5) config.fpsLimitSeconds -= 5;
+                    config.save();
+                }).dimensions(0, 0, 16, 18).build();
+
+                this.secPlusBtn = ButtonWidget.builder(Text.literal("+"), btn -> {
+                    if (config.fpsLimitSeconds < 55) config.fpsLimitSeconds += 5;
+                    config.save();
+                }).dimensions(0, 0, 16, 18).build();
+
+                this.fpsTextField = new net.minecraft.client.gui.widget.TextFieldWidget(
+                        StorageConfigScreen.this.textRenderer, 0, 0, 40, 16, Text.literal("FPS")
+                );
+                this.fpsTextField.setText(String.valueOf(config.fpsLimitValue));
+                this.fpsTextField.setChangedListener(text -> {
+                    try {
+                        int value = Integer.parseInt(text);
+                        if (value >= 1 && value <= 260) {
+                            config.fpsLimitValue = value;
+                            config.save();
+                            this.fpsTextField.setEditableColor(0xFFFFFF);
+                        } else {
+                            this.fpsTextField.setEditableColor(0xFF5555);
+                        }
+                    } catch (NumberFormatException e) {
+                        this.fpsTextField.setEditableColor(0xFF5555);
+                    }
+                });
+
+                addButton(toggleBtn);
+                addButton(minMinusBtn);
+                addButton(minPlusBtn);
+                addButton(secMinusBtn);
+                addButton(secPlusBtn);
+                this.children.add(this.fpsTextField);
+            }
+
+            private void addButton(ButtonWidget btn) {
+                this.children.add(btn);
+                this.selectables.add(btn);
+            }
+
+            @Override
+            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
+                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6Auto FPS Limit Idle:", x + 6, y + 5, 0xFFFFFF);
+
+                this.toggleBtn.setX(x + 130);
+                this.toggleBtn.setY(y + 1);
+                this.toggleBtn.render(matrices, mouseX, mouseY, delta);
+
+                this.minMinusBtn.setX(x + 170);
+                this.minMinusBtn.setY(y + 1);
+                this.minMinusBtn.render(matrices, mouseX, mouseY, delta);
+
+                String minText = config.fpsLimitMinutes + "m";
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, minText, x + 190, y + 5, 0xFFFF55);
+
+                this.minPlusBtn.setX(x + 212);
+                this.minPlusBtn.setY(y + 1);
+                this.minPlusBtn.render(matrices, mouseX, mouseY, delta);
+
+                this.secMinusBtn.setX(x + 235);
+                this.secMinusBtn.setY(y + 1);
+                this.secMinusBtn.render(matrices, mouseX, mouseY, delta);
+
+                String secText = config.fpsLimitSeconds + "s";
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, secText, x + 255, y + 5, 0xFFFF55);
+
+                this.secPlusBtn.setX(x + 277);
+                this.secPlusBtn.setY(y + 1);
+                this.secPlusBtn.render(matrices, mouseX, mouseY, delta);
+
+                this.fpsTextField.setX(x + 305);
+                this.fpsTextField.setY(y + 1);
+                this.fpsTextField.render(matrices, mouseX, mouseY, delta);
+            }
+
+            @Override
+            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
+            @Override
+            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
+
+            @Override
+            public boolean mouseClicked(double mouseX, double mouseY, int button) {
+                if (this.fpsTextField.mouseClicked(mouseX, mouseY, button)) {
+                    return true;
+                }
+                return super.mouseClicked(mouseX, mouseY, button);
+            }
+
+            @Override
+            public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+                if (this.fpsTextField.keyPressed(keyCode, scanCode, modifiers)) {
+                    return true;
+                }
+                return super.keyPressed(keyCode, scanCode, modifiers);
+            }
+
+            @Override
+            public boolean charTyped(char chr, int modifiers) {
+                if (this.fpsTextField.charTyped(chr, modifiers)) {
+                    return true;
+                }
+                return super.charTyped(chr, modifiers);
+            }
+        }
+
+        private class FpsLimitImmediateEntry extends Entry {
+            private final StorageConfig config;
+            private final ButtonWidget toggleBtn;
+            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
+            private final List<ButtonWidget> selectables = new ArrayList<>();
+
+            public FpsLimitImmediateEntry(StorageConfig config) {
+                this.config = config;
+                this.toggleBtn = ButtonWidget.builder(
+                        Text.literal(config.fpsLimitImmediateOnInactive ? "§aBE" : "§cKI"),
+                        btn -> {
+                            config.fpsLimitImmediateOnInactive = !config.fpsLimitImmediateOnInactive;
+                            btn.setMessage(Text.literal(config.fpsLimitImmediateOnInactive ? "§aBE" : "§cKI"));
+                            config.save();
+                        }
+                ).dimensions(0, 0, 45, 18).build();
+
+                this.children.add(this.toggleBtn);
+                this.selectables.add(this.toggleBtn);
+            }
+
+            @Override
+            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
+                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6FPS Limit Ablak Inaktívnál:", x + 6, y + 5, 0xFFFFFF);
                 this.toggleBtn.setX(x + entryWidth - 55);
                 this.toggleBtn.setY(y + 1);
                 this.toggleBtn.render(matrices, mouseX, mouseY, delta);

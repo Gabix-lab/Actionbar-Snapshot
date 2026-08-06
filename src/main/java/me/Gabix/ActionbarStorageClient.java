@@ -19,10 +19,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
     public static KeyBinding configKeyBinding;
     public static KeyBinding resetCooldownKeyBinding;
-    public static KeyBinding readActionbarKeyBinding;
-    public static KeyBinding readBossBarsKeyBinding;
     public static KeyBinding toggleContinuousKeyBinding;
-    public static KeyBinding itemInfoKeyBinding;
 
     private ManaManager manaManager;
     private CloneManager cloneManager;
@@ -42,16 +39,10 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
         configKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Actionbar Config Megnyitása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "Actionbar Storage Mod"));
-        readActionbarKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Actionbar Nyers Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "Actionbar Storage Mod"));
-        readBossBarsKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "BossBar Név Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "Actionbar Storage Mod"));
         resetCooldownKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Cooldown Nullázása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_SEMICOLON, "Actionbar Storage Mod"));
         toggleContinuousKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Kész Felirat Mód Váltás", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_APOSTROPHE, "Actionbar Storage Mod"));
-        itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Actionbar Storage Mod"));
 
         ActionbarReader.init();
 
@@ -65,53 +56,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
             while (configKeyBinding.wasPressed()) {
                 if (savedConfig == null) savedConfig = StorageConfig.load();
                 client.setScreen(new StorageConfigScreen(savedConfig));
-            }
-
-            while (itemInfoKeyBinding.wasPressed()) {
-                ItemStack held = client.player.getMainHandStack();
-                if (held.isEmpty()) {
-                    client.player.sendMessage(Text.literal("§c[Item Info] Nincs tárgy a kezedben!"), false);
-                } else {
-                    String name = held.getName().getString();
-                    client.player.sendMessage(Text.literal("§a[Item Info] §fNév: §e" + name), false);
-
-                    int cmd = 0;
-                    boolean hasCmd = false;
-                    if (held.hasNbt() && held.getNbt().contains("CustomModelData")) {
-                        cmd = held.getNbt().getInt("CustomModelData");
-                        hasCmd = true;
-                    }
-                    if (hasCmd) {
-                        client.player.sendMessage(Text.literal("§a[Item Info] §fCMD: §b" + cmd), false);
-                    } else {
-                        client.player.sendMessage(Text.literal("§a[Item Info] §fCMD: §7nincs"), false);
-                    }
-
-                    if (held.hasNbt() && held.getNbt().contains("display")) {
-                        NbtCompound display = held.getNbt().getCompound("display");
-                        if (display.contains("Lore", 9)) {
-                            NbtList loreList = display.getList("Lore", 8);
-                            client.player.sendMessage(Text.literal("§a[Item Info] §fLore:"), false);
-                            for (int i = 0; i < loreList.size(); i++) {
-                                String jsonText = loreList.getString(i);
-                                try {
-                                    Text line = Text.Serializer.fromJson(jsonText);
-                                    if (line != null) {
-                                        client.player.sendMessage(Text.literal("§7- §f").append(line), false);
-                                    } else {
-                                        client.player.sendMessage(Text.literal("§7- §c[hibás JSON]"), false);
-                                    }
-                                } catch (Exception e) {
-                                    client.player.sendMessage(Text.literal("§7- §c[hibás formátum]"), false);
-                                }
-                            }
-                        } else {
-                            client.player.sendMessage(Text.literal("§a[Item Info] §fLore: §7nincs"), false);
-                        }
-                    } else {
-                        client.player.sendMessage(Text.literal("§a[Item Info] §fLore: §7nincs"), false);
-                    }
-                }
             }
 
             int activeSlot = client.player.getInventory().selectedSlot;

@@ -12,11 +12,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class GameOptionsMixin {
 
     @Shadow private SimpleOption<Double> gamma;
+    private double gammaOriginalValue = 0.0;
 
     @Inject(method = "write", at = @At("HEAD"))
-    private void onWrite(CallbackInfo ci) {
-        if (gamma != null && gamma.getValue() > 1.0) {
-            gamma.setValue(1.0);
+    private void onWriteHead(CallbackInfo ci) {
+        if (gamma != null) {
+            gammaOriginalValue = gamma.getValue();
+            if (gammaOriginalValue > 1.0) {
+                gamma.setValue(1.0);
+            }
+        }
+    }
+
+    @Inject(method = "write", at = @At("TAIL"))
+    private void onWriteTail(CallbackInfo ci) {
+        if (gamma != null && gammaOriginalValue > 1.0) {
+            gamma.setValue(gammaOriginalValue);
         }
     }
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "actionbar",
-  "version": "1.4.7-alfa",
+  "version": "1.4.8-alfa",
   "name": "Actionbar",
   "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel, Clumps XP optimalizálással",
   "authors": ["Gabix"],
@@ -18,7 +18,8 @@
     "client": [
       "me.Gabix.ActionbarStorageClient",
       "me.Gabix.fullbirghtnesstoggle.FullbrightModClient",
-      "me.Gabix.norender.NoRenderModClient"
+      "me.Gabix.norender.NoRenderModClient",
+      "me.Gabix.developer.DeveloperModClient"
     ]
   },
   "mixins": [

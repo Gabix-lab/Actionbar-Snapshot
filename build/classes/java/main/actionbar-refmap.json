@@ -46,9 +46,15 @@
       "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
       "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
     },
+    "me/Gabix/norender/mixin/MinecraftClientMixin": {
+      "onWindowFocusChanged": "Lnet/minecraft/class_310;method_15995(Z)V"
+    },
     "me/Gabix/norender/mixin/ParticleManagerMixin": {
       "addBlockBreakParticles": "Lnet/minecraft/class_702;method_3046(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;)V",
       "addBlockBreakingParticles": "Lnet/minecraft/class_702;method_3054(Lnet/minecraft/class_2338;Lnet/minecraft/class_2350;)V"
+    },
+    "me/Gabix/norender/mixin/WindowAccessor": {
+      "framerateLimit": "field_16238:I"
     }
   },
   "data": {
@@ -99,9 +105,15 @@
         "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
         "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
       },
+      "me/Gabix/norender/mixin/MinecraftClientMixin": {
+        "onWindowFocusChanged": "Lnet/minecraft/class_310;method_15995(Z)V"
+      },
       "me/Gabix/norender/mixin/ParticleManagerMixin": {
         "addBlockBreakParticles": "Lnet/minecraft/class_702;method_3046(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;)V",
         "addBlockBreakingParticles": "Lnet/minecraft/class_702;method_3054(Lnet/minecraft/class_2338;Lnet/minecraft/class_2350;)V"
+      },
+      "me/Gabix/norender/mixin/WindowAccessor": {
+        "framerateLimit": "field_16238:I"
       }
     }
   }

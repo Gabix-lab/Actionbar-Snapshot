@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class FullbrightModClient implements ClientModInitializer {
     private static KeyBinding fullbrightKeyBinding;
+    private boolean fullbrightPressed = false;
 
     @Override
     public void onInitializeClient() {
@@ -23,8 +24,14 @@ public class FullbrightModClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
             ToggleEvent.startupCheck();
-            while (fullbrightKeyBinding.wasPressed()) {
-                ToggleEvent.onHotkeyPress();
+
+            if (fullbrightKeyBinding.isPressed()) {
+                if (!fullbrightPressed) {
+                    fullbrightPressed = true;
+                    ToggleEvent.onHotkeyPress();
+                }
+            } else {
+                fullbrightPressed = false;
             }
         });
     }
