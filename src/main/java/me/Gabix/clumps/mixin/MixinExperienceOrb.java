@@ -1,4 +1,4 @@
-package me.Gabix.mixin;
+package me.Gabix.clumps.mixin;
 
 import me.Gabix.clumps.ClumpsCommon;
 import me.Gabix.clumps.api.events.IRepairEvent;

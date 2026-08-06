@@ -1,6 +1,6 @@
-package me.Gabix.mixin;
+package me.Gabix.norender.mixin;
 
-import me.Gabix.NoRenderManager;
+import me.Gabix.norender.NoRenderManager;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;

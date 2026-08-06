@@ -1,11 +1,11 @@
-package me.Gabix.mixin;
+package me.Gabix.norender.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import me.Gabix.NoRenderManager;
+import me.Gabix.norender.NoRenderManager;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.render.Camera;

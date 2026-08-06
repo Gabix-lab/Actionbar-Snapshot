@@ -1,6 +1,5 @@
 package me.Gabix;
 
-import me.Gabix.fullbirghtnesstoggle.event.ToggleEvent;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -23,11 +22,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public static KeyBinding readActionbarKeyBinding;
     public static KeyBinding readBossBarsKeyBinding;
     public static KeyBinding toggleContinuousKeyBinding;
-    public static KeyBinding noRenderKeyBinding;
-    public static KeyBinding noRenderTimerKeyBinding;
-    public static KeyBinding noRenderInactiveKeyBinding;
     public static KeyBinding itemInfoKeyBinding;
-    public static KeyBinding fullbrightKeyBinding;
 
     private ManaManager manaManager;
     private CloneManager cloneManager;
@@ -55,23 +50,13 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "Cooldown Nullázása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_SEMICOLON, "Actionbar Storage Mod"));
         toggleContinuousKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Kész Felirat Mód Váltás", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_APOSTROPHE, "Actionbar Storage Mod"));
-        noRenderKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "3D Renderelés Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, "Actionbar Storage Mod"));
-        noRenderTimerKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "NoRender Időzítő Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, "Actionbar Storage Mod"));
-        noRenderInactiveKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "NoRender Ablak Inaktívnál", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F8, "Actionbar Storage Mod"));
         itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Actionbar Storage Mod"));
-        fullbrightKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Fullbright Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "Actionbar Storage Mod"));
+
         ActionbarReader.init();
-        NoRenderManager.init(savedConfig);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
-
-            ToggleEvent.startupCheck();
 
             globalTickCounter++;
             cloneManager.tick(globalTickCounter);
@@ -80,28 +65,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
             while (configKeyBinding.wasPressed()) {
                 if (savedConfig == null) savedConfig = StorageConfig.load();
                 client.setScreen(new StorageConfigScreen(savedConfig));
-            }
-
-            while (noRenderTimerKeyBinding.wasPressed()) {
-                savedConfig.noRenderTimerEnabled = !savedConfig.noRenderTimerEnabled;
-                if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Időzítő: " +
-                            (savedConfig.noRenderTimerEnabled ? "§aBE" : "§cKI")), true);
-                }
-                savedConfig.save();
-            }
-
-            while (noRenderInactiveKeyBinding.wasPressed()) {
-                savedConfig.noRenderOnInactive = !savedConfig.noRenderOnInactive;
-                if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Ablak Inaktívnál: " +
-                            (savedConfig.noRenderOnInactive ? "§aBE" : "§cKI")), true);
-                }
-                savedConfig.save();
-            }
-
-            while (fullbrightKeyBinding.wasPressed()) {
-                ToggleEvent.onHotkeyPress();
             }
 
             while (itemInfoKeyBinding.wasPressed()) {

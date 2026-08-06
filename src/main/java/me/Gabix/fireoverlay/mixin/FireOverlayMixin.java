@@ -1,4 +1,4 @@
-package me.Gabix.mixin;
+package me.Gabix.fireoverlay.mixin;
 
 import me.Gabix.ActionbarStorageClient;
 import me.Gabix.StorageConfig;

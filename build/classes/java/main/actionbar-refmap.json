@@ -1,5 +1,22 @@
 {
   "mappings": {
+    "me/Gabix/clumps/mixin/ExperienceOrbAccess": {
+      "amount": "field_6159:I",
+      "health": "field_6161:I"
+    },
+    "me/Gabix/clumps/mixin/MixinExperienceOrb": {
+      "Lnet/minecraft/entity/ExperienceOrbEntity;discard()V": "Lnet/minecraft/class_1303;method_31472()V",
+      "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;)Z": "Lnet/minecraft/class_1303;method_31494(Lnet/minecraft/class_1303;)Z",
+      "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z": "Lnet/minecraft/class_1303;method_31495(Lnet/minecraft/class_1303;II)Z",
+      "merge(Lnet/minecraft/entity/ExperienceOrbEntity;)V": "Lnet/minecraft/class_1303;method_31497(Lnet/minecraft/class_1303;)V",
+      "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V": "Lnet/minecraft/class_1303;method_5694(Lnet/minecraft/class_1657;)V",
+      "readCustomDataFromNbt": "Lnet/minecraft/class_1303;method_5749(Lnet/minecraft/class_2487;)V",
+      "writeCustomDataToNbt": "Lnet/minecraft/class_1303;method_5652(Lnet/minecraft/class_2487;)V"
+    },
+    "me/Gabix/fireoverlay/mixin/FireOverlayMixin": {
+      "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V": "Lnet/minecraft/class_4587;method_46416(FFF)V",
+      "renderFireOverlay": "Lnet/minecraft/class_4603;method_23070(Lnet/minecraft/class_310;Lnet/minecraft/class_4587;)V"
+    },
     "me/Gabix/fullbirghtnesstoggle/mixin/GameOptionsMixin": {
       "write": "Lnet/minecraft/class_315;method_1640()V"
     },
@@ -9,24 +26,16 @@
     "me/Gabix/mixin/ActionbarMixin": {
       "setOverlayMessage": "Lnet/minecraft/class_329;method_1758(Lnet/minecraft/class_2561;Z)V"
     },
-    "me/Gabix/mixin/BlockEntityRenderMixin": {
-      "render": "Lnet/minecraft/class_824;method_3555(Lnet/minecraft/class_2586;FLnet/minecraft/class_4587;Lnet/minecraft/class_4597;)V"
-    },
-    "me/Gabix/mixin/ExperienceOrbAccess": {
-      "amount": "field_6159:I",
-      "health": "field_6161:I"
-    },
-    "me/Gabix/mixin/FireOverlayMixin": {
-      "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V": "Lnet/minecraft/class_4587;method_46416(FFF)V",
-      "renderFireOverlay": "Lnet/minecraft/class_4603;method_23070(Lnet/minecraft/class_310;Lnet/minecraft/class_4587;)V"
-    },
-    "me/Gabix/mixin/FogMixin": {
-      "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
-    },
     "me/Gabix/mixin/InGameHudMixin": {
       "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_4587;F)V"
     },
-    "me/Gabix/mixin/LevelRendererMixin": {
+    "me/Gabix/norender/mixin/BlockEntityRenderMixin": {
+      "render": "Lnet/minecraft/class_824;method_3555(Lnet/minecraft/class_2586;FLnet/minecraft/class_4587;Lnet/minecraft/class_4597;)V"
+    },
+    "me/Gabix/norender/mixin/FogMixin": {
+      "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
+    },
+    "me/Gabix/norender/mixin/LevelRendererMixin": {
       "Lnet/minecraft/client/particle/ParticleManager;renderParticles(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/render/LightmapTextureManager;Lnet/minecraft/client/render/Camera;F)V": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V",
       "Lnet/minecraft/client/render/WorldRenderer;noCullingBlockEntities:Ljava/util/Set;": "Lnet/minecraft/class_761;field_4055:Ljava/util/Set;",
       "Lnet/minecraft/client/render/WorldRenderer;renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V": "Lnet/minecraft/class_761;method_3259(Lnet/minecraft/class_4587;Lorg/joml/Matrix4f;FDDD)V",
@@ -37,22 +46,30 @@
       "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
       "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
     },
-    "me/Gabix/mixin/MixinExperienceOrb": {
-      "Lnet/minecraft/entity/ExperienceOrbEntity;discard()V": "Lnet/minecraft/class_1303;method_31472()V",
-      "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;)Z": "Lnet/minecraft/class_1303;method_31494(Lnet/minecraft/class_1303;)Z",
-      "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z": "Lnet/minecraft/class_1303;method_31495(Lnet/minecraft/class_1303;II)Z",
-      "merge(Lnet/minecraft/entity/ExperienceOrbEntity;)V": "Lnet/minecraft/class_1303;method_31497(Lnet/minecraft/class_1303;)V",
-      "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V": "Lnet/minecraft/class_1303;method_5694(Lnet/minecraft/class_1657;)V",
-      "readCustomDataFromNbt": "Lnet/minecraft/class_1303;method_5749(Lnet/minecraft/class_2487;)V",
-      "writeCustomDataToNbt": "Lnet/minecraft/class_1303;method_5652(Lnet/minecraft/class_2487;)V"
-    },
-    "me/Gabix/mixin/ParticleManagerMixin": {
+    "me/Gabix/norender/mixin/ParticleManagerMixin": {
       "addBlockBreakParticles": "Lnet/minecraft/class_702;method_3046(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;)V",
       "addBlockBreakingParticles": "Lnet/minecraft/class_702;method_3054(Lnet/minecraft/class_2338;Lnet/minecraft/class_2350;)V"
     }
   },
   "data": {
     "named:intermediary": {
+      "me/Gabix/clumps/mixin/ExperienceOrbAccess": {
+        "amount": "field_6159:I",
+        "health": "field_6161:I"
+      },
+      "me/Gabix/clumps/mixin/MixinExperienceOrb": {
+        "Lnet/minecraft/entity/ExperienceOrbEntity;discard()V": "Lnet/minecraft/class_1303;method_31472()V",
+        "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;)Z": "Lnet/minecraft/class_1303;method_31494(Lnet/minecraft/class_1303;)Z",
+        "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z": "Lnet/minecraft/class_1303;method_31495(Lnet/minecraft/class_1303;II)Z",
+        "merge(Lnet/minecraft/entity/ExperienceOrbEntity;)V": "Lnet/minecraft/class_1303;method_31497(Lnet/minecraft/class_1303;)V",
+        "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V": "Lnet/minecraft/class_1303;method_5694(Lnet/minecraft/class_1657;)V",
+        "readCustomDataFromNbt": "Lnet/minecraft/class_1303;method_5749(Lnet/minecraft/class_2487;)V",
+        "writeCustomDataToNbt": "Lnet/minecraft/class_1303;method_5652(Lnet/minecraft/class_2487;)V"
+      },
+      "me/Gabix/fireoverlay/mixin/FireOverlayMixin": {
+        "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V": "Lnet/minecraft/class_4587;method_46416(FFF)V",
+        "renderFireOverlay": "Lnet/minecraft/class_4603;method_23070(Lnet/minecraft/class_310;Lnet/minecraft/class_4587;)V"
+      },
       "me/Gabix/fullbirghtnesstoggle/mixin/GameOptionsMixin": {
         "write": "Lnet/minecraft/class_315;method_1640()V"
       },
@@ -62,24 +79,16 @@
       "me/Gabix/mixin/ActionbarMixin": {
         "setOverlayMessage": "Lnet/minecraft/class_329;method_1758(Lnet/minecraft/class_2561;Z)V"
       },
-      "me/Gabix/mixin/BlockEntityRenderMixin": {
-        "render": "Lnet/minecraft/class_824;method_3555(Lnet/minecraft/class_2586;FLnet/minecraft/class_4587;Lnet/minecraft/class_4597;)V"
-      },
-      "me/Gabix/mixin/ExperienceOrbAccess": {
-        "amount": "field_6159:I",
-        "health": "field_6161:I"
-      },
-      "me/Gabix/mixin/FireOverlayMixin": {
-        "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V": "Lnet/minecraft/class_4587;method_46416(FFF)V",
-        "renderFireOverlay": "Lnet/minecraft/class_4603;method_23070(Lnet/minecraft/class_310;Lnet/minecraft/class_4587;)V"
-      },
-      "me/Gabix/mixin/FogMixin": {
-        "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
-      },
       "me/Gabix/mixin/InGameHudMixin": {
         "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_4587;F)V"
       },
-      "me/Gabix/mixin/LevelRendererMixin": {
+      "me/Gabix/norender/mixin/BlockEntityRenderMixin": {
+        "render": "Lnet/minecraft/class_824;method_3555(Lnet/minecraft/class_2586;FLnet/minecraft/class_4587;Lnet/minecraft/class_4597;)V"
+      },
+      "me/Gabix/norender/mixin/FogMixin": {
+        "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
+      },
+      "me/Gabix/norender/mixin/LevelRendererMixin": {
         "Lnet/minecraft/client/particle/ParticleManager;renderParticles(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/render/LightmapTextureManager;Lnet/minecraft/client/render/Camera;F)V": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V",
         "Lnet/minecraft/client/render/WorldRenderer;noCullingBlockEntities:Ljava/util/Set;": "Lnet/minecraft/class_761;field_4055:Ljava/util/Set;",
         "Lnet/minecraft/client/render/WorldRenderer;renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V": "Lnet/minecraft/class_761;method_3259(Lnet/minecraft/class_4587;Lorg/joml/Matrix4f;FDDD)V",
@@ -90,16 +99,7 @@
         "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates()I": "Lnet/minecraft/class_3568;doLightUpdates()I",
         "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
       },
-      "me/Gabix/mixin/MixinExperienceOrb": {
-        "Lnet/minecraft/entity/ExperienceOrbEntity;discard()V": "Lnet/minecraft/class_1303;method_31472()V",
-        "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;)Z": "Lnet/minecraft/class_1303;method_31494(Lnet/minecraft/class_1303;)Z",
-        "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z": "Lnet/minecraft/class_1303;method_31495(Lnet/minecraft/class_1303;II)Z",
-        "merge(Lnet/minecraft/entity/ExperienceOrbEntity;)V": "Lnet/minecraft/class_1303;method_31497(Lnet/minecraft/class_1303;)V",
-        "onPlayerCollision(Lnet/minecraft/entity/player/PlayerEntity;)V": "Lnet/minecraft/class_1303;method_5694(Lnet/minecraft/class_1657;)V",
-        "readCustomDataFromNbt": "Lnet/minecraft/class_1303;method_5749(Lnet/minecraft/class_2487;)V",
-        "writeCustomDataToNbt": "Lnet/minecraft/class_1303;method_5652(Lnet/minecraft/class_2487;)V"
-      },
-      "me/Gabix/mixin/ParticleManagerMixin": {
+      "me/Gabix/norender/mixin/ParticleManagerMixin": {
         "addBlockBreakParticles": "Lnet/minecraft/class_702;method_3046(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;)V",
         "addBlockBreakingParticles": "Lnet/minecraft/class_702;method_3054(Lnet/minecraft/class_2338;Lnet/minecraft/class_2350;)V"
       }

@@ -1,4 +1,4 @@
-package me.Gabix.mixin;
+package me.Gabix.clumps.mixin;
 
 import net.minecraft.entity.ExperienceOrbEntity;
 import org.spongepowered.asm.mixin.Mixin;

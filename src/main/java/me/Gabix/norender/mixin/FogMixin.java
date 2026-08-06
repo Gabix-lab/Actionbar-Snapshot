@@ -1,7 +1,7 @@
-package me.Gabix.mixin;
+package me.Gabix.norender.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.Gabix.NoRenderManager;
+import me.Gabix.norender.NoRenderManager;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.Camera;
 import org.spongepowered.asm.mixin.Mixin;

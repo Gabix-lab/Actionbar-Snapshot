@@ -2,11 +2,12 @@ package me.Gabix.fullbirghtnesstoggle.event;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.SimpleOption;
+import net.minecraft.text.Text;
 
 public class ToggleEvent {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static double originalGamma = -1.0;
-    private static final double MAX_GAMMA = 100.0;
+    private static final double MAX_GAMMA = 10.0;
     private static boolean startupDone = false;
 
     public static void startupCheck() {
@@ -28,7 +29,7 @@ public class ToggleEvent {
     }
 
     public static void onHotkeyPress() {
-        if (mc.currentScreen == null && mc.options != null) {
+        if (mc.currentScreen == null && mc.options != null && mc.player != null) {
             SimpleOption<Double> gammaOption = mc.options.getGamma();
             double currentGamma = gammaOption.getValue();
 
@@ -44,6 +45,10 @@ public class ToggleEvent {
                 }
                 gammaOption.setValue(MAX_GAMMA);
             }
+
+            double newGamma = gammaOption.getValue();
+            String status = Math.abs(newGamma - MAX_GAMMA) < 0.1 ? "§aON" : "§cOFF";
+            mc.player.sendMessage(Text.literal("§7[GabixMod] §fFullbright: " + status), true);
         }
     }
 }

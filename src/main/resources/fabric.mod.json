@@ -11,15 +11,22 @@
   "entrypoints": {
     "main": [
       "me.Gabix.ActionbarStorage",
-      "me.Gabix.clumps.Clumps"
+      "me.Gabix.clumps.Clumps",
+      "me.Gabix.fullbirghtnesstoggle.FullbrightMod",
+      "me.Gabix.norender.NoRenderMod"
     ],
     "client": [
-      "me.Gabix.ActionbarStorageClient"
+      "me.Gabix.ActionbarStorageClient",
+      "me.Gabix.fullbirghtnesstoggle.FullbrightModClient",
+      "me.Gabix.norender.NoRenderModClient"
     ]
   },
   "mixins": [
     "actionbar-snapshot.mixins.json",
-    "fullbrightnesstoggle.mixins.json"
+    "fullbrightnesstoggle.mixins.json",
+    "clumps.mixins.json",
+    "fireoverlay.mixins.json",
+    "norender.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

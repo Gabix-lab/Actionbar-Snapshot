@@ -1,5 +1,6 @@
 package me.Gabix;
 
+import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;

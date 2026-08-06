@@ -1,11 +1,22 @@
-package me.Gabix;
+package me.Gabix.fireoverlay.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import me.Gabix.StorageConfig;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
+@SuppressWarnings("deprecation")
 public class FireOverlayConfigScreen extends Screen {
+    private static final Identifier FIRE_SPRITE_ID = new Identifier("minecraft", "block/fire_0");
+
     private final StorageConfig config;
     private final Screen parent;
 
@@ -15,7 +26,6 @@ public class FireOverlayConfigScreen extends Screen {
     private int sliderX;
 
     private boolean dragging = false;
-    private int animTick = 0;
 
     public FireOverlayConfigScreen(StorageConfig config, Screen parent) {
         super(Text.literal("Tűz Overlay Magasság"));
@@ -32,12 +42,6 @@ public class FireOverlayConfigScreen extends Screen {
                 this.client.setScreen(this.parent);
             }
         }).dimensions(this.width / 2 - 40, SLIDER_Y + SLIDER_HEIGHT + 20, 80, 20).build());
-    }
-
-    @Override
-    public void tick() {
-        animTick++;
-        if (animTick > 1000) animTick = 0;
     }
 
     @Override
@@ -80,14 +84,51 @@ public class FireOverlayConfigScreen extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
 
-        // --- TŰZ ELŐNÉZET (stabil, animált átmenet) ---
-        int fireHeight = (int) (this.height * (config.fireOverlayHeight / 100.0));
-        if (fireHeight > 0) {
-            // Animált színátmenet a tűz illúziójához
-            int alpha = 200 + (int)(Math.sin(animTick * 0.1) * 55); // pulzáló átlátszóság
-            int colorTop = (alpha << 24) | 0xFF4500; // Narancsvörös
-            int colorBottom = (alpha << 24) | 0xFFD700; // Arany
-            fillGradient(matrices, 0, this.height - fireHeight, this.width, this.height, colorTop, colorBottom);
+        // --- PONTOS MINECRAFT ÉGÉS OVERLAY (NEM TORZÍTÓ ELTOLÁSSAL) ---
+        if (config.fireOverlayHeight > 0 && this.client != null) {
+            Sprite fireSprite = MinecraftClient.getInstance()
+                    .getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
+                    .apply(FIRE_SPRITE_ID);
+
+            RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+            RenderSystem.setShaderTexture(0, SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.9F);
+            RenderSystem.enableBlend();
+
+            matrices.push();
+
+            float heightPercent = config.fireOverlayHeight / 100.0F;
+
+            // Fix textúra magasság (a képernyő 1.3-szorosa, hogy 100%-nál bőven felérjen)
+            int fireWidth = (int) (this.width * 0.6F);
+            int fireHeight = (int) (this.height * 1.3F);
+
+            // Az Y pozíció eltolása:
+            // 100%-nál a képernyő tetejéig ér (renderY = this.height - fireHeight)
+            // 30%-nál pontosan a hotbar környékén bukkan csak ki alulról
+            int maxOffset = fireHeight;
+            int renderY = this.height - (int) (maxOffset * heightPercent);
+
+            // 1. Bal oldali tűz
+            DrawableHelper.drawSprite(
+                    matrices,
+                    0, renderY,
+                    0,
+                    fireWidth, fireHeight,
+                    fireSprite
+            );
+
+            // 2. Jobb oldali tűz (középen 1/5 átfedéssel)
+            DrawableHelper.drawSprite(
+                    matrices,
+                    this.width - fireWidth, renderY,
+                    0,
+                    fireWidth, fireHeight,
+                    fireSprite
+            );
+
+            matrices.pop();
+            RenderSystem.disableBlend();
         }
 
         // --- CÍM ---
