@@ -1,4 +1,6 @@
 v1	named	intermediary
+FIELD	me/Gabix/fullbirghtnesstoggle/mixin/GameOptionsMixin	Lnet/minecraft/client/option/SimpleOption;	gamma	field_1840
+FIELD	me/Gabix/fullbirghtnesstoggle/mixin/SimpleOptionMixin	Ljava/lang/Object;	value	field_37868
 FIELD	me/Gabix/mixin/MixinExperienceOrb	I	amount	field_6159
 FIELD	me/Gabix/mixin/MixinExperienceOrb	I	pickingCount	field_27009
 FIELD	me/Gabix/mixin/MixinExperienceOrb	I	health	field_6161

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "actionbar",
-  "version": "1.4.6-alfa",
+  "version": "1.4.7-alfa",
   "name": "Actionbar",
   "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel, Clumps XP optimalizálással",
   "authors": ["Gabix"],
@@ -18,7 +18,8 @@
     ]
   },
   "mixins": [
-    "actionbar-snapshot.mixins.json"
+    "actionbar-snapshot.mixins.json",
+    "fullbrightnesstoggle.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

@@ -1,5 +1,6 @@
 package me.Gabix;
 
+import me.Gabix.fullbirghtnesstoggle.event.ToggleEvent;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -64,12 +65,13 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Actionbar Storage Mod"));
         fullbrightKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Fullbright Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "Actionbar Storage Mod"));
-
         ActionbarReader.init();
         NoRenderManager.init(savedConfig);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
+
+            ToggleEvent.startupCheck();
 
             globalTickCounter++;
             cloneManager.tick(globalTickCounter);
@@ -99,7 +101,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
             }
 
             while (fullbrightKeyBinding.wasPressed()) {
-                FullbrightManager.toggle(client);
+                ToggleEvent.onHotkeyPress();
             }
 
             while (itemInfoKeyBinding.wasPressed()) {

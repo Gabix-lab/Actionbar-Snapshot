@@ -1,5 +1,11 @@
 {
   "mappings": {
+    "me/Gabix/fullbirghtnesstoggle/mixin/GameOptionsMixin": {
+      "write": "Lnet/minecraft/class_315;method_1640()V"
+    },
+    "me/Gabix/fullbirghtnesstoggle/mixin/SimpleOptionMixin": {
+      "setValue": "Lnet/minecraft/class_7172;method_41748(Ljava/lang/Object;)V"
+    },
     "me/Gabix/mixin/ActionbarMixin": {
       "setOverlayMessage": "Lnet/minecraft/class_329;method_1758(Lnet/minecraft/class_2561;Z)V"
     },
@@ -16,9 +22,6 @@
     },
     "me/Gabix/mixin/FogMixin": {
       "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
-    },
-    "me/Gabix/mixin/FullbrightMixin": {
-      "getBrightness": "Lnet/minecraft/class_765;method_23284(Lnet/minecraft/class_2874;I)F"
     },
     "me/Gabix/mixin/InGameHudMixin": {
       "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_4587;F)V"
@@ -50,6 +53,12 @@
   },
   "data": {
     "named:intermediary": {
+      "me/Gabix/fullbirghtnesstoggle/mixin/GameOptionsMixin": {
+        "write": "Lnet/minecraft/class_315;method_1640()V"
+      },
+      "me/Gabix/fullbirghtnesstoggle/mixin/SimpleOptionMixin": {
+        "setValue": "Lnet/minecraft/class_7172;method_41748(Ljava/lang/Object;)V"
+      },
       "me/Gabix/mixin/ActionbarMixin": {
         "setOverlayMessage": "Lnet/minecraft/class_329;method_1758(Lnet/minecraft/class_2561;Z)V"
       },
@@ -66,9 +75,6 @@
       },
       "me/Gabix/mixin/FogMixin": {
         "applyFog": "Lnet/minecraft/class_758;method_3211(Lnet/minecraft/class_4184;Lnet/minecraft/class_758$class_4596;FZF)V"
-      },
-      "me/Gabix/mixin/FullbrightMixin": {
-        "getBrightness": "Lnet/minecraft/class_765;method_23284(Lnet/minecraft/class_2874;I)F"
       },
       "me/Gabix/mixin/InGameHudMixin": {
         "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_4587;F)V"

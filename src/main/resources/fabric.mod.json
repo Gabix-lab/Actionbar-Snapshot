@@ -18,7 +18,8 @@
     ]
   },
   "mixins": [
-    "actionbar-snapshot.mixins.json"
+    "actionbar-snapshot.mixins.json",
+    "fullbrightnesstoggle.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",
