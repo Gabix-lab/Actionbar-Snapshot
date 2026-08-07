@@ -810,7 +810,7 @@ public class StorageConfigScreen extends Screen {
                     @Override
                     protected void updateMessage() {
                         int percent = (int) (this.value * 100);
-                        this.setMessage(Text.literal("Hang csökkentése: " + percent + "%"));
+                        this.setMessage(Text.literal("§6Hang csökkentése: §b" + percent + "%"));
                     }
 
                     @Override
@@ -826,11 +826,23 @@ public class StorageConfigScreen extends Screen {
             @Override
             public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
                 fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44CC8844);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "Hang csökkentése inaktív ablaknál:", x + 6, y + 5, 0xFFFFFF);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§eHang csökkentése inaktív ablaknál:", x + 6, y + 5, 0xFFFFFF);
 
-                this.slider.setX(x + entryWidth - 160);
-                this.slider.setY(y + 1);
+                // Enhanced slider positioning and styling
+                int sliderX = x + entryWidth - 160;
+                int sliderY = y + 1;
+                
+                this.slider.setX(sliderX);
+                this.slider.setY(sliderY);
+                
+                // Draw custom slider background enhancement
+                fill(matrices, sliderX - 1, sliderY - 1, sliderX + 151, sliderY + 19, 0x22FFAA00);
+                
                 this.slider.render(matrices, mouseX, mouseY, delta);
+                
+                // Draw percentage text next to slider
+                int percent = (int) (config.inactiveSoundVolume * 100);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§b" + percent + "%", sliderX + 155, sliderY + 4, 0xFFFFFF);
             }
 
             @Override

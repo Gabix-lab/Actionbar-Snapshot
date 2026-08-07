@@ -21,6 +21,7 @@ public class NoRenderManager {
         StorageConfig config = ActionbarStorageClient.getConfig();
 
         if (focused) {
+            // Immediately reset FPS limit when window gains focus for responsive uncapping
             resetFpsLimit();
             fpsIdleStartTime = 0;
             noRenderIdleTicks = 0;
