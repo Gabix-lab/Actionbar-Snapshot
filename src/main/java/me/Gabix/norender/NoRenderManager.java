@@ -42,7 +42,13 @@ public class NoRenderManager {
             }
 
             float volume = config.inactiveSoundVolume;
-            SoundSuppressor.setVolumeReduced(true, volume);
+            SoundSuppressor.setVolumeReduced(volume < 1.0f, volume);
+            
+            // Apply sound suppression/muting based on volume setting
+            if (volume <= 0.0f && !enabled && client.getSoundManager() != null) {
+                // Completely mute all sounds if volume is 0
+                client.getSoundManager().stopAll();
+            }
 
             if (config.noRenderOnInactive && !enabled) {
                 enabled = true;

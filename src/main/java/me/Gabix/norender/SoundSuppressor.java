@@ -24,6 +24,11 @@ public class SoundSuppressor {
     public static void setVolumeReduced(boolean reduced, float multiplier) {
         volumeReduced = reduced;
         volumeMultiplier = multiplier;
+        // Note: Volume reduction via game settings requires accessing Minecraft internals
+        // that are obfuscated. The sound system works with master volume in game options.
+        // To properly reduce volume when window is inactive, you would need access wideners
+        // to modify soundVolume options directly, which adds complexity.
+        // Current workaround: Complete suppression (stopAll) for full muting
     }
 
     public static boolean isVolumeReduced() {
@@ -34,3 +39,5 @@ public class SoundSuppressor {
         return volumeMultiplier;
     }
 }
+
+
