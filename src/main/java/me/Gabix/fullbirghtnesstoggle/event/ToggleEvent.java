@@ -7,7 +7,7 @@ import net.minecraft.text.Text;
 public class ToggleEvent {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static double originalGamma = -1.0;
-    private static final double MAX_GAMMA = 10.0;
+    private static final double MAX_GAMMA = 100;
     private static boolean startupDone = false;
 
     public static void startupCheck() {

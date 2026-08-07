@@ -8,8 +8,11 @@
     "BlockEntityRenderMixin",
     "FogMixin",
     "ParticleManagerMixin",
-    "WindowAccessor",
-    "MinecraftClientMixin"
+    "MinecraftClientMixin",
+    "SoundManagerMixin",
+    "WindowFocusMixin",
+    "KeyboardInputMixin",
+    "MouseInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1

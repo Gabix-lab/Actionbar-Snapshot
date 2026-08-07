@@ -36,6 +36,8 @@ public class StorageConfig {
     public int fpsLimitSeconds = 0;
     public int fpsLimitValue = 30;
 
+    public float inactiveSoundVolume = 0.0f;
+
     public int manaX = 1;
     public int manaY = 202;
     public float manaScale = 1.0000001f;
