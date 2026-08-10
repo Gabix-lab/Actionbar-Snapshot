@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CloneManager {
-    private final List<Integer> cloneExpiryTicks = new ArrayList<>();
+    private final List<Integer> cloneExpiryTicks = new ArrayList<>(2);
 
     public void tick(int currentGlobalTick) {
         cloneExpiryTicks.removeIf(expiryTick -> currentGlobalTick >= expiryTick);

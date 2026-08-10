@@ -1,8 +1,15 @@
 package me.Gabix;
 
+import me.Gabix.fpsreducer.FpsManager;
+import me.Gabix.network.ModServerClient;
+import me.Gabix.norender.NoRenderEngine;
+import me.Gabix.soundreducer.MuteOnInactive;
+import me.Gabix.soundreducer.SoundReducer;
+import me.Gabix.tracker.ModPlayerTracker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -10,41 +17,108 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 public class ActionbarStorageClient implements ClientModInitializer {
     private static ActionbarStorageClient instance;
     private static StorageConfig savedConfig;
+
+    private final ScheduledExecutorService scheduler = new ScheduledThreadPoolExecutor(2);
+    private final ManaManager manaManager = new ManaManager();
+    private final CloneManager cloneManager = new CloneManager();
 
     public static KeyBinding configKeyBinding;
     public static KeyBinding resetCooldownKeyBinding;
     public static KeyBinding toggleContinuousKeyBinding;
 
-    private ManaManager manaManager;
-    private CloneManager cloneManager;
+    public static KeyBinding noRenderKeyBinding;
+    public static KeyBinding noRenderTimerKeyBinding;
+    public static KeyBinding noRenderInactiveKeyBinding;
+
     private int globalTickCounter = 0;
     private boolean wasAttackKeyPressedLastTick = false;
     private boolean wasUseKeyPressedLastTick = false;
 
-    public ActionbarStorageClient() {
-        this.manaManager = new ManaManager();
-        this.cloneManager = new CloneManager();
-    }
+    public ActionbarStorageClient() {}
 
     @Override
     public void onInitializeClient() {
         instance = this;
         savedConfig = StorageConfig.load();
 
+        FpsManager.init();
+        NoRenderEngine.init();
+        SoundReducer.init();
+        WindowFocusEvent.register(new MuteOnInactive());
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            if (client.getSession() != null) {
+                UUID selfUuid = client.getSession().getUuidOrNull();
+                if (selfUuid != null) {
+                    ModPlayerTracker.registerUser(selfUuid);
+                    ModServerClient.sendHeartbeatAsync(selfUuid);
+                    ModServerClient.fetchUsersAsync();
+                }
+            }
+        });
+
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            if (client.getSession() != null) {
+                UUID selfUuid = client.getSession().getUuidOrNull();
+                if (selfUuid != null) {
+                    ModServerClient.sendLogoutAsync(selfUuid);
+                }
+            }
+            ModPlayerTracker.clear();
+        });
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null && client.getSession() != null) {
+                UUID selfUuid = client.getSession().getUuidOrNull();
+                if (selfUuid != null) {
+                    ModServerClient.sendLogoutAsync(selfUuid);
+                }
+            }
+            scheduler.shutdownNow();
+        }));
+
+        scheduler.scheduleAtFixedRate(() -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null && client.getSession() != null) {
+                UUID selfUuid = client.getSession().getUuidOrNull();
+                if (selfUuid != null) {
+                    ModServerClient.sendHeartbeatAsync(selfUuid);
+                }
+            }
+        }, 2, 15, TimeUnit.SECONDS);
+
+        scheduler.scheduleAtFixedRate(ModServerClient::fetchUsersAsync, 5, 15, TimeUnit.SECONDS);
+
         configKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Actionbar Config Megnyitása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "Actionbar Storage Mod"));
         resetCooldownKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Cooldown Nullázása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_SEMICOLON, "Actionbar Storage Mod"));
         toggleContinuousKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Kész Felirat Mód Váltás", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_APOSTROPHE, "Actionbar Storage Mod"));
+                "Kesz Felirat Mod Valtas", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_APOSTROPHE, "Actionbar Storage Mod"));
+
+        noRenderKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "3D Rendereles Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, "NoRender"));
+        noRenderTimerKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "NoRender Idozito Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, "NoRender"));
+        noRenderInactiveKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "NoRender Ablak Inaktivnal", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F8, "NoRender"));
 
         ActionbarReader.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
+
+            FpsManager.tick();
+            NoRenderEngine.tick(client);
 
             globalTickCounter++;
             cloneManager.tick(globalTickCounter);
@@ -54,6 +128,10 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 if (savedConfig == null) savedConfig = StorageConfig.load();
                 client.setScreen(new StorageConfigScreen(savedConfig));
             }
+
+            while (noRenderKeyBinding.wasPressed()) NoRenderEngine.toggle(client);
+            while (noRenderTimerKeyBinding.wasPressed()) NoRenderEngine.toggleTimer(client);
+            while (noRenderInactiveKeyBinding.wasPressed()) NoRenderEngine.toggleInactive(client);
 
             int activeSlot = client.player.getInventory().selectedSlot;
 
@@ -124,6 +202,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public ManaManager getManaManager() { return this.manaManager; }
     public CloneManager getCloneManager() { return this.cloneManager; }
     public int getGlobalTickCounter() { return this.globalTickCounter; }
+    public ScheduledExecutorService getScheduler() { return scheduler; }
 
     public static StorageConfig getConfig() {
         if (savedConfig == null) savedConfig = StorageConfig.load();

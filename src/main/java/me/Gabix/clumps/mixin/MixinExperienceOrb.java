@@ -21,9 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Mixin(value = ExperienceOrbEntity.class, priority = 1001)
 public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
@@ -59,8 +56,11 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
             player.experiencePickUpDelay = 0;
             player.sendPickup(this, 1);
             if (this.pickingCount != 0 || this.clumps$resolve()) {
-                AtomicInteger toGive = new AtomicInteger();
-                this.clumps$getClumpedMap().forEach((value, amount) -> {
+                int toGive = 0;
+                Map<Integer, Integer> map = this.clumps$getClumpedMap();
+                for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+                    int value = entry.getKey();
+                    int amount = entry.getValue();
                     IValueEvent valueEvent = FabricEventHandler.fireValueEvent(player, value);
                     int actualValue = valueEvent.getValue();
 
@@ -71,12 +71,12 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
                             leftOver = this.repairPlayerGears(player, actualValue);
                         }
                         if (leftOver > 0) {
-                            toGive.addAndGet(leftOver);
+                            toGive += leftOver;
                         }
                     }
-                });
-                if (toGive.get() > 0) {
-                    player.addExperience(toGive.get());
+                }
+                if (toGive > 0) {
+                    player.addExperience(toGive);
                 }
             }
             this.discard();
@@ -95,11 +95,17 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
     )
     public void merge(ExperienceOrbEntity secondaryOrb, CallbackInfo ci) {
         Map<Integer, Integer> otherMap = ((IClumpedOrb) secondaryOrb).clumps$getClumpedMap();
-        this.amount = this.clumps$getClumpedMap().values().stream().reduce(Integer::sum).orElse(1);
+        int sum = 0;
+        for (int v : this.clumps$getClumpedMap().values()) sum += v;
+        this.amount = sum;
         this.health = Math.min(this.health, ((ExperienceOrbAccess) secondaryOrb).clumps$getHealth());
-        this.clumps$setClumpedMap(Stream.of(this.clumps$getClumpedMap(), otherMap)
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Integer::sum)));
+
+        Map<Integer, Integer> merged = new HashMap<>(this.clumps$getClumpedMap());
+        for (Map.Entry<Integer, Integer> entry : otherMap.entrySet()) {
+            merged.merge(entry.getKey(), entry.getValue(), Integer::sum);
+        }
+        this.clumps$setClumpedMap(merged);
+
         secondaryOrb.discard();
         ci.cancel();
     }
@@ -107,7 +113,9 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     public void writeCustomDataToNbt(NbtCompound compoundTag, CallbackInfo ci) {
         NbtCompound map = new NbtCompound();
-        this.clumps$getClumpedMap().forEach((value, count) -> map.putInt("" + value, count));
+        for (Map.Entry<Integer, Integer> entry : this.clumps$getClumpedMap().entrySet()) {
+            map.putInt(String.valueOf(entry.getKey()), entry.getValue());
+        }
         compoundTag.put("clumpedMap", map);
     }
 
@@ -128,7 +136,7 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
     @Override
     public Map<Integer, Integer> clumps$getClumpedMap() {
         if (this.clumps$clumpedMap == null) {
-            this.clumps$clumpedMap = new HashMap<>();
+            this.clumps$clumpedMap = new HashMap<>(1);
             this.clumps$clumpedMap.put(this.pickingCount, 1);
         }
         return this.clumps$clumpedMap;
@@ -142,9 +150,11 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
 
     @Override
     public boolean clumps$resolve() {
-        this.pickingCount = this.clumps$getClumpedMap().entrySet().stream()
-                .map(entry -> entry.getKey() * entry.getValue())
-                .reduce(Integer::sum).orElse(1);
+        int sum = 0;
+        for (Map.Entry<Integer, Integer> entry : this.clumps$getClumpedMap().entrySet()) {
+            sum += entry.getKey() * entry.getValue();
+        }
+        this.pickingCount = sum > 0 ? sum : 1;
         return this.pickingCount > 0;
     }
 }

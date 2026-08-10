@@ -4,7 +4,6 @@ import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -113,7 +112,6 @@ public class StorageConfigScreen extends Screen {
             this.addEntry(new FpsLimitImmediateEntry(config));
             this.addEntry(new HideBlockBreakingParticlesEntry(config));
             this.addEntry(new FireOverlayEntry(config));
-            this.addEntry(new InactiveSoundVolumeEntry(config));
 
             if (config.normalItems != null) {
                 for (StorageConfig.ItemPreset preset : config.normalItems) {
@@ -796,59 +794,6 @@ public class StorageConfigScreen extends Screen {
             public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
             @Override
             public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return Collections.emptyList(); }
-        }
-
-        private class InactiveSoundVolumeEntry extends Entry {
-            private final StorageConfig config;
-            private final SliderWidget slider;
-            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
-            private final List<net.minecraft.client.gui.Selectable> selectables = new ArrayList<>();
-
-            public InactiveSoundVolumeEntry(StorageConfig config) {
-                this.config = config;
-                this.slider = new SliderWidget(0, 0, 150, 18, Text.literal(""), config.inactiveSoundVolume) {
-                    @Override
-                    protected void updateMessage() {
-                        int percent = (int) (this.value * 100);
-                        this.setMessage(Text.literal("§6Hang csökkentése: §b" + percent + "%"));
-                    }
-
-                    @Override
-                    protected void applyValue() {
-                        config.inactiveSoundVolume = (float) this.value;
-                        config.save();
-                    }
-                };
-                this.children.add(this.slider);
-                this.selectables.add(this.slider);
-            }
-
-            @Override
-            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
-                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44CC8844);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§eHang csökkentése inaktív ablaknál:", x + 6, y + 5, 0xFFFFFF);
-
-                // Enhanced slider positioning and styling
-                int sliderX = x + entryWidth - 160;
-                int sliderY = y + 1;
-                
-                this.slider.setX(sliderX);
-                this.slider.setY(sliderY);
-                
-                // Draw custom slider background enhancement
-                fill(matrices, sliderX - 1, sliderY - 1, sliderX + 151, sliderY + 19, 0x22FFAA00);
-                
-                this.slider.render(matrices, mouseX, mouseY, delta);
-                
-                // Draw percentage text next to slider
-                int percent = (int) (config.inactiveSoundVolume * 100);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§b" + percent + "%", sliderX + 155, sliderY + 4, 0xFFFFFF);
-            }
-
-            @Override
-            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
-            @Override
-            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
         }
     }
 }

@@ -5,7 +5,7 @@ autoSuggestions:true
 chatColors:true
 chatLinks:true
 chatLinksPrompt:true
-enableVsync:false
+enableVsync:true
 entityShadows:true
 forceUnicodeFont:false
 discrete_mouse_scroll:false
@@ -30,21 +30,21 @@ glintSpeed:0.5
 glintStrength:0.75
 damageTiltStrength:1.0
 highContrast:false
-gamma:1.0
+gamma:0.5
 renderDistance:12
 simulationDistance:12
 entityDistanceScaling:1.0
 guiScale:2
 particles:0
-maxFps:260
+maxFps:120
 graphicsMode:1
 ao:true
 prioritizeChunkUpdates:0
 biomeBlendRadius:2
 renderClouds:"true"
-resourcePacks:["vanilla","fabric"]
+resourcePacks:["fabric"]
 incompatibleResourcePacks:[]
-lastServer:localhost
+lastServer:localhost:25567
 lang:en_us
 soundDevice:""
 chatVisibility:0
@@ -120,15 +120,15 @@ key_key.hotbar.8:key.keyboard.8
 key_key.hotbar.9:key.keyboard.9
 key_Actionbar Config Megnyitása:key.keyboard.right.shift
 key_Cooldown Nullázása:key.keyboard.semicolon
-key_Kész Felirat Mód Váltás:key.keyboard.apostrophe
+key_Kesz Felirat Mod Valtas:key.keyboard.apostrophe
+key_3D Rendereles Ki/Be:key.keyboard.f6
+key_NoRender Idozito Ki/Be:key.keyboard.f7
+key_NoRender Ablak Inaktivnal:key.keyboard.f8
 key_Fullbright Ki/Be:key.keyboard.g
-key_3D Renderelés Ki/Be:key.keyboard.f6
-key_NoRender Időzítő Ki/Be:key.keyboard.f7
-key_NoRender Ablak Inaktívnál:key.keyboard.f8
 key_Actionbar Nyers Beolvasása:key.keyboard.h
 key_BossBar Név Beolvasása:key.keyboard.j
 key_Item Info Megjelenítése:key.keyboard.i
-soundCategory_master:0.0
+soundCategory_master:0.2731788079470199
 soundCategory_music:0.0
 soundCategory_record:1.0
 soundCategory_weather:1.0

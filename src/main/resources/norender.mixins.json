@@ -8,8 +8,6 @@
     "BlockEntityRenderMixin",
     "FogMixin",
     "ParticleManagerMixin",
-    "MinecraftClientMixin",
-    "SoundManagerMixin",
     "WindowFocusMixin",
     "KeyboardInputMixin",
     "MouseInputMixin"

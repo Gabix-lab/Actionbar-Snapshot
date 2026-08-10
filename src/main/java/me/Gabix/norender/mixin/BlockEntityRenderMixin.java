@@ -1,6 +1,6 @@
 package me.Gabix.norender.mixin;
 
-import me.Gabix.norender.NoRenderManager;
+import me.Gabix.norender.NoRenderEngine;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
@@ -15,7 +15,7 @@ public class BlockEntityRenderMixin {
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
     private <E extends BlockEntity> void hideBlockEntities(E blockEntity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo ci) {
-        if (NoRenderManager.enabled) {
+        if (NoRenderEngine.enabled) {
             ci.cancel();
         }
     }

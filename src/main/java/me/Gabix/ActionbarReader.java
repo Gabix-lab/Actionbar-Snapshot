@@ -20,7 +20,6 @@ public class ActionbarReader {
     private static long lastActionbarUpdateTime = 0;
 
     private static boolean continuousTitle = true;
-    private static boolean titleShownForCurrentBoss = false;
 
     public static int currentDamage = 0;
     public static boolean isDamageReady = false;
@@ -59,7 +58,6 @@ public class ActionbarReader {
                 if (cachedBossBarsField != null) {
                     Map<?, ?> bossBars = (Map<?, ?>) cachedBossBarsField.get(bossBarHud);
                     if (bossBars == null || bossBars.isEmpty()) {
-                        titleShownForCurrentBoss = false;
                     } else {
                         for (Object value : bossBars.values()) {
                             if (value instanceof BossBar bossBar) {
@@ -81,7 +79,6 @@ public class ActionbarReader {
 
                                     if (targetBoss != null && !config.selectedBossNotification.equals(targetBoss)) {
                                         config.selectedBossNotification = targetBoss;
-                                        titleShownForCurrentBoss = false;
                                         currentDamage = 0;
                                         wasDamageReady = false;
                                         client.inGameHud.setTitleTicks(5, 20, 5);
@@ -182,7 +179,6 @@ public class ActionbarReader {
         result.append("§a[Item Info]\n");
         result.append("§fNév: §e").append(held.getName().getString()).append("\n");
 
-        // Item ID (Registry név)
         String itemId = Registries.ITEM.getId(held.getItem()).toString();
         result.append("§fID: §e").append(itemId).append("\n");
 
@@ -299,23 +295,25 @@ public class ActionbarReader {
         text.visit((style, string) -> {
             if (style != null) {
                 if (style.getColor() != null) {
-                    switch (style.getColor().getName()) {
-                        case "black" -> raw.append("&0");
-                        case "dark_blue" -> raw.append("&1");
-                        case "dark_green" -> raw.append("&2");
-                        case "dark_aqua" -> raw.append("&3");
-                        case "dark_red" -> raw.append("&4");
-                        case "dark_purple" -> raw.append("&5");
-                        case "gold" -> raw.append("&6");
-                        case "gray" -> raw.append("&7");
-                        case "dark_gray" -> raw.append("&8");
-                        case "blue" -> raw.append("&9");
-                        case "green" -> raw.append("&a");
-                        case "aqua" -> raw.append("&b");
-                        case "red" -> raw.append("&c");
-                        case "light_purple" -> raw.append("&d");
-                        case "yellow" -> raw.append("&e");
-                        case "white" -> raw.append("&f");
+                    String colorName = style.getColor().getName();
+                    switch (colorName) {
+                        case "black": raw.append("&0"); break;
+                        case "dark_blue": raw.append("&1"); break;
+                        case "dark_green": raw.append("&2"); break;
+                        case "dark_aqua": raw.append("&3"); break;
+                        case "dark_red": raw.append("&4"); break;
+                        case "dark_purple": raw.append("&5"); break;
+                        case "gold": raw.append("&6"); break;
+                        case "gray": raw.append("&7"); break;
+                        case "dark_gray": raw.append("&8"); break;
+                        case "blue": raw.append("&9"); break;
+                        case "green": raw.append("&a"); break;
+                        case "aqua": raw.append("&b"); break;
+                        case "red": raw.append("&c"); break;
+                        case "light_purple": raw.append("&d"); break;
+                        case "yellow": raw.append("&e"); break;
+                        case "white": raw.append("&f"); break;
+                        default: break;
                     }
                 }
                 if (style.isObfuscated()) raw.append("&k");

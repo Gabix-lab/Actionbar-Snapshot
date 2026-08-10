@@ -7,8 +7,13 @@ import net.minecraft.text.Text;
 public class ToggleEvent {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static double originalGamma = -1.0;
-    private static final double MAX_GAMMA = 100;
+    public static final double MAX_GAMMA = 100.0;
+    private static boolean fullbrightActive = false;
     private static boolean startupDone = false;
+
+    public static boolean isFullbrightEnabled() {
+        return fullbrightActive;
+    }
 
     public static void startupCheck() {
         if (startupDone) return;
@@ -21,10 +26,8 @@ public class ToggleEvent {
             originalGamma = currentGamma;
         }
 
-        if (Math.abs(currentGamma - MAX_GAMMA) > 0.1) {
-            gammaOption.setValue(MAX_GAMMA);
-        }
-
+        fullbrightActive = true;
+        gammaOption.setValue(MAX_GAMMA);
         startupDone = true;
     }
 
@@ -37,17 +40,16 @@ public class ToggleEvent {
                 originalGamma = currentGamma;
             }
 
-            if (Math.abs(currentGamma - MAX_GAMMA) < 0.1) {
+            if (fullbrightActive) {
                 gammaOption.setValue(originalGamma);
+                fullbrightActive = false;
             } else {
-                if (Math.abs(currentGamma - MAX_GAMMA) > 0.1) {
-                    originalGamma = currentGamma;
-                }
+                originalGamma = Math.abs(currentGamma - MAX_GAMMA) > 0.1 ? currentGamma : originalGamma;
                 gammaOption.setValue(MAX_GAMMA);
+                fullbrightActive = true;
             }
 
-            double newGamma = gammaOption.getValue();
-            String status = Math.abs(newGamma - MAX_GAMMA) < 0.1 ? "§aON" : "§cOFF";
+            String status = fullbrightActive ? "§aON" : "§cOFF";
             mc.player.sendMessage(Text.literal("§7[GabixMod] §fFullbright: " + status), true);
         }
     }

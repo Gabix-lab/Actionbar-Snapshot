@@ -1,7 +1,6 @@
 package me.Gabix.norender.mixin;
 
-import me.Gabix.norender.FpsReducerLogic;
-import me.Gabix.norender.NoRenderManager;
+import me.Gabix.WindowFocusEvent;
 import net.minecraft.client.util.Window;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,9 +12,6 @@ public class WindowFocusMixin {
 
     @Inject(method = "onWindowFocusChanged", at = @At("HEAD"))
     private void onFocusChange(long window, boolean focused, CallbackInfo ci) {
-        if (focused) {
-            FpsReducerLogic.reset();
-        }
-        NoRenderManager.onWindowFocusChanged(focused);
+        WindowFocusEvent.onFocusChanged(focused);
     }
 }

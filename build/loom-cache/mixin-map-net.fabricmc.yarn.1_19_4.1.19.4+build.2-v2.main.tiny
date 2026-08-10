@@ -4,4 +4,8 @@ FIELD	me/Gabix/clumps/mixin/MixinExperienceOrb	I	pickingCount	field_27009
 FIELD	me/Gabix/clumps/mixin/MixinExperienceOrb	I	health	field_6161
 FIELD	me/Gabix/fullbirghtnesstoggle/mixin/GameOptionsMixin	Lnet/minecraft/client/option/SimpleOption;	gamma	field_1840
 FIELD	me/Gabix/fullbirghtnesstoggle/mixin/SimpleOptionMixin	Ljava/lang/Object;	value	field_37868
+FIELD	me/Gabix/mixin/ClientPlayerInteractionManagerMixin	I	blockBreakingCooldown	field_3716
+FIELD	me/Gabix/mixin/MinecraftClientMixin	I	itemUseCooldown	field_1752
+FIELD	me/Gabix/mixin/PlayerOrderingMixin	Ljava/util/Comparator;	ENTRY_ORDERING	field_2156
 METHOD	me/Gabix/clumps/mixin/MixinExperienceOrb	(Lnet/minecraft/entity/player/PlayerEntity;I)I	repairPlayerGears	method_35051
+METHOD	me/Gabix/fpsreducer/mixin/MinecraftClientMixin	()I	getFramerateLimit	method_16009

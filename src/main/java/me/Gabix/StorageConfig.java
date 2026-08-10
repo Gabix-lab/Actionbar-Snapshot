@@ -15,6 +15,7 @@ public class StorageConfig {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("ab-config.json").toFile();
+    private static final StorageConfig DEFAULT_INSTANCE = new StorageConfig();
 
     public boolean[] hudSlotsEnabled = {true, true, true, true, true, true, true, true, true};
     public transient List<ItemPreset> normalItems;
@@ -36,8 +37,6 @@ public class StorageConfig {
     public int fpsLimitSeconds = 0;
     public int fpsLimitValue = 30;
 
-    public float inactiveSoundVolume = 0.0f;
-
     public int manaX = 1;
     public int manaY = 202;
     public float manaScale = 1.0000001f;
@@ -51,9 +50,9 @@ public class StorageConfig {
     public float[] hudSlotsScale = {1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
 
     public boolean hideBlockBreakingParticles = false;
-
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
+    public boolean muteOnInactive = false;
 
     public StorageConfig() {
         this.selectedBossNotification = "Ki";
@@ -63,19 +62,19 @@ public class StorageConfig {
 
     public int getTargetBossDamage() {
         if (selectedBossNotification == null) return Integer.MAX_VALUE;
-        return switch (selectedBossNotification) {
-            case "JégSárkány" -> 6000;
-            case "Trex" -> 20000;
-            case "Endermágus" -> 3000;
-            case "Warden" -> 10000;
-            case "RadioPók" -> 15000;
-            case "Kraken" -> 8000;
-            default -> Integer.MAX_VALUE;
-        };
+        switch (selectedBossNotification) {
+            case "Jégsárkány": return 6000;
+            case "Trex": return 20000;
+            case "Endermágus": return 3000;
+            case "Warden": return 10000;
+            case "RadioPók": return 15000;
+            case "Kraken": return 8000;
+            default: return Integer.MAX_VALUE;
+        }
     }
 
     private List<ItemPreset> createDefaultNormalItems() {
-        List<ItemPreset> list = new ArrayList<>();
+        List<ItemPreset> list = new ArrayList<>(8);
         list.add(new ItemPreset("Tiger blade", "minecraft:paper", 524, 0, 800, 0, 15, 1, 0));
         list.add(new ItemPreset("Warden staff", "minecraft:paper", 550, 14, 0, 1, 0, 0, 0));
         list.add(new ItemPreset("Kraken gun", "minecraft:paper", 10658, 0, 28, 0, 0, 1, 0));
@@ -87,7 +86,7 @@ public class StorageConfig {
     }
 
     private List<LeveledItemPreset> createDefaultLeveledItems() {
-        List<LeveledItemPreset> list = new ArrayList<>();
+        List<LeveledItemPreset> list = new ArrayList<>(4);
         LeveledItemPreset amethystSword = new LeveledItemPreset("Amethyst sword", "minecraft:paper", 562, 0, 800, 0, 15, 1, 0);
         amethystSword.levels.add(new ItemLevel("2. szint", 0, 700, 0, 14));
         amethystSword.levels.add(new ItemLevel("3. szint", 0, 700, 0, 14));
@@ -134,8 +133,8 @@ public class StorageConfig {
                     loaded.hudSlotsY = new int[]{13, 34, 55, 76, 97, 118, 139, 160, 181};
                 if (loaded.hudSlotsScale == null || loaded.hudSlotsScale.length < 9)
                     loaded.hudSlotsScale = new float[]{1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
-                loaded.normalItems = new StorageConfig().normalItems;
-                loaded.leveledItems = new StorageConfig().leveledItems;
+                loaded.normalItems = DEFAULT_INSTANCE.normalItems;
+                loaded.leveledItems = DEFAULT_INSTANCE.leveledItems;
                 loaded.selectedBossNotification = "Ki";
                 return loaded;
             }

@@ -14,6 +14,9 @@
                   <Item>
                     <option name="path" value="src/main/resources/fullbrightnesstoggle.mixins.json" />
                   </Item>
+                  <Item>
+                    <option name="path" value="src/main/resources/prefix.mixins.json" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

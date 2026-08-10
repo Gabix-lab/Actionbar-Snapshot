@@ -7,6 +7,7 @@
   "authors": ["Gabix"],
   "contact": {},
   "license": "All-Rights-Reserved",
+  "icon": "assets/actionbar/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -18,7 +19,6 @@
     "client": [
       "me.Gabix.ActionbarStorageClient",
       "me.Gabix.fullbirghtnesstoggle.FullbrightModClient",
-      "me.Gabix.norender.NoRenderModClient",
       "me.Gabix.developer.DeveloperModClient"
     ]
   },
@@ -27,7 +27,10 @@
     "fullbrightnesstoggle.mixins.json",
     "clumps.mixins.json",
     "fireoverlay.mixins.json",
-    "norender.mixins.json"
+    "fpsreducer.mixins.json",
+    "norender.mixins.json",
+    "soundreducer.mixins.json",
+    "prefix.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

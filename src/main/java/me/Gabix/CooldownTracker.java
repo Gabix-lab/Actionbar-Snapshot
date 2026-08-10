@@ -1,13 +1,16 @@
 package me.Gabix;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CooldownTracker {
     public static final CooldownTracker INSTANCE = new CooldownTracker();
 
-    private final Map<String, Integer> leftExpiryTicks = new HashMap<>();
-    private final Map<String, Integer> rightExpiryTicks = new HashMap<>();
-    private final Map<String, List<Integer>> activeCloneTimers = new HashMap<>();
+    private final Map<String, Integer> leftExpiryTicks = new HashMap<>(16);
+    private final Map<String, Integer> rightExpiryTicks = new HashMap<>(16);
+    private final Map<String, List<Integer>> activeCloneTimers = new HashMap<>(16);
 
     public int getLeftExpiry(String key) { return leftExpiryTicks.getOrDefault(key, 0); }
     public int getRightExpiry(String key) { return rightExpiryTicks.getOrDefault(key, 0); }
@@ -18,15 +21,15 @@ public class CooldownTracker {
 
     public void registerRightClick(String key, int currentTick, int cooldownTicks) {
         rightExpiryTicks.put(key, currentTick + cooldownTicks);
-        activeCloneTimers.computeIfAbsent(key, k -> new ArrayList<>()).add(currentTick + 226);
+        List<Integer> timers = activeCloneTimers.computeIfAbsent(key, k -> new ArrayList<>(2));
+        timers.add(currentTick + 226);
     }
 
     public void resetCooldowns(String key) {
         leftExpiryTicks.put(key, 0);
         rightExpiryTicks.put(key, 0);
-        if (activeCloneTimers.containsKey(key)) {
-            activeCloneTimers.get(key).clear();
-        }
+        List<Integer> timers = activeCloneTimers.get(key);
+        if (timers != null) timers.clear();
     }
 
     public int getActiveClones(String key, int currentTick) {
@@ -39,13 +42,10 @@ public class CooldownTracker {
     public boolean isReady(String key, ActionbarStorageClient.SlotSettings settings, int currentTick, int currentMana, boolean isRightCheck) {
         if (key == null) return false;
         if (!isRightCheck) {
-            int expiry = getLeftExpiry(key);
-            return currentTick >= expiry && currentMana >= settings.leftMana();
+            return currentTick >= getLeftExpiry(key) && currentMana >= settings.leftMana();
         } else {
-            int expiry = getRightExpiry(key);
             boolean hasCapacity = (settings.maxCharges() <= 0) || (getActiveClones(key, currentTick) < settings.maxCharges());
-            boolean shortCDReady = (currentTick >= expiry);
-            return shortCDReady && currentMana >= settings.rightMana() && hasCapacity;
+            return currentTick >= getRightExpiry(key) && currentMana >= settings.rightMana() && hasCapacity;
         }
     }
 }
