@@ -1,15 +1,19 @@
 package me.Gabix;
 
+import me.Gabix.badge.ModPlayerTracker;
+import me.Gabix.badge.ModServerClient;
+import me.Gabix.developer.DeveloperModClient;
 import me.Gabix.fpsreducer.FpsManager;
-import me.Gabix.network.ModServerClient;
+import me.Gabix.fullbrightnesstoggle.FullbrightModClient;
+import me.Gabix.motionblur.NaturalMotionBlurMod;
 import me.Gabix.norender.NoRenderEngine;
 import me.Gabix.soundreducer.MuteOnInactive;
 import me.Gabix.soundreducer.SoundReducer;
-import me.Gabix.tracker.ModPlayerTracker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -17,36 +21,43 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import org.lwjgl.glfw.GLFW;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class ActionbarStorageClient implements ClientModInitializer {
     private static ActionbarStorageClient instance;
     private static StorageConfig savedConfig;
-
     private final ScheduledExecutorService scheduler = new ScheduledThreadPoolExecutor(2);
     private final ManaManager manaManager = new ManaManager();
     private final CloneManager cloneManager = new CloneManager();
-
+    private final FpsCpsCounter fpsCpsCounter = new FpsCpsCounter();
     public static KeyBinding configKeyBinding;
     public static KeyBinding resetCooldownKeyBinding;
     public static KeyBinding toggleContinuousKeyBinding;
-
     public static KeyBinding noRenderKeyBinding;
     public static KeyBinding noRenderTimerKeyBinding;
     public static KeyBinding noRenderInactiveKeyBinding;
-
     private int globalTickCounter = 0;
     private boolean wasAttackKeyPressedLastTick = false;
     private boolean wasUseKeyPressedLastTick = false;
 
     public ActionbarStorageClient() {}
 
+    public static void init() {
+        ActionbarStorageClient clientInstance = new ActionbarStorageClient();
+        clientInstance.onInitializeClient();
+    }
+
     @Override
     public void onInitializeClient() {
         instance = this;
+
+        new FullbrightModClient().onInitializeClient();
+        new DeveloperModClient().onInitializeClient();
+        new NaturalMotionBlurMod().onInitializeClient();
+
         savedConfig = StorageConfig.load();
 
         FpsManager.init();
@@ -56,9 +67,8 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             if (client.getSession() != null) {
-                UUID selfUuid = client.getSession().getUuidOrNull();
+                UUID selfUuid = getSelfUuid(client);
                 if (selfUuid != null) {
-                    ModPlayerTracker.registerUser(selfUuid);
                     ModServerClient.sendHeartbeatAsync(selfUuid);
                     ModServerClient.fetchUsersAsync();
                 }
@@ -67,7 +77,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             if (client.getSession() != null) {
-                UUID selfUuid = client.getSession().getUuidOrNull();
+                UUID selfUuid = getSelfUuid(client);
                 if (selfUuid != null) {
                     ModServerClient.sendLogoutAsync(selfUuid);
                 }
@@ -76,27 +86,8 @@ public class ActionbarStorageClient implements ClientModInitializer {
         });
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client != null && client.getSession() != null) {
-                UUID selfUuid = client.getSession().getUuidOrNull();
-                if (selfUuid != null) {
-                    ModServerClient.sendLogoutAsync(selfUuid);
-                }
-            }
             scheduler.shutdownNow();
         }));
-
-        scheduler.scheduleAtFixedRate(() -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client != null && client.getSession() != null) {
-                UUID selfUuid = client.getSession().getUuidOrNull();
-                if (selfUuid != null) {
-                    ModServerClient.sendHeartbeatAsync(selfUuid);
-                }
-            }
-        }, 2, 15, TimeUnit.SECONDS);
-
-        scheduler.scheduleAtFixedRate(ModServerClient::fetchUsersAsync, 5, 15, TimeUnit.SECONDS);
 
         configKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Actionbar Config Megnyitása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "Actionbar Storage Mod"));
@@ -104,15 +95,14 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "Cooldown Nullázása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_SEMICOLON, "Actionbar Storage Mod"));
         toggleContinuousKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Kesz Felirat Mod Valtas", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_APOSTROPHE, "Actionbar Storage Mod"));
-
         noRenderKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "3D Rendereles Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, "NoRender"));
-        noRenderTimerKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "NoRender Idozito Ki/Be", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, "NoRender"));
         noRenderInactiveKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "NoRender Ablak Inaktivnal", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F8, "NoRender"));
 
         ActionbarReader.init();
+
+        HudRenderCallback.EVENT.register(CustomHudRenderer::render);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
@@ -123,6 +113,15 @@ public class ActionbarStorageClient implements ClientModInitializer {
             globalTickCounter++;
             cloneManager.tick(globalTickCounter);
             ActionbarReader.handleTick(client);
+            fpsCpsCounter.tick(client);
+
+            if (globalTickCounter % 200 == 0 && client.getSession() != null) {
+                UUID selfUuid = getSelfUuid(client);
+                if (selfUuid != null) {
+                    ModServerClient.sendHeartbeatAsync(selfUuid);
+                    ModServerClient.fetchUsersAsync();
+                }
+            }
 
             while (configKeyBinding.wasPressed()) {
                 if (savedConfig == null) savedConfig = StorageConfig.load();
@@ -130,12 +129,17 @@ public class ActionbarStorageClient implements ClientModInitializer {
             }
 
             while (noRenderKeyBinding.wasPressed()) NoRenderEngine.toggle(client);
-            while (noRenderTimerKeyBinding.wasPressed()) NoRenderEngine.toggleTimer(client);
             while (noRenderInactiveKeyBinding.wasPressed()) NoRenderEngine.toggleInactive(client);
 
             int activeSlot = client.player.getInventory().selectedSlot;
+            boolean slotEnabled = activeSlot >= 0 && activeSlot < 9 && getConfig().hudSlotsEnabled[activeSlot];
 
-            if (activeSlot >= 0 && activeSlot < 9 && getConfig().hudSlotsEnabled[activeSlot]) {
+            boolean isAttackPressedNow = client.options.attackKey.isPressed();
+            boolean isLeftClicked = isAttackPressedNow && !wasAttackKeyPressedLastTick;
+
+            boolean isUsePressedNow = client.options.useKey.isPressed();
+
+            if (slotEnabled) {
                 while (resetCooldownKeyBinding.wasPressed()) {
                     SlotSettings settings = getSlotSettings(activeSlot);
                     if (settings != null && settings.cooldownKey() != null) {
@@ -143,19 +147,45 @@ public class ActionbarStorageClient implements ClientModInitializer {
                     }
                 }
 
-                boolean isAttackPressedNow = client.options.attackKey.isPressed();
-                boolean isLeftClicked = client.options.attackKey.wasPressed() || (isAttackPressedNow && !wasAttackKeyPressedLastTick);
+                // BAL KLIKK: csak a lenyomás pillanatában
                 if (isLeftClicked) {
-                    SlotSettings settings = getSlotSettings(activeSlot);
-                    if (settings != null && settings.cooldownKey() != null && settings.leftCD() > 0) {
-                        if (CooldownTracker.INSTANCE.isReady(settings.cooldownKey(), settings, globalTickCounter, manaManager.getCurrentMana(), false)) {
-                            CooldownTracker.INSTANCE.registerLeftClick(settings.cooldownKey(), globalTickCounter, settings.leftCD());
+                    ItemStack mainhandStack = client.player.getMainHandStack();
+                    if (!mainhandStack.isEmpty()) {
+                        SlotSettings settings = getSlotSettings(activeSlot);
+                        boolean mainhandUsed = false;
+                        if (settings != null && settings.cooldownKey() != null && settings.leftCD() > 0) {
+                            if (CooldownTracker.INSTANCE.isReady(settings.cooldownKey(), settings, globalTickCounter, manaManager.getCurrentMana(), false)) {
+                                CooldownTracker.INSTANCE.registerLeftClick(settings.cooldownKey(), globalTickCounter, settings.leftCD());
+                                mainhandUsed = true;
+                            }
+                        }
+                        if (!mainhandUsed) {
+                            ItemStack offhandStack = client.player.getOffHandStack();
+                            boolean isOffhandLeftClickable = false;
+                            if (!offhandStack.isEmpty()) {
+                                String offhandId = Registries.ITEM.getId(offhandStack.getItem()).toString();
+                                if (offhandId.equals("minecraft:bow")) {
+                                    isOffhandLeftClickable = true;
+                                } else if (offhandId.equals("minecraft:paper") && offhandStack.hasNbt() && offhandStack.getNbt().contains("CustomModelData")) {
+                                    int cmd = offhandStack.getNbt().getInt("CustomModelData");
+                                    if (cmd == 585) {
+                                        isOffhandLeftClickable = true;
+                                    }
+                                }
+                            }
+                            if (isOffhandLeftClickable) {
+                                SlotSettings offhandSettings = getSettingsForItem(offhandStack);
+                                if (offhandSettings != null && offhandSettings.cooldownKey() != null && offhandSettings.leftCD() > 0) {
+                                    if (CooldownTracker.INSTANCE.isReady(offhandSettings.cooldownKey(), offhandSettings, globalTickCounter, manaManager.getCurrentMana(), false)) {
+                                        CooldownTracker.INSTANCE.registerLeftClick(offhandSettings.cooldownKey(), globalTickCounter, offhandSettings.leftCD());
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-                wasAttackKeyPressedLastTick = isAttackPressedNow;
 
-                boolean isUsePressedNow = client.options.useKey.isPressed();
+                // JOBB KLIKK: folyamatosan, amíg nyomva van
                 if (isUsePressedNow) {
                     ItemStack offhandStack = client.player.getOffHandStack();
                     SlotSettings offhandSettings = getSettingsForItem(offhandStack);
@@ -183,13 +213,25 @@ public class ActionbarStorageClient implements ClientModInitializer {
                         }
                     }
                 }
-                wasUseKeyPressedLastTick = isUsePressedNow;
             } else {
                 while (resetCooldownKeyBinding.wasPressed()) {}
-                wasAttackKeyPressedLastTick = false;
-                wasUseKeyPressedLastTick = false;
             }
+
+            wasAttackKeyPressedLastTick = isAttackPressedNow;
+            wasUseKeyPressedLastTick = isUsePressedNow;
         });
+    }
+
+    private static UUID getSelfUuid(MinecraftClient client) {
+        if (client.getSession() == null) return null;
+        UUID uuid = client.getSession().getUuidOrNull();
+        if (uuid == null) {
+            String username = client.getSession().getUsername();
+            if (username != null && !username.isEmpty()) {
+                uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
+            }
+        }
+        return uuid;
     }
 
     public static ActionbarStorageClient getInstance() {
@@ -203,6 +245,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public CloneManager getCloneManager() { return this.cloneManager; }
     public int getGlobalTickCounter() { return this.globalTickCounter; }
     public ScheduledExecutorService getScheduler() { return scheduler; }
+    public FpsCpsCounter getFpsCpsCounter() { return fpsCpsCounter; }
 
     public static StorageConfig getConfig() {
         if (savedConfig == null) savedConfig = StorageConfig.load();

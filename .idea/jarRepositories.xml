@@ -41,5 +41,10 @@
       <option name="name" value="MavenRepo" />
       <option name="url" value="https://repo.maven.apache.org/maven2/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="Ladysnake Mods" />
+      <option name="name" value="Ladysnake Mods" />
+      <option name="url" value="https://maven.ladysnake.org/releases" />
+    </remote-repository>
   </component>
 </project>

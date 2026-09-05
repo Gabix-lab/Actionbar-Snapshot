@@ -17,6 +17,9 @@
                   <Item>
                     <option name="path" value="src/main/resources/prefix.mixins.json" />
                   </Item>
+                  <Item>
+                    <option name="path" value="src/main/resources/fireoverlay.mixins.json" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

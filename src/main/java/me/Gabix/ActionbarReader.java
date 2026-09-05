@@ -18,18 +18,13 @@ public class ActionbarReader {
     private static String lastRawActionbarText = "";
     private static String lastCleanActionbarText = "";
     private static long lastActionbarUpdateTime = 0;
-
     private static boolean continuousTitle = true;
-
     public static int currentDamage = 0;
     public static boolean isDamageReady = false;
-
     private static long lastDamageUpdateTime = 0;
     private static boolean wasDamageReady = false;
-
     private static final Pattern MANA_PATTERN = Pattern.compile("§b(\\d+)§8/§b\\d+");
     private static final Pattern DAMAGE_PATTERN = Pattern.compile("Sebzés:\\s*.*?§f(\\d+)");
-
     private static Field cachedBossBarsField = null;
 
     public static void init() {}
@@ -57,8 +52,7 @@ public class ActionbarReader {
 
                 if (cachedBossBarsField != null) {
                     Map<?, ?> bossBars = (Map<?, ?>) cachedBossBarsField.get(bossBarHud);
-                    if (bossBars == null || bossBars.isEmpty()) {
-                    } else {
+                    if (bossBars != null && !bossBars.isEmpty()) {
                         for (Object value : bossBars.values()) {
                             if (value instanceof BossBar bossBar) {
                                 String cleanBossName = bossBar.getName().getString().toLowerCase();

@@ -8,9 +8,7 @@
     "BlockEntityRenderMixin",
     "FogMixin",
     "ParticleManagerMixin",
-    "WindowFocusMixin",
-    "KeyboardInputMixin",
-    "MouseInputMixin"
+    "WindowFocusMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -25,7 +25,7 @@ public class StorageConfigScreen extends Screen {
     @Override
     protected void init() {
         this.listWidget = new ItemPresetListWidget(this.config);
-        this.addSelectableChild(this.listWidget);
+        this.addDrawableChild(this.listWidget);
 
         this.addDrawableChild(ButtonWidget.builder(Text.literal("HUD Elemek Áthelyezése"), button -> {
             if (this.client != null) {
@@ -43,21 +43,17 @@ public class StorageConfigScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && this.client != null && this.client.player != null) {
             long windowHandle = this.client.getWindow().getHandle();
-
             if (InputUtil.isKeyPressed(windowHandle, GLFW.GLFW_KEY_RIGHT_SHIFT)) {
-
-                if (mouseY >= this.listWidget.getTop() && mouseY <= this.listWidget.getBottom() && mouseX >= this.listWidget.getLeft() && mouseX <= this.listWidget.getRight()) {
-
+                if (mouseY >= this.listWidget.getTop() && mouseY <= this.listWidget.getBottom() &&
+                        mouseX >= this.listWidget.getLeft() && mouseX <= this.listWidget.getRight()) {
                     ItemPresetListWidget.Entry hoveredEntry = this.listWidget.getHoveredEntry(mouseX, mouseY);
                     if (hoveredEntry != null) {
-
                         if (hoveredEntry instanceof ItemPresetListWidget.NormalItemEntry normalEntry) {
                             StorageConfig.ItemPreset preset = normalEntry.preset;
                             String cmd = "give @s " + preset.itemId + "{CustomModelData:" + preset.customModelData + ",display:{Name:'{\"text\":\"" + preset.name.replace("§", "\\u00A7") + "\",\"italic\":false}'}}";
                             this.client.player.networkHandler.sendCommand(cmd);
                             return true;
                         }
-
                         if (hoveredEntry instanceof ItemPresetListWidget.LevelSubEntry subEntry) {
                             StorageConfig.ItemLevel level = subEntry.level;
                             StorageConfig.LeveledItemPreset parentPreset = null;
@@ -76,7 +72,6 @@ public class StorageConfigScreen extends Screen {
                                 return true;
                             }
                         }
-
                         if (hoveredEntry instanceof ItemPresetListWidget.LeveledItemHeaderEntry headerEntry) {
                             StorageConfig.LeveledItemPreset preset = headerEntry.preset;
                             String cmd = "give @s " + preset.itemId + "{CustomModelData:" + preset.customModelData + ",display:{Name:'{\"text\":\"" + preset.name.replace("§", "\\u00A7") + "\",\"italic\":false}'}}";
@@ -106,12 +101,12 @@ public class StorageConfigScreen extends Screen {
             this.addEntry(new BossNotificationEntry(config));
             this.addEntry(new HudSlotsToggleEntry(config));
             this.addEntry(new DisplayTogglesEntry(config));
-            this.addEntry(new NoRenderTimerEntry(config));
             this.addEntry(new NoRenderInactiveEntry(config));
             this.addEntry(new FpsLimitEntry(config));
             this.addEntry(new FpsLimitImmediateEntry(config));
             this.addEntry(new HideBlockBreakingParticlesEntry(config));
             this.addEntry(new FireOverlayEntry(config));
+            this.addEntry(new FpsCpsToggleEntry(config));
 
             if (config.normalItems != null) {
                 for (StorageConfig.ItemPreset preset : config.normalItems) {
@@ -177,6 +172,7 @@ public class StorageConfigScreen extends Screen {
                         btn -> {
                             config.autoBossDetection = !config.autoBossDetection;
                             btn.setMessage(Text.literal(config.autoBossDetection ? "§aBE" : "§cKI"));
+                            config.save();
                         }
                 ).dimensions(0, 0, 45, 18).build();
 
@@ -219,6 +215,7 @@ public class StorageConfigScreen extends Screen {
                     int nextIndex = (currentIndex + 1) % choices.length;
                     config.selectedBossNotification = choices[nextIndex];
                     button.setMessage(Text.literal(config.selectedBossNotification));
+                    config.save();
                 }).dimensions(0, 0, 100, 18).build();
 
                 this.children.add(this.cycleButton);
@@ -240,6 +237,56 @@ public class StorageConfigScreen extends Screen {
             public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
         }
 
+        private class FpsCpsToggleEntry extends Entry {
+            private final StorageConfig config;
+            private final ButtonWidget fpsToggle, cpsToggle;
+            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
+            private final List<ButtonWidget> selectables = new ArrayList<>();
+
+            public FpsCpsToggleEntry(StorageConfig config) {
+                this.config = config;
+                fpsToggle = ButtonWidget.builder(
+                        Text.literal(config.showFps ? "§aFPS BE" : "§cFPS KI"),
+                        btn -> {
+                            config.showFps = !config.showFps;
+                            btn.setMessage(Text.literal(config.showFps ? "§aFPS BE" : "§cFPS KI"));
+                            config.save();
+                        }
+                ).dimensions(0, 0, 70, 18).build();
+                cpsToggle = ButtonWidget.builder(
+                        Text.literal(config.showCps ? "§aCPS BE" : "§cCPS KI"),
+                        btn -> {
+                            config.showCps = !config.showCps;
+                            btn.setMessage(Text.literal(config.showCps ? "§aCPS BE" : "§cCPS KI"));
+                            config.save();
+                        }
+                ).dimensions(0, 0, 70, 18).build();
+                children.add(fpsToggle);
+                children.add(cpsToggle);
+                selectables.add(fpsToggle);
+                selectables.add(cpsToggle);
+            }
+
+            @Override
+            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
+                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA88AA);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§dFPS / CPS:", x + 6, y + 5, 0xFFFFFF);
+                fpsToggle.setX(x + 100);
+                fpsToggle.setY(y + 1);
+                fpsToggle.render(matrices, mouseX, mouseY, delta);
+                cpsToggle.setX(x + 180);
+                cpsToggle.setY(y + 1);
+                cpsToggle.render(matrices, mouseX, mouseY, delta);
+                String posInfo = "§7(Fps: " + config.fpsX + "," + config.fpsY + "  Cps: " + config.cpsX + "," + config.cpsY + ")";
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, posInfo, x + 260, y + 5, 0xAAAAAA);
+            }
+
+            @Override
+            public List<? extends net.minecraft.client.gui.Element> children() { return children; }
+            @Override
+            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return selectables; }
+        }
+
         private class DisplayTogglesEntry extends Entry {
             private final StorageConfig config;
             private final ButtonWidget manaBtn;
@@ -255,6 +302,7 @@ public class StorageConfigScreen extends Screen {
                         btn -> {
                             config.showMana = !config.showMana;
                             btn.setMessage(Text.literal(config.showMana ? "§aBE" : "§cKI"));
+                            config.save();
                         }
                 ).dimensions(0, 0, 45, 18).build();
 
@@ -263,6 +311,7 @@ public class StorageConfigScreen extends Screen {
                         btn -> {
                             config.showDamage = !config.showDamage;
                             btn.setMessage(Text.literal(config.showDamage ? "§aBE" : "§cKI"));
+                            config.save();
                         }
                 ).dimensions(0, 0, 45, 18).build();
 
@@ -293,88 +342,6 @@ public class StorageConfigScreen extends Screen {
             public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
         }
 
-        private class NoRenderTimerEntry extends Entry {
-            private final StorageConfig config;
-            private final ButtonWidget toggleBtn;
-            private final ButtonWidget minMinusBtn, minPlusBtn;
-            private final ButtonWidget secMinusBtn, secPlusBtn;
-            private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
-            private final List<ButtonWidget> selectables = new ArrayList<>();
-
-            public NoRenderTimerEntry(StorageConfig config) {
-                this.config = config;
-
-                this.toggleBtn = ButtonWidget.builder(Text.literal(config.noRenderTimerEnabled ? "§aBE" : "§cKI"), btn -> {
-                    config.noRenderTimerEnabled = !config.noRenderTimerEnabled;
-                    btn.setMessage(Text.literal(config.noRenderTimerEnabled ? "§aBE" : "§cKI"));
-                }).dimensions(0, 0, 32, 18).build();
-
-                this.minMinusBtn = ButtonWidget.builder(Text.literal("-"), btn -> {
-                    if (config.noRenderMinutes > 0) config.noRenderMinutes--;
-                }).dimensions(0, 0, 16, 18).build();
-
-                this.minPlusBtn = ButtonWidget.builder(Text.literal("+"), btn -> {
-                    if (config.noRenderMinutes < 60) config.noRenderMinutes++;
-                }).dimensions(0, 0, 16, 18).build();
-
-                this.secMinusBtn = ButtonWidget.builder(Text.literal("-"), btn -> {
-                    if (config.noRenderSeconds >= 5) config.noRenderSeconds -= 5;
-                }).dimensions(0, 0, 16, 18).build();
-
-                this.secPlusBtn = ButtonWidget.builder(Text.literal("+"), btn -> {
-                    if (config.noRenderSeconds < 55) config.noRenderSeconds += 5;
-                }).dimensions(0, 0, 16, 18).build();
-
-                addButton(toggleBtn);
-                addButton(minMinusBtn);
-                addButton(minPlusBtn);
-                addButton(secMinusBtn);
-                addButton(secPlusBtn);
-            }
-
-            private void addButton(ButtonWidget btn) {
-                this.children.add(btn);
-                this.selectables.add(btn);
-            }
-
-            @Override
-            public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
-                fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x44AA5500);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§6Auto NoRender Idle:", x + 6, y + 5, 0xFFFFFF);
-
-                this.toggleBtn.setX(x + 130);
-                this.toggleBtn.setY(y + 1);
-                this.toggleBtn.render(matrices, mouseX, mouseY, delta);
-
-                this.minMinusBtn.setX(x + 170);
-                this.minMinusBtn.setY(y + 1);
-                this.minMinusBtn.render(matrices, mouseX, mouseY, delta);
-
-                String minText = config.noRenderMinutes + "m";
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, minText, x + 190, y + 5, 0xFFFF55);
-
-                this.minPlusBtn.setX(x + 212);
-                this.minPlusBtn.setY(y + 1);
-                this.minPlusBtn.render(matrices, mouseX, mouseY, delta);
-
-                this.secMinusBtn.setX(x + 235);
-                this.secMinusBtn.setY(y + 1);
-                this.secMinusBtn.render(matrices, mouseX, mouseY, delta);
-
-                String secText = config.noRenderSeconds + "s";
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, secText, x + 255, y + 5, 0xFFFF55);
-
-                this.secPlusBtn.setX(x + 277);
-                this.secPlusBtn.setY(y + 1);
-                this.secPlusBtn.render(matrices, mouseX, mouseY, delta);
-            }
-
-            @Override
-            public List<? extends net.minecraft.client.gui.Element> children() { return this.children; }
-            @Override
-            public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
-        }
-
         private class NoRenderInactiveEntry extends Entry {
             private final StorageConfig config;
             private final ButtonWidget toggleBtn;
@@ -388,6 +355,7 @@ public class StorageConfigScreen extends Screen {
                         btn -> {
                             config.noRenderOnInactive = !config.noRenderOnInactive;
                             btn.setMessage(Text.literal(config.noRenderOnInactive ? "§aBE" : "§cKI"));
+                            config.save();
                         }
                 ).dimensions(0, 0, 45, 18).build();
 
@@ -595,6 +563,7 @@ public class StorageConfigScreen extends Screen {
                         btn -> {
                             config.hideBlockBreakingParticles = !config.hideBlockBreakingParticles;
                             btn.setMessage(Text.literal(config.hideBlockBreakingParticles ? "§cKI" : "§aBE"));
+                            config.save();
                         }
                 ).dimensions(0, 0, 45, 18).build();
 
@@ -671,21 +640,37 @@ public class StorageConfigScreen extends Screen {
             public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.selectables; }
         }
 
+        // ─── MÓDOSÍTOTT RÉSZ: 10 gomb (0 = offhand) ───
         private class HudSlotsToggleEntry extends Entry {
             private final List<ButtonWidget> buttons = new ArrayList<>();
             private final List<net.minecraft.client.gui.Element> children = new ArrayList<>();
 
             public HudSlotsToggleEntry(StorageConfig config) {
-                for (int i = 0; i < 9; i++) {
-                    final int slotIndex = i;
-                    boolean isEnabled = config.hudSlotsEnabled[slotIndex];
-                    ButtonWidget btn = ButtonWidget.builder(Text.literal(String.valueOf(slotIndex + 1)), button -> {
-                        config.hudSlotsEnabled[slotIndex] = !config.hudSlotsEnabled[slotIndex];
-                        String num = button.getMessage().getString().replaceAll("§.", "");
-                        button.setMessage(Text.literal((config.hudSlotsEnabled[slotIndex] ? "§a" : "§c") + num));
-                    }).dimensions(0, 0, 16, 18).build();
-
-                    btn.setMessage(Text.literal((isEnabled ? "§a" : "§c") + (slotIndex + 1)));
+                // 10 gomb: 0 (offhand) + 1..9 (hotbar)
+                for (int i = 0; i < 10; i++) {
+                    final int index = i;
+                    ButtonWidget btn;
+                    if (i == 0) {
+                        // 0. gomb → offhandSlotEnabled
+                        boolean isEnabled = config.offhandSlotEnabled;
+                        btn = ButtonWidget.builder(Text.literal("0"), button -> {
+                            config.offhandSlotEnabled = !config.offhandSlotEnabled;
+                            button.setMessage(Text.literal((config.offhandSlotEnabled ? "§a" : "§c") + "0"));
+                            config.save();
+                        }).dimensions(0, 0, 16, 18).build();
+                        btn.setMessage(Text.literal((isEnabled ? "§a" : "§c") + "0"));
+                    } else {
+                        // 1..9 → hudSlotsEnabled[slotIndex-1]
+                        final int slotIndex = i - 1;
+                        boolean isEnabled = config.hudSlotsEnabled[slotIndex];
+                        btn = ButtonWidget.builder(Text.literal(String.valueOf(i)), button -> {
+                            config.hudSlotsEnabled[slotIndex] = !config.hudSlotsEnabled[slotIndex];
+                            String num = button.getMessage().getString().replaceAll("§.", "");
+                            button.setMessage(Text.literal((config.hudSlotsEnabled[slotIndex] ? "§a" : "§c") + num));
+                            config.save();
+                        }).dimensions(0, 0, 16, 18).build();
+                        btn.setMessage(Text.literal((isEnabled ? "§a" : "§c") + String.valueOf(i)));
+                    }
                     buttons.add(btn);
                     children.add(btn);
                 }
@@ -694,9 +679,10 @@ public class StorageConfigScreen extends Screen {
             @Override
             public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
                 fill(matrices, x, y, x + entryWidth, y + entryHeight - 2, 0x4422AAAA);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§eHUD Slotok:", x + 6, y + 5, 0xFFFFFF);
+                StorageConfigScreen.this.textRenderer.drawWithShadow(matrices, "§eHUD Slotok (0=offhand):", x + 6, y + 5, 0xFFFFFF);
 
-                int startX = x + entryWidth - 165;
+                // 10 gombhoz szélesebb hely (10*18 = 180 + kis margó)
+                int startX = x + entryWidth - 185;
                 for (int i = 0; i < buttons.size(); i++) {
                     ButtonWidget btn = buttons.get(i);
                     btn.setX(startX + (i * 18));
@@ -710,6 +696,8 @@ public class StorageConfigScreen extends Screen {
             @Override
             public List<? extends net.minecraft.client.gui.Selectable> selectableChildren() { return this.buttons; }
         }
+
+        // ─── A többi belső osztály változatlan marad ───
 
         public class NormalItemEntry extends Entry {
             public final StorageConfig.ItemPreset preset;

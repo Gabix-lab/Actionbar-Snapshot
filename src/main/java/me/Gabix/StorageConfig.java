@@ -3,7 +3,6 @@ package me.Gabix;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -12,58 +11,60 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StorageConfig {
-
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("ab-config.json").toFile();
     private static final StorageConfig DEFAULT_INSTANCE = new StorageConfig();
-
     public boolean[] hudSlotsEnabled = {true, true, true, true, true, true, true, true, true};
     public transient List<ItemPreset> normalItems;
     public transient List<LeveledItemPreset> leveledItems;
-
     public transient String selectedBossNotification = "Ki";
     public boolean autoBossDetection = true;
-
     public boolean showMana = true;
     public boolean showDamage = true;
-
-    public boolean noRenderTimerEnabled = true;
-    public int noRenderMinutes = 5;
-    public int noRenderSeconds = 0;
-    public boolean noRenderOnInactive = false;
+    public boolean noRenderOnInactive = true;
     public boolean fpsLimitImmediateOnInactive = false;
-    public boolean fpsLimitOnInactive = false;
+    public boolean fpsLimitOnInactive = true;
     public int fpsLimitMinutes = 0;
     public int fpsLimitSeconds = 0;
-    public int fpsLimitValue = 30;
-
-    public int manaX = 1;
-    public int manaY = 202;
-    public float manaScale = 1.0000001f;
-
-    public int damageX = 1;
-    public int damageY = 218;
+    public int fpsLimitValue = 10;
+    public int manaX = 0;
+    public int manaY = 194;
+    public float manaScale = 1.0f;
+    public int damageX = 0;
+    public int damageY = 210;
     public float damageScale = 1.0f;
-
-    public int[] hudSlotsX = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-    public int[] hudSlotsY = {13, 34, 55, 76, 97, 118, 139, 160, 181};
-    public float[] hudSlotsScale = {1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
-
+    public int[] hudSlotsX = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    public int[] hudSlotsY = {32, 50, 68, 86, 104, 122, 140, 158, 176};
+    public float[] hudSlotsScale = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
     public boolean hideBlockBreakingParticles = false;
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
     public boolean muteOnInactive = false;
+    public boolean showFps = true;
+    public boolean showCps = true;
+    public int fpsX = 0;
+    public int fpsY = 0;
+    public int cpsX = 0;
+    public int cpsY = 16;
+    public float fpsScale = 1.0f;
+    public float cpsScale = 1.0f;
+    public boolean motionBlurEnabled = false;
+    public boolean offhandSlotEnabled = true;
+    public int offhandX = 62;
+    public int offhandY = 32;
+    public float offhandScale = 1.0f;
 
     public StorageConfig() {
         this.selectedBossNotification = "Ki";
         this.normalItems = createDefaultNormalItems();
         this.leveledItems = createDefaultLeveledItems();
+        this.motionBlurEnabled = false;
     }
 
     public int getTargetBossDamage() {
         if (selectedBossNotification == null) return Integer.MAX_VALUE;
         switch (selectedBossNotification) {
-            case "Jégsárkány": return 6000;
+            case "JégSárkány": return 6000;
             case "Trex": return 20000;
             case "Endermágus": return 3000;
             case "Warden": return 10000;
@@ -93,28 +94,30 @@ public class StorageConfig {
         amethystSword.levels.add(new ItemLevel("4. szint", 0, 600, 0, 12));
         amethystSword.levels.add(new ItemLevel("MAXIMUM SZINT", 0, 600, 0, 12));
         list.add(amethystSword);
-
         LeveledItemPreset amethystStaff = new LeveledItemPreset("Amethyst staff", "minecraft:paper", 569, 20, 1200, 2, 18, 1, 0);
         amethystStaff.levels.add(new ItemLevel("2. szint", 20, 1000, 2, 18));
         amethystStaff.levels.add(new ItemLevel("3. szint", 17, 1000, 1, 18));
         amethystStaff.levels.add(new ItemLevel("4. szint", 17, 1000, 1, 15));
         amethystStaff.levels.add(new ItemLevel("MAXIMUM SZINT", 14, 900, 1, 15));
         list.add(amethystStaff);
-
         LeveledItemPreset healStaff = new LeveledItemPreset("Heal staff", "minecraft:paper", 566, 10, 160, 2, 10, 2, 0);
         healStaff.levels.add(new ItemLevel("2. szint", 10, 160, 2, 9));
         healStaff.levels.add(new ItemLevel("3. szint", 10, 160, 2, 9));
         healStaff.levels.add(new ItemLevel("4. szint", 10, 140, 2, 9));
         healStaff.levels.add(new ItemLevel("MAXIMUM SZINT", 10, 140, 2, 8));
         list.add(healStaff);
-
         LeveledItemPreset honeySword = new LeveledItemPreset("Honey Sword", "minecraft:diamond_sword", 567, 0, 40, 0, 5, 1, 0);
         honeySword.levels.add(new ItemLevel("2. szint", 0, 40, 0, 5));
         honeySword.levels.add(new ItemLevel("3. szint", 0, 40, 0, 5));
         honeySword.levels.add(new ItemLevel("4. szint", 0, 40, 0, 4));
         honeySword.levels.add(new ItemLevel("MAXIMUM SZINT", 0, 40, 0, 4));
         list.add(honeySword);
-
+        LeveledItemPreset radioactiveBow = new LeveledItemPreset("Radioactive Bow", "minecraft:bow", 8, 1200, 0, 10, 0, 0, 0);
+        radioactiveBow.levels.add(new ItemLevel("2. szint", 1200, 0, 10, 0));
+        radioactiveBow.levels.add(new ItemLevel("3. szint", 1200, 0, 10, 0));
+        radioactiveBow.levels.add(new ItemLevel("4. szint", 1200, 0, 10, 0));
+        radioactiveBow.levels.add(new ItemLevel("MAXIMUM SZINT", 1200, 0, 10, 0));
+        list.add(radioactiveBow);
         return list;
     }
 
@@ -128,11 +131,17 @@ public class StorageConfig {
             StorageConfig loaded = GSON.fromJson(reader, StorageConfig.class);
             if (loaded != null) {
                 if (loaded.hudSlotsX == null || loaded.hudSlotsX.length < 9)
-                    loaded.hudSlotsX = new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1};
+                    loaded.hudSlotsX = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
                 if (loaded.hudSlotsY == null || loaded.hudSlotsY.length < 9)
-                    loaded.hudSlotsY = new int[]{13, 34, 55, 76, 97, 118, 139, 160, 181};
+                    loaded.hudSlotsY = new int[]{32, 50, 68, 86, 104, 122, 140, 158, 176};
                 if (loaded.hudSlotsScale == null || loaded.hudSlotsScale.length < 9)
-                    loaded.hudSlotsScale = new float[]{1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
+                    loaded.hudSlotsScale = new float[]{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+                if (loaded.offhandScale <= 0.0f) {
+                    loaded.offhandSlotEnabled = true;
+                    loaded.offhandX = 62;
+                    loaded.offhandY = 32;
+                    loaded.offhandScale = 1.0f;
+                }
                 loaded.normalItems = DEFAULT_INSTANCE.normalItems;
                 loaded.leveledItems = DEFAULT_INSTANCE.leveledItems;
                 loaded.selectedBossNotification = "Ki";
@@ -158,7 +167,6 @@ public class StorageConfig {
         public int rightCD;
         public int leftMana;
         public int rightMana;
-
         public ItemLevel() {}
         public ItemLevel(String levelNameIndicator, int leftCD, int rightCD, int leftMana, int rightMana) {
             this.levelNameIndicator = levelNameIndicator;
@@ -179,7 +187,6 @@ public class StorageConfig {
         public int rightMana;
         public int autoMode;
         public int maxCharges;
-
         public ItemPreset() {}
         public ItemPreset(String name, String itemId, int customModelData, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {
             this.name = name;
@@ -196,7 +203,6 @@ public class StorageConfig {
 
     public static class LeveledItemPreset extends ItemPreset {
         public List<ItemLevel> levels = new ArrayList<>();
-
         public LeveledItemPreset() {}
         public LeveledItemPreset(String name, String itemId, int customModelData, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {
             super(name, itemId, customModelData, leftCD, rightCD, leftMana, rightMana, autoMode, maxCharges);

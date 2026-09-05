@@ -7,9 +7,8 @@
   "client": [
     "ActionbarMixin",
     "ClientPlayerInteractionManagerMixin",
-    "InGameHudMixin",
     "MinecraftClientMixin",
-    "PlayerListEntryMixin"
+    "MouseMixin"
   ],
   "injectors": {
     "defaultRequire": 1
