@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "mvp",
+  "version": "1.6.3-alfa",
+  "name": "MVP Mod",
+  "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel",
+  "authors": ["Gabix"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/mvp/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "me.Gabix.core.ActionbarStorage"
+    ],
+    "client": [
+      "me.Gabix.core.ActionbarStorageClient"
+    ]
+  },
+  "mixins": [
+    "hud.mixins.json",
+    "cooldown.mixins.json",
+    "badge.mixins.json",
+    "fireoverlay.mixins.json",
+    "fpsreducer.mixins.json",
+    "fullbright.mixins.json",
+    "norender.mixins.json",
+    "soundreducer.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.0",
+    "fabric-api": "*",
+    "minecraft": ">=1.19.0",
+    "satin": "*"
+  }
+}

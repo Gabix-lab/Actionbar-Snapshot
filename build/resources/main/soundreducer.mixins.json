@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.Gabix.soundreducer.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "MinecraftClientMixin",
+    "SoundSystemMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -3,12 +3,15 @@ package me.Gabix.badge;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ModPlayerTracker {
 
     private static final Set<String> activeUsers = Collections.synchronizedSet(new HashSet<>());
+    private static final Map<String, String> offlineUuidCache = new ConcurrentHashMap<>();
 
     public static String normalizeUuid(Object uuid) {
         if (uuid == null) return null;
@@ -17,8 +20,16 @@ public class ModPlayerTracker {
 
     public static String getOfflineUuid(String username) {
         if (username == null || username.isEmpty()) return null;
-        UUID offlineUuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
-        return normalizeUuid(offlineUuid);
+
+        String cached = offlineUuidCache.get(username);
+        if (cached != null) return cached;
+
+        UUID offlineUuid = UUID.nameUUIDFromBytes(
+                ("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
+        String normalized = normalizeUuid(offlineUuid);
+
+        offlineUuidCache.put(username, normalized);
+        return normalized;
     }
 
     public static void clear() {

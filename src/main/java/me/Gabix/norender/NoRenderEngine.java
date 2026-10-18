@@ -1,24 +1,27 @@
 package me.Gabix.norender;
 
-import me.Gabix.ActionbarStorageClient;
-import me.Gabix.StorageConfig;
-import me.Gabix.WindowFocusEvent;
-import me.Gabix.WindowFocusListener;
+import me.Gabix.api.WindowFocusEvent;
+import me.Gabix.api.WindowFocusListener;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class NoRenderEngine implements WindowFocusListener {
     public static boolean enabled = false;
-    private static boolean isFocused = true;
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
 
     public static void init() {
-        WindowFocusEvent.register(new NoRenderEngine());
+        if (initialized.compareAndSet(false, true)) {
+            WindowFocusEvent.register(new NoRenderEngine());
+        }
     }
 
     @Override
     public void onFocusGained() {
-        isFocused = true;
         if (enabled) {
             enabled = false;
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
@@ -30,18 +33,14 @@ public class NoRenderEngine implements WindowFocusListener {
 
     @Override
     public void onFocusLost() {
-        isFocused = false;
         StorageConfig config = ActionbarStorageClient.getConfig();
-        if (config.noRenderOnInactive && !enabled) {
+        if (config != null && config.noRenderOnInactive && !enabled) {
             enabled = true;
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if (player != null) {
                 player.sendMessage(Text.literal("§7[GabixMod] §fAblak inaktív - 3D Renderelés §cKIKAPCSOLVA"), true);
             }
         }
-    }
-
-    public static void tick(MinecraftClient client) {
     }
 
     public static void toggle(MinecraftClient client) {
@@ -55,6 +54,7 @@ public class NoRenderEngine implements WindowFocusListener {
 
     public static void toggleInactive(MinecraftClient client) {
         StorageConfig config = ActionbarStorageClient.getConfig();
+        if (config == null) return;
         config.noRenderOnInactive = !config.noRenderOnInactive;
         if (client.player != null) {
             client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Ablak Inaktívnál: " +

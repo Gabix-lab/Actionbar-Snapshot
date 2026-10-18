@@ -1,0 +1,9 @@
+v1	named	intermediary
+FIELD	me/Gabix/badge/mixin/PlayerListEntryMixin	Lnet/minecraft/text/Text;	displayName	field_3743
+FIELD	me/Gabix/badge/mixin/PlayerOrderingMixin	Ljava/util/Comparator;	ENTRY_ORDERING	field_2156
+FIELD	me/Gabix/cooldown/mixin/ClientPlayerInteractionManagerMixin	I	blockBreakingCooldown	field_3716
+FIELD	me/Gabix/cooldown/mixin/MinecraftClientMixin	I	itemUseCooldown	field_1752
+FIELD	me/Gabix/fullbright/mixin/GameOptionsMixin	Lnet/minecraft/client/option/SimpleOption;	gamma	field_1840
+FIELD	me/Gabix/fullbright/mixin/SimpleOptionMixin	Ljava/lang/Object;	value	field_37868
+METHOD	me/Gabix/badge/mixin/PlayerListEntryMixin	()Lcom/mojang/authlib/GameProfile;	getProfile	method_2966
+METHOD	me/Gabix/fpsreducer/mixin/MinecraftClientMixin	()I	getFramerateLimit	method_16009

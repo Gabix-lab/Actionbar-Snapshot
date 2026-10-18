@@ -1,16 +1,21 @@
 package me.Gabix.fpsreducer;
 
-import me.Gabix.ActionbarStorageClient;
-import me.Gabix.StorageConfig;
-import me.Gabix.WindowFocusEvent;
-import me.Gabix.WindowFocusListener;
+import me.Gabix.api.WindowFocusEvent;
+import me.Gabix.api.WindowFocusListener;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FpsManager implements WindowFocusListener {
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static boolean isFocused = true;
     private static long fpsIdleStartTime = 0;
 
     public static void init() {
-        WindowFocusEvent.register(new FpsManager());
+        if (initialized.compareAndSet(false, true)) {
+            WindowFocusEvent.register(new FpsManager());
+        }
     }
 
     @Override
@@ -24,6 +29,7 @@ public class FpsManager implements WindowFocusListener {
     public void onFocusLost() {
         isFocused = false;
         StorageConfig config = ActionbarStorageClient.getConfig();
+        if (config == null) return;
         if (config.fpsLimitImmediateOnInactive) {
             FpsReducerLogic.setTargetFps(config.fpsLimitValue);
         } else if (config.fpsLimitOnInactive) {
@@ -34,6 +40,7 @@ public class FpsManager implements WindowFocusListener {
     public static void tick() {
         if (isFocused) return;
         StorageConfig config = ActionbarStorageClient.getConfig();
+        if (config == null) return;
         if (config.fpsLimitOnInactive && !config.fpsLimitImmediateOnInactive
                 && fpsIdleStartTime > 0) {
             long waitMillis = (config.fpsLimitMinutes * 60L + config.fpsLimitSeconds) * 1000L;

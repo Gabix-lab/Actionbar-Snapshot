@@ -1,6 +1,6 @@
 package me.Gabix.norender.mixin;
 
-import me.Gabix.WindowFocusEvent;
+import me.Gabix.api.WindowFocusEvent;
 import net.minecraft.client.util.Window;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

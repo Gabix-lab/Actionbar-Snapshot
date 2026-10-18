@@ -46,9 +46,9 @@ public abstract class PlayerListEntryMixin {
                         baseDisplayName = Text.literal(entry.getProfile().getName());
                     }
 
-                    if (!baseDisplayName.getString().contains("\ue001")) {
+                    if (!baseDisplayName.getString().contains("\uE111")) {
                         Style iconStyle = Style.EMPTY.withFont(DEFAULT_FONT).withColor(0xFFFFFF);
-                        MutableText iconPrefix = Text.literal("\ue001 ").setStyle(iconStyle);
+                        MutableText iconPrefix = Text.literal("\uE111 ").setStyle(iconStyle);
 
                         MutableText finalTabName = Text.empty();
                         finalTabName.append(iconPrefix);

@@ -8,27 +8,28 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ServerInfo;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class ModServerClient {
     private static final String BASE_URL = "https://mvp-backend-bods.onrender.com/api";
     private static final Gson GSON = new Gson();
+    private static final HttpClient HTTP = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
     private static String getPlayerName(MinecraftClient client) {
         if (client.player != null) {
             return client.player.getName().getString();
-        } else {
-            return client.getSession() != null ? client.getSession().getUsername() : "Unknown";
         }
+        return client.getSession() != null ? client.getSession().getUsername() : "Unknown";
     }
 
     private static String getCurrentServerIp(MinecraftClient client) {
@@ -36,120 +37,82 @@ public class ModServerClient {
             if (client.getServer() != null && client.getServer().getSaveProperties() != null) {
                 String levelName = client.getServer().getSaveProperties().getLevelName();
                 return "Singleplayer (" + levelName + ")";
-            } else {
-                return "Singleplayer";
             }
-        } else {
-            ServerInfo serverEntry = client.getCurrentServerEntry();
-            if (serverEntry != null && serverEntry.address != null && !serverEntry.address.isEmpty()) {
-                return serverEntry.address;
-            } else {
-                ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
-                if (networkHandler != null && networkHandler.getConnection() != null) {
-                    String address = networkHandler.getConnection().getAddress().toString();
-                    if (address.contains("/")) {
-                        String host = address.split("/")[0];
-                        return !host.isEmpty() ? host : address.split("/")[1];
-                    } else {
-                        return address;
-                    }
-                } else {
-                    return "In game main menu";
-                }
-            }
+            return "Singleplayer";
         }
+        ServerInfo serverEntry = client.getCurrentServerEntry();
+        if (serverEntry != null && serverEntry.address != null && !serverEntry.address.isEmpty()) {
+            return serverEntry.address;
+        }
+        ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
+        if (networkHandler != null && networkHandler.getConnection() != null) {
+            String address = networkHandler.getConnection().getAddress().toString();
+            if (address.contains("/")) {
+                String host = address.split("/")[0];
+                return !host.isEmpty() ? host : address.split("/")[1];
+            }
+            return address;
+        }
+        return "In game main menu";
     }
 
     public static void sendHeartbeatAsync(UUID uuid) {
-        if (uuid != null) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            String username = getPlayerName(client);
-            String serverIp = getCurrentServerIp(client);
-            CompletableFuture.runAsync(() -> {
-                try {
-                    URL url = new URL(BASE_URL + "/heartbeat");
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    conn.setConnectTimeout(5000);
-                    conn.setReadTimeout(5000);
-                    conn.setDoOutput(true);
+        if (uuid == null) return;
+        MinecraftClient client = MinecraftClient.getInstance();
+        String username = getPlayerName(client);
+        String serverIp = getCurrentServerIp(client);
 
-                    JsonObject jsonBody = new JsonObject();
-                    jsonBody.addProperty("uuid", uuid.toString());
-                    jsonBody.addProperty("username", username);
-                    jsonBody.addProperty("serverIp", serverIp);
+        JsonObject jsonBody = new JsonObject();
+        jsonBody.addProperty("uuid", uuid.toString());
+        jsonBody.addProperty("username", username);
+        jsonBody.addProperty("serverIp", serverIp);
 
-                    try (OutputStream os = conn.getOutputStream()) {
-                        os.write(jsonBody.toString().getBytes(StandardCharsets.UTF_8));
-                    }
-
-                    conn.getResponseCode();
-                    conn.disconnect();
-                } catch (Exception ignored) {}
-            });
-        }
+        postAsync(BASE_URL + "/heartbeat", jsonBody.toString(), 5000);
     }
 
     public static void sendLogoutAsync(UUID uuid) {
-        if (uuid != null) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    URL url = new URL(BASE_URL + "/logout");
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    conn.setConnectTimeout(3000);
-                    conn.setReadTimeout(3000);
-                    conn.setDoOutput(true);
+        if (uuid == null) return;
+        JsonObject jsonBody = new JsonObject();
+        jsonBody.addProperty("uuid", uuid.toString());
+        postAsync(BASE_URL + "/logout", jsonBody.toString(), 3000);
+    }
 
-                    JsonObject jsonBody = new JsonObject();
-                    jsonBody.addProperty("uuid", uuid.toString());
+    private static void postAsync(String url, String body, int timeoutMs) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofMillis(timeoutMs))
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
 
-                    try (OutputStream os = conn.getOutputStream()) {
-                        os.write(jsonBody.toString().getBytes(StandardCharsets.UTF_8));
-                    }
-
-                    conn.getResponseCode();
-                    conn.disconnect();
-                } catch (Exception ignored) {}
-            });
-        }
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .exceptionally(ex -> null);
     }
 
     public static void fetchUsersAsync() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                URL url = new URL(BASE_URL + "/users");
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/users"))
+                .timeout(Duration.ofSeconds(5))
+                .GET()
+                .build();
 
-                if (conn.getResponseCode() == 200) {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
-                    StringBuilder content = new StringBuilder();
-                    String inputLine;
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                .thenAccept(response -> {
+                    if (response.statusCode() != 200) return;
+                    try {
+                        JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
+                        if (obj == null || !obj.has("users")) return;
 
-                    while ((inputLine = in.readLine()) != null) {
-                        content.append(inputLine);
-                    }
-                    in.close();
-
-                    JsonObject obj = GSON.fromJson(content.toString(), JsonObject.class);
-                    if (obj.has("users")) {
                         JsonArray arr = obj.getAsJsonArray("users");
                         Set<UUID> fetchedUuids = new HashSet<>();
-
                         for (JsonElement el : arr) {
-                            fetchedUuids.add(UUID.fromString(el.getAsString()));
+                            try {
+                                fetchedUuids.add(UUID.fromString(el.getAsString()));
+                            } catch (IllegalArgumentException ignored) {}
                         }
-
                         ModPlayerTracker.updateUsers(fetchedUuids);
-                    }
-                }
-                conn.disconnect();
-            } catch (Exception ignored) {}
-        });
+                    } catch (Exception ignored) {}
+                })
+                .exceptionally(ex -> null);
     }
 }

@@ -3,7 +3,7 @@
   "id": "mvp",
   "version": "${version}",
   "name": "MVP Mod",
-  "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel, Clumps XP optimalizálással",
+  "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel",
   "authors": ["Gabix"],
   "contact": {},
   "license": "All-Rights-Reserved",
@@ -11,20 +11,21 @@
   "environment": "client",
   "entrypoints": {
     "main": [
-      "me.Gabix.ActionbarStorage"
+      "me.Gabix.core.ActionbarStorage"
     ],
     "client": [
-      "me.Gabix.ActionbarStorageClient"
+      "me.Gabix.core.ActionbarStorageClient"
     ]
   },
   "mixins": [
-    "actionbar-snapshot.mixins.json",
-    "fullbrightnesstoggle.mixins.json",
+    "hud.mixins.json",
+    "cooldown.mixins.json",
+    "badge.mixins.json",
     "fireoverlay.mixins.json",
     "fpsreducer.mixins.json",
+    "fullbright.mixins.json",
     "norender.mixins.json",
-    "soundreducer.mixins.json",
-    "badge.mixins.json"
+    "soundreducer.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

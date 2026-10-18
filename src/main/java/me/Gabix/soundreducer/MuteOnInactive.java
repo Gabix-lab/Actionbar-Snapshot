@@ -1,8 +1,8 @@
 package me.Gabix.soundreducer;
 
-import me.Gabix.ActionbarStorageClient;
-import me.Gabix.StorageConfig;
-import me.Gabix.WindowFocusListener;
+import me.Gabix.api.WindowFocusListener;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.sound.SoundCategory;
 

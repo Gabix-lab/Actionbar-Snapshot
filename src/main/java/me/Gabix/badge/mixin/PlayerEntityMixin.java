@@ -18,8 +18,8 @@ public class PlayerEntityMixin {
 
         if (ModPlayerTracker.usesMod(player.getUuid(), player.getGameProfile().getName())) {
             Text originalName = cir.getReturnValue();
-            if (originalName != null && !originalName.getString().contains("\ue001")) {
-                MutableText nameWithIcon = Text.literal("\ue001 ").append(originalName);
+            if (originalName != null && !originalName.getString().contains("\uE111")) {
+                MutableText nameWithIcon = Text.literal("\uE111 ").append(originalName);
                 cir.setReturnValue(nameWithIcon);
             }
         }

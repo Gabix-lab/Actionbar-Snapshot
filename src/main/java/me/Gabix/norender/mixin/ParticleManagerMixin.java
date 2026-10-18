@@ -1,11 +1,11 @@
 package me.Gabix.norender.mixin;
 
-import me.Gabix.ActionbarStorageClient;
-import me.Gabix.StorageConfig;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.block.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

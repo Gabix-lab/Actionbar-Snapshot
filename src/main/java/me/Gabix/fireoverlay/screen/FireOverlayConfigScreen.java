@@ -1,7 +1,7 @@
 package me.Gabix.fireoverlay.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.Gabix.StorageConfig;
+import me.Gabix.core.StorageConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.Screen;
@@ -84,7 +84,6 @@ public class FireOverlayConfigScreen extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
 
-        // --- PONTOS MINECRAFT ÉGÉS OVERLAY (NEM TORZÍTÓ ELTOLÁSSAL) ---
         if (config.fireOverlayHeight > 0 && this.client != null) {
             Sprite fireSprite = MinecraftClient.getInstance()
                     .getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
@@ -99,17 +98,12 @@ public class FireOverlayConfigScreen extends Screen {
 
             float heightPercent = config.fireOverlayHeight / 100.0F;
 
-            // Fix textúra magasság (a képernyő 1.3-szorosa, hogy 100%-nál bőven felérjen)
             int fireWidth = (int) (this.width * 0.6F);
             int fireHeight = (int) (this.height * 1.3F);
 
-            // Az Y pozíció eltolása:
-            // 100%-nál a képernyő tetejéig ér (renderY = this.height - fireHeight)
-            // 30%-nál pontosan a hotbar környékén bukkan csak ki alulról
             int maxOffset = fireHeight;
             int renderY = this.height - (int) (maxOffset * heightPercent);
 
-            // 1. Bal oldali tűz
             DrawableHelper.drawSprite(
                     matrices,
                     0, renderY,
@@ -118,7 +112,6 @@ public class FireOverlayConfigScreen extends Screen {
                     fireSprite
             );
 
-            // 2. Jobb oldali tűz (középen 1/5 átfedéssel)
             DrawableHelper.drawSprite(
                     matrices,
                     this.width - fireWidth, renderY,
@@ -131,10 +124,8 @@ public class FireOverlayConfigScreen extends Screen {
             RenderSystem.disableBlend();
         }
 
-        // --- CÍM ---
         drawCenteredTextWithShadow(matrices, this.textRenderer, "Tűz Overlay Magasság", this.width / 2, 20, 0xFFFFFF);
 
-        // --- CSÚSZKA ---
         int panelX = sliderX - 30;
         int panelY = SLIDER_Y - 10;
         int panelW = SLIDER_WIDTH + 60;

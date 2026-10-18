@@ -1,7 +1,7 @@
 package me.Gabix.fireoverlay.mixin;
 
-import me.Gabix.ActionbarStorageClient;
-import me.Gabix.StorageConfig;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
 import net.minecraft.client.gui.hud.InGameOverlayRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameOverlayRenderer.class)
 public class FireOverlayMixin {
 
-    // Teljes kikapcsolás
     @Inject(method = "renderFireOverlay", at = @At("HEAD"), cancellable = true)
     private static void onRenderFire(CallbackInfo ci) {
         StorageConfig config = ActionbarStorageClient.getConfig();
@@ -21,7 +20,6 @@ public class FireOverlayMixin {
         }
     }
 
-    // Magasság állítása a translate y paraméterének módosításával
     @ModifyArg(
             method = "renderFireOverlay",
             at = @At(

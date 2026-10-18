@@ -6,7 +6,7 @@ chatColors:true
 chatLinks:true
 chatLinksPrompt:true
 enableVsync:false
-entityShadows:true
+entityShadows:false
 forceUnicodeFont:false
 discrete_mouse_scroll:false
 invertYMouse:false
@@ -16,31 +16,31 @@ showSubtitles:false
 directionalAudio:false
 touchscreen:false
 fullscreen:false
-bobView:true
+bobView:false
 toggleCrouch:false
-toggleSprint:false
+toggleSprint:true
 darkMojangStudiosBackground:false
 hideLightningFlashes:false
-mouseSensitivity:0.5
+mouseSensitivity:0.3380281690140845
 fov:1.0
 screenEffectScale:1.0
-fovEffectScale:1.0
-darknessEffectScale:1.0
+fovEffectScale:0.0
+darknessEffectScale:0.0
 glintSpeed:0.5
 glintStrength:0.75
-damageTiltStrength:1.0
+damageTiltStrength:0.0
 highContrast:false
-renderDistance:12
+renderDistance:8
 simulationDistance:12
-entityDistanceScaling:1.0
+entityDistanceScaling:5.0
 guiScale:2
-particles:0
+particles:1
 maxFps:260
 graphicsMode:1
 ao:true
 prioritizeChunkUpdates:0
-biomeBlendRadius:2
-renderClouds:"true"
+biomeBlendRadius:7
+renderClouds:"false"
 resourcePacks:["vanilla","fabric"]
 incompatibleResourcePacks:[]
 lastServer:localhost
@@ -92,7 +92,7 @@ key_key.right:key.keyboard.d
 key_key.jump:key.keyboard.space
 key_key.sneak:key.keyboard.left.shift
 key_key.sprint:key.keyboard.left.control
-key_key.drop:key.keyboard.q
+key_key.drop:key.keyboard.unknown
 key_key.inventory:key.keyboard.e
 key_key.chat:key.keyboard.t
 key_key.playerlist:key.keyboard.tab
@@ -100,7 +100,7 @@ key_key.pickItem:key.mouse.middle
 key_key.command:key.keyboard.slash
 key_key.socialInteractions:key.keyboard.p
 key_key.screenshot:key.keyboard.f2
-key_key.togglePerspective:key.keyboard.f5
+key_key.togglePerspective:key.keyboard.r
 key_key.smoothCamera:key.keyboard.unknown
 key_key.fullscreen:key.keyboard.f11
 key_key.spectatorOutlines:key.keyboard.unknown
@@ -114,29 +114,32 @@ key_key.hotbar.3:key.keyboard.3
 key_key.hotbar.4:key.keyboard.4
 key_key.hotbar.5:key.keyboard.5
 key_key.hotbar.6:key.keyboard.6
-key_key.hotbar.7:key.keyboard.7
+key_key.hotbar.7:key.keyboard.q
 key_key.hotbar.8:key.keyboard.8
 key_key.hotbar.9:key.keyboard.9
-key_mvp.fullbright.toggle:key.keyboard.g
-key_Actionbar Nyers Beolvasása:key.keyboard.h
-key_BossBar Név Beolvasása:key.keyboard.j
-key_Item Info Megjelenítése:key.keyboard.i
-key_MotionBlur ki/be kapcsolás:key.keyboard.k
-key_Actionbar Config Megnyitása:key.keyboard.right.shift
 key_Cooldown Nullázása:key.keyboard.semicolon
 key_Kesz Felirat Mod Valtas:key.keyboard.apostrophe
 key_3D Rendereles Ki/Be:key.keyboard.f6
 key_NoRender Ablak Inaktivnal:key.keyboard.f8
-soundCategory_master:0.2731788079470199
+key_MotionBlur ki/be:key.keyboard.k
+key_mvp.fullbright.toggle:key.keyboard.g
+key_Actionbar Nyers Beolvasása:key.keyboard.h
+key_BossBar Név Beolvasása:key.keyboard.j
+key_Item Info Megjelenítése:key.keyboard.i
+key_Leaderboard Beolvasása:key.keyboard.o
+key_Tab Lista Körítés Beolvasása:key.keyboard.u
+key_Actionbar Config Megnyitása:key.keyboard.right.shift
+key_MC Beállítások Alkalmazása:key.keyboard.f9
+soundCategory_master:0.37748344370860926
 soundCategory_music:0.0
-soundCategory_record:1.0
-soundCategory_weather:1.0
-soundCategory_block:1.0
-soundCategory_hostile:1.0
-soundCategory_neutral:1.0
-soundCategory_player:1.0
-soundCategory_ambient:1.0
-soundCategory_voice:1.0
+soundCategory_record:0.30985915492957744
+soundCategory_weather:0.0
+soundCategory_block:0.5035211267605634
+soundCategory_hostile:0.2007042253521127
+soundCategory_neutral:0.20422535211267606
+soundCategory_player:0.15492957746478872
+soundCategory_ambient:0.4084507042253521
+soundCategory_voice:0.0
 modelPart_cape:true
 modelPart_jacket:true
 modelPart_left_sleeve:true

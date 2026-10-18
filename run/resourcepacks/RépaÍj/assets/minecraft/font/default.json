@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "actionbar:font/icon.png",
+      "ascent": 8,
+      "height": 8,
+      "chars": [
+        "\uE001"
+      ]
+    }
+  ]
+}

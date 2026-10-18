@@ -1,7 +1,7 @@
 package me.Gabix.fpsreducer.mixin;
 
-import me.Gabix.fpsreducer.FpsReducerLogic;
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.Gabix.fpsreducer.FpsReducerLogic;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,7 +27,6 @@ public class RenderSystemMixin {
             double curTime = GLFW.glfwGetTime();
 
             while (curTime < wakeupTime) {
-                // Amint fókuszba kerül a játék (visszaváltasz), AZONNAL kilép a várakozásból
                 if (!FpsReducerLogic.isActive()) {
                     break;
                 }
@@ -38,7 +37,7 @@ public class RenderSystemMixin {
             }
 
             lastDrawTime = curTime;
-            ci.cancel(); // Letiltjuk a Minecraft belső alvási várakoztatását
+            ci.cancel();
         }
     }
 }
