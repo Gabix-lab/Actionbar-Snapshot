@@ -1,0 +1,41 @@
+package me.Gabix.api;
+
+public interface ConfigProvider {
+    boolean isHudSlotEnabled(int slot);
+    int getHudSlotX(int slot);
+    int getHudSlotY(int slot);
+    float getHudSlotScale(int slot);
+    boolean isOffhandEnabled();
+    int getOffhandX();
+    int getOffhandY();
+    float getOffhandScale();
+    boolean showMana();
+    boolean showDamage();
+    boolean showFps();
+    boolean showCps();
+    int getManaX();
+    int getManaY();
+    float getManaScale();
+    int getDamageX();
+    int getDamageY();
+    float getDamageScale();
+    int getFpsX();
+    int getFpsY();
+    float getFpsScale();
+    int getCpsX();
+    int getCpsY();
+    float getCpsScale();
+    boolean noRenderOnInactive();
+    boolean fpsLimitOnInactive();
+    boolean fpsLimitImmediateOnInactive();
+    int fpsLimitMinutes();
+    int fpsLimitSeconds();
+    int fpsLimitValue();
+    boolean hideBlockBreakingParticles();
+    boolean hideFireOverlay();
+    int fireOverlayHeight();
+    boolean muteOnInactive();
+    boolean autoBossDetection();
+    String selectedBossNotification();
+    int getTargetBossDamage();
+}
