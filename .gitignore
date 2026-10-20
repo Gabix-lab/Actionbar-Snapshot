@@ -4,3 +4,4 @@ build/
 .idea/
 .gradle/
 release.ps1
+.gitignore
