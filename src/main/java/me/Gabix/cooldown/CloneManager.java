@@ -12,8 +12,9 @@ public class CloneManager {
         cloneExpiryTicks.removeIf(expiryTick -> currentGlobalTick >= expiryTick);
     }
 
-    public void spawnClone(int currentGlobalTick) {
-        if (cloneExpiryTicks.size() < 2) {
+    public void spawnClone(int currentGlobalTick, int maxCharges) {
+        int limit = maxCharges > 0 ? maxCharges : 2;
+        if (cloneExpiryTicks.size() < limit) {
             cloneExpiryTicks.add(currentGlobalTick + 227);
         }
     }

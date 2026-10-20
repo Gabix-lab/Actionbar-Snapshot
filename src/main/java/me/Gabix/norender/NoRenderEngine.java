@@ -11,7 +11,8 @@ import net.minecraft.text.Text;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NoRenderEngine implements WindowFocusListener {
-    public static boolean enabled = false;
+    public static volatile boolean enabled = false;
+    private static volatile boolean wasAutoEnabled = false;
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
 
     public static void init() {
@@ -22,8 +23,9 @@ public class NoRenderEngine implements WindowFocusListener {
 
     @Override
     public void onFocusGained() {
-        if (enabled) {
+        if (enabled && wasAutoEnabled) {
             enabled = false;
+            wasAutoEnabled = false;
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if (player != null) {
                 player.sendMessage(Text.literal("§7[GabixMod] §fAblak aktív - 3D Renderelés §aBEKAPCSOLVA"), true);
@@ -36,6 +38,7 @@ public class NoRenderEngine implements WindowFocusListener {
         StorageConfig config = ActionbarStorageClient.getConfig();
         if (config != null && config.noRenderOnInactive && !enabled) {
             enabled = true;
+            wasAutoEnabled = true;
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if (player != null) {
                 player.sendMessage(Text.literal("§7[GabixMod] §fAblak inaktív - 3D Renderelés §cKIKAPCSOLVA"), true);
@@ -45,6 +48,7 @@ public class NoRenderEngine implements WindowFocusListener {
 
     public static void toggle(MinecraftClient client) {
         enabled = !enabled;
+        wasAutoEnabled = false;
         if (client.player != null) {
             client.player.sendMessage(
                     Text.literal("§7[GabixMod] §f3D Renderelés: " + (enabled ? "§cKIKAPCSOLVA" : "§aBEKAPCSOLVA")),

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "mvp",
-  "version": "1.6.3-alfa",
+  "version": "1.0.7",
   "name": "MVP Mod",
   "description": "Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel",
   "authors": ["Gabix"],

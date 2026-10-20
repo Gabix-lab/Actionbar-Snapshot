@@ -32,7 +32,7 @@ import java.util.UUID;
 
 public class ActionbarStorageClient implements ClientModInitializer {
     private static ActionbarStorageClient instance;
-    private static StorageConfig config;
+    private static volatile StorageConfig config;
     private int globalTickCounter = 0;
     private int heartbeatCounter = 0;
     private int fetchCounter = 0;
@@ -47,8 +47,17 @@ public class ActionbarStorageClient implements ClientModInitializer {
     }
 
     public static StorageConfig getConfig() {
-        if (config == null) config = StorageConfig.load();
-        return config;
+        StorageConfig local = config;
+        if (local == null) {
+            synchronized (ActionbarStorageClient.class) {
+                local = config;
+                if (local == null) {
+                    local = StorageConfig.load();
+                    config = local;
+                }
+            }
+        }
+        return local;
     }
 
     public int getGlobalTickCounter() {
@@ -121,8 +130,8 @@ public class ActionbarStorageClient implements ClientModInitializer {
             }
 
             while (configKey.wasPressed()) {
-                if (config == null) config = StorageConfig.load();
-                client.setScreen(new StorageConfigScreen(config));
+                StorageConfig cfg = getConfig();
+                client.setScreen(new StorageConfigScreen(cfg));
             }
 
             int activeSlot = client.player.getInventory().selectedSlot;
@@ -192,35 +201,48 @@ public class ActionbarStorageClient implements ClientModInitializer {
     private void handleRightClick(MinecraftClient client, int activeSlot) {
         ItemStack offhandStack = client.player.getOffHandStack();
         SlotSettings offhandSettings = getSettingsForItem(offhandStack);
-        boolean offhandUsed = false;
+        boolean offhandReady = false;
         if (offhandSettings != null && offhandSettings.cooldownKey() != null && offhandSettings.rightCD() > 0) {
             if (CooldownTracker.INSTANCE.isReady(offhandSettings.cooldownKey(), offhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)) {
-                CooldownTracker.INSTANCE.registerRightClick(offhandSettings.cooldownKey(), globalTickCounter, offhandSettings.rightCD());
-                offhandUsed = true;
+                offhandReady = true;
             }
         }
-        if (!offhandUsed) {
-            SlotSettings mainhandSettings = getSlotSettings(activeSlot);
-            if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0) {
-                if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
-                    if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)
-                            && CloneManager.INSTANCE.getActiveClonesCount() < 2) {
-                        CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
-                        CloneManager.INSTANCE.spawnClone(globalTickCounter);
-                    }
-                } else {
-                    if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)) {
-                        CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
-                    }
+
+        SlotSettings mainhandSettings = getSlotSettings(activeSlot);
+        boolean mainhandReady = false;
+        if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0) {
+            if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
+                if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)
+                        && CloneManager.INSTANCE.getActiveClonesCount() < 2) {
+                    mainhandReady = true;
                 }
+            } else {
+                if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)) {
+                    mainhandReady = true;
+                }
+            }
+        }
+
+        if (offhandReady && offhandSettings != null && offhandSettings.cooldownKey() != null) {
+            CooldownTracker.INSTANCE.registerRightClick(offhandSettings.cooldownKey(), globalTickCounter, offhandSettings.rightCD());
+        }
+
+        if (mainhandReady && mainhandSettings != null && mainhandSettings.cooldownKey() != null) {
+            if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
+                CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
+                CloneManager.INSTANCE.spawnClone(globalTickCounter, mainhandSettings.maxCharges());
+            } else {
+                CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
             }
         }
     }
 
     private boolean isOffhandLeftClickable(ItemStack offhandStack) {
         if (offhandStack.isEmpty()) return false;
+        if (offhandStack.getItem() instanceof BowItem) {
+            return true;
+        }
         String offhandId = Registries.ITEM.getId(offhandStack.getItem()).toString();
-        if (offhandId.equals("minecraft:bow")) return true;
         if (offhandId.equals("minecraft:paper") && offhandStack.hasNbt() && offhandStack.getNbt().contains("CustomModelData")) {
             return offhandStack.getNbt().getInt("CustomModelData") == 585;
         }

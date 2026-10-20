@@ -121,6 +121,7 @@ public class FireOverlayConfigScreen extends Screen {
             );
 
             matrices.pop();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.disableBlend();
         }
 

@@ -30,9 +30,11 @@ public class FpsManager implements WindowFocusListener {
         isFocused = false;
         StorageConfig config = ActionbarStorageClient.getConfig();
         if (config == null) return;
+        if (!config.fpsLimitOnInactive) return;
+
         if (config.fpsLimitImmediateOnInactive) {
             FpsReducerLogic.setTargetFps(config.fpsLimitValue);
-        } else if (config.fpsLimitOnInactive) {
+        } else {
             fpsIdleStartTime = System.currentTimeMillis();
         }
     }

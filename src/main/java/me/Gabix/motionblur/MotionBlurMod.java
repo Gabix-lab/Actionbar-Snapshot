@@ -20,6 +20,7 @@ import org.lwjgl.glfw.GLFW;
 public class MotionBlurMod implements ClientModInitializer {
     private static ManagedShaderEffect motionBlurEffect;
     private static boolean enabled = false;
+    private static boolean needReset = false;
     private static KeyBinding toggleKey;
     private static Vec3d prevCameraPos = Vec3d.ZERO;
 
@@ -49,6 +50,18 @@ public class MotionBlurMod implements ClientModInitializer {
             if (enabled && motionBlurEffect != null) {
                 Vec3d currentCameraPos = camera.getPos();
 
+                tempModelView.set(RenderSystem.getModelViewMatrix());
+                tempProjection.set(RenderSystem.getProjectionMatrix());
+                tempMvInverse.set(tempModelView).invert();
+                tempProjInverse.set(tempProjection).invert();
+
+                if (needReset) {
+                    prevCameraPos = currentCameraPos;
+                    prevModelView.set(tempModelView);
+                    prevProjection.set(tempProjection);
+                    needReset = false;
+                }
+
                 motionBlurEffect.setUniformValue("BlendFactor", 0.7f);
                 motionBlurEffect.setUniformValue("motionBlurSamples", 7);
                 motionBlurEffect.setUniformValue("useDepth", 1);
@@ -58,11 +71,6 @@ public class MotionBlurMod implements ClientModInitializer {
                         (float) currentCameraPos.x, (float) currentCameraPos.y, (float) currentCameraPos.z);
                 motionBlurEffect.setUniformValue("prevCameraPos",
                         (float) prevCameraPos.x, (float) prevCameraPos.y, (float) prevCameraPos.z);
-
-                tempModelView.set(RenderSystem.getModelViewMatrix());
-                tempProjection.set(RenderSystem.getProjectionMatrix());
-                tempMvInverse.set(tempModelView).invert();
-                tempProjInverse.set(tempProjection).invert();
 
                 motionBlurEffect.setUniformValue("mvInverse", tempMvInverse);
                 motionBlurEffect.setUniformValue("projInverse", tempProjInverse);
@@ -80,6 +88,10 @@ public class MotionBlurMod implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleKey.wasPressed()) {
                 enabled = !enabled;
+
+                if (enabled) {
+                    needReset = true;
+                }
 
                 if (client.player != null) {
                     Text statusText = enabled

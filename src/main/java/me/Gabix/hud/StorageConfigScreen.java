@@ -20,7 +20,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public class StorageConfigScreen extends Screen {
-    private static final String[] BOSS_CHOICES = {"Ki", "Jégsárkány", "Trex", "Endermágus", "Warden", "RadioPók", "Kraken"};
+    private static final String[] BOSS_CHOICES = {"Ki", "Jégsárkány", "Trex", "Endermágus", "Warden", "RadioPók", "Kraken", "Nyálkakirály"};
     private static final String SECRET_CODE = "marcsi";
     private static final int SECRET_BUFFER_LIMIT = 32;
 
@@ -67,13 +67,8 @@ public class StorageConfigScreen extends Screen {
     }
 
     private void applyMcSettings() {
-        System.out.println("[GabixMod] GOMB MEGNYOMVA");
         if (client == null) {
-            System.out.println("[GabixMod] HIBA: client null");
             return;
-        }
-        if (client.player != null) {
-            client.player.sendMessage(Text.literal("§e[GabixMod] Gomb megnyomva, alkalmazás..."), false);
         }
         MinecraftSettingsApplier.applyPreset(client);
     }
@@ -137,7 +132,11 @@ public class StorageConfigScreen extends Screen {
     }
 
     private static String giveCommand(String itemId, int customModelData, String name) {
-        var escaped = name.replace("§", "\\u00A7");
+        String escaped = name
+                .replace("\\", "\\\\")
+                .replace("'", "\\'")
+                .replace("\"", "\\\"")
+                .replace("§", "\\u00A7");
         return "give @s " + itemId + "{CustomModelData:" + customModelData
                 + ",display:{Name:'{\"text\":\"" + escaped + "\",\"italic\":false}'}}";
     }
@@ -160,10 +159,8 @@ public class StorageConfigScreen extends Screen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        renderBackground(matrices);
-        listWidget.render(matrices, mouseX, mouseY, delta);
-        drawCenteredTextWithShadow(matrices, textRenderer, title, width / 2, 8, 0xFFFFFF);
         super.render(matrices, mouseX, mouseY, delta);
+        drawCenteredTextWithShadow(matrices, textRenderer, title, width / 2, 8, 0xFFFFFF);
     }
 
     private class ItemPresetListWidget extends ElementListWidget<ItemPresetListWidget.Entry> {
@@ -176,6 +173,7 @@ public class StorageConfigScreen extends Screen {
             addEntry(new HudSlotsToggleEntry(config));
             addEntry(new DisplayTogglesEntry(config));
             addEntry(new NoRenderInactiveEntry(config));
+            addEntry(new MuteOnInactiveEntry(config));
             addEntry(new FpsLimitEntry(config));
             addEntry(new FpsLimitImmediateEntry(config));
             addEntry(new HideBlockBreakingParticlesEntry(config));
@@ -197,6 +195,7 @@ public class StorageConfigScreen extends Screen {
         int getBottom() { return bottom; }
 
         void toggleLevels(LeveledItemHeaderEntry header, StorageConfig.LeveledItemPreset preset) {
+            if (preset.levels == null || preset.levels.isEmpty()) return;
             var idx = children().indexOf(header);
             if (idx == -1) return;
             if (header.isExpanded()) {
@@ -356,6 +355,24 @@ public class StorageConfigScreen extends Screen {
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6NoRender Ablak Inaktívnál:", x + 6, y + 5);
+                toggleBtn.setX(x + w - 55); toggleBtn.setY(y + 1); toggleBtn.render(m, mx, my, d);
+            }
+        }
+
+        private class MuteOnInactiveEntry extends BaseEntry {
+            private final ButtonWidget toggleBtn;
+
+            MuteOnInactiveEntry(StorageConfig config) {
+                toggleBtn = track(toggleButton(45,
+                        () -> config.muteOnInactive,
+                        v -> { config.muteOnInactive = v; config.save(); },
+                        "§aBE", "§cKI"));
+            }
+
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AA5500);
+                label(m, "§6Némítás Ablak Inaktívnál:", x + 6, y + 5);
                 toggleBtn.setX(x + w - 55); toggleBtn.setY(y + 1); toggleBtn.render(m, mx, my, d);
             }
         }

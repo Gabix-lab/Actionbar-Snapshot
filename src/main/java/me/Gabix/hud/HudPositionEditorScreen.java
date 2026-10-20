@@ -56,6 +56,14 @@ public class HudPositionEditorScreen extends Screen {
     }
 
     @Override
+    public void close() {
+        this.config.save();
+        if (this.client != null) {
+            this.client.setScreen(this.parent);
+        }
+    }
+
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
             int manaW = (int) (80 * config.manaScale);
