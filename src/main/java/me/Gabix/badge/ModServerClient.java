@@ -86,7 +86,10 @@ public class ModServerClient {
                 .build();
 
         HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                .exceptionally(ex -> null);
+                .exceptionally(ex -> {
+                    System.err.println("[badge] POST hiba (" + url + "): " + ex.getMessage());
+                    return null;
+                });
     }
 
     public static void fetchUsersAsync() {
@@ -113,6 +116,9 @@ public class ModServerClient {
                         ModPlayerTracker.updateUsers(fetchedUuids);
                     } catch (Exception ignored) {}
                 })
-                .exceptionally(ex -> null);
+                .exceptionally(ex -> {
+                    System.err.println("[badge] fetch hiba: " + ex.getMessage());
+                    return null;
+                });
     }
 }

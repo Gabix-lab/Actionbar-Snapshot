@@ -37,13 +37,12 @@ public class ModPlayerTracker {
     }
 
     public static void updateUsers(Set<?> newUsers) {
+        if (newUsers == null) return;
         synchronized (activeUsers) {
             activeUsers.clear();
-            if (newUsers != null) {
-                for (Object u : newUsers) {
-                    String norm = normalizeUuid(u);
-                    if (norm != null) activeUsers.add(norm);
-                }
+            for (Object u : newUsers) {
+                String norm = normalizeUuid(u);
+                if (norm != null) activeUsers.add(norm);
             }
         }
     }

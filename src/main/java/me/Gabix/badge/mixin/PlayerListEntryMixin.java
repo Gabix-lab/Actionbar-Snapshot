@@ -1,5 +1,6 @@
 package me.Gabix.badge.mixin;
 
+import com.mojang.authlib.GameProfile;
 import me.Gabix.badge.ModPlayerTracker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
@@ -13,8 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.mojang.authlib.GameProfile;
-
 @Mixin(PlayerListEntry.class)
 public abstract class PlayerListEntryMixin {
 
@@ -26,9 +25,7 @@ public abstract class PlayerListEntryMixin {
 
     @Inject(method = "getDisplayName", at = @At("HEAD"), cancellable = true)
     private void overridePlayerName(CallbackInfoReturnable<Text> cir) {
-        if (IS_PROCESSING.get()) {
-            return;
-        }
+        if (IS_PROCESSING.get()) return;
 
         try {
             IS_PROCESSING.set(true);
@@ -36,28 +33,30 @@ public abstract class PlayerListEntryMixin {
             PlayerListEntry entry = (PlayerListEntry) (Object) this;
             MinecraftClient client = MinecraftClient.getInstance();
 
-            if (client.player != null && entry.getProfile() != null) {
-                boolean isSelf = entry.getProfile().getId().equals(client.player.getUuid());
-                boolean isModUser = ModPlayerTracker.usesMod(entry.getProfile().getId());
+            if (client.player == null || entry.getProfile() == null) return;
 
-                if (isSelf || isModUser) {
-                    Text baseDisplayName = this.displayName;
-                    if (baseDisplayName == null) {
-                        baseDisplayName = Text.literal(entry.getProfile().getName());
-                    }
+            boolean isSelf = entry.getProfile().getId().equals(client.player.getUuid());
+            boolean isModUser = ModPlayerTracker.usesMod(
+                    entry.getProfile().getId(), entry.getProfile().getName());
 
-                    if (!baseDisplayName.getString().contains("\uE111")) {
-                        Style iconStyle = Style.EMPTY.withFont(DEFAULT_FONT).withColor(0xFFFFFF);
-                        MutableText iconPrefix = Text.literal("\uE111 ").setStyle(iconStyle);
+            if (!isSelf && !isModUser) return;
 
-                        MutableText finalTabName = Text.empty();
-                        finalTabName.append(iconPrefix);
-                        finalTabName.append(baseDisplayName);
-
-                        cir.setReturnValue(finalTabName);
-                    }
-                }
+            Text baseDisplayName = this.displayName;
+            if (baseDisplayName == null || baseDisplayName.getString().isEmpty()) {
+                baseDisplayName = Text.literal(entry.getProfile().getName());
             }
+
+            if (baseDisplayName.getString().contains("\uE111")) return;
+
+            Style iconStyle = Style.EMPTY.withFont(DEFAULT_FONT).withColor(0xFFFFFF);
+            MutableText badge = Text.literal("\uEffe ").setStyle(iconStyle);
+
+            MutableText result = Text.empty();
+            result.append(badge);
+            result.append(baseDisplayName);
+
+            cir.setReturnValue(result);
+
         } finally {
             IS_PROCESSING.set(false);
         }

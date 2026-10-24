@@ -119,12 +119,12 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
             heartbeatCounter++;
             fetchCounter++;
-            if (client.getSession() != null && heartbeatCounter >= 600) {
+            if (client.getSession() != null && heartbeatCounter >= 400) {
                 heartbeatCounter = 0;
                 UUID selfUuid = getSelfUuid(client);
                 if (selfUuid != null) ModServerClient.sendHeartbeatAsync(selfUuid);
             }
-            if (client.getSession() != null && fetchCounter >= 2400) {
+            if (client.getSession() != null && fetchCounter >= 600) {
                 fetchCounter = 0;
                 ModServerClient.fetchUsersAsync();
             }
