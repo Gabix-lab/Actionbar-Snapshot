@@ -3,8 +3,8 @@
     {
       "type": "bitmap",
       "file": "mvp:font/icon.png",
-      "ascent": 7,
-      "height": 8,
+      "ascent": 9,
+      "height": 9,
       "chars": [
         "\uE111"
       ]
