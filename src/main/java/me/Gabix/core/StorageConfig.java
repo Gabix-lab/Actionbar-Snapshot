@@ -130,6 +130,9 @@ public class StorageConfig implements ConfigProvider {
 
         LeveledItemPreset staffInjection = new LeveledItemPreset("✚ Injekciós Pálca", "minecraft:blaze_rod", 10844, 20, 200, 4, 15, 2, 0);
         staffInjection.levels.add(new ItemLevel("- 2. szint", 20, 200, 5, 15));
+        staffInjection.levels.add(new ItemLevel("- 3. szint", 16, 200, 6, 20));
+        staffInjection.levels.add(new ItemLevel("- 4. szint", 16, 200, 8, 25));
+        staffInjection.levels.add(new ItemLevel("- MAXIMUM SZINT", 16, 200, 10, 30));
         list.add(staffInjection);
 
         return list;
