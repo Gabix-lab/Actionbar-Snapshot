@@ -48,6 +48,9 @@ public class StorageConfig implements ConfigProvider {
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
     public boolean muteOnInactive = false;
+    public boolean pauseHudOnInactive = true;
+    public boolean pauseBossMonitorOnInactive = true;
+    public boolean pauseChunkLoadingOnInactive = false;
     public boolean showFps = true;
     public boolean showCps = true;
     public int fpsX = 0;
@@ -63,6 +66,8 @@ public class StorageConfig implements ConfigProvider {
     public float offhandScale = 1.0f;
     public int maxFps = 260;
     public boolean vsyncEnabled = false;
+    public boolean downscaleOnInactive = false;
+    public int inactiveResolutionScale = 50;
 
     public StorageConfig() {
         this.selectedBossNotification = "Ki";

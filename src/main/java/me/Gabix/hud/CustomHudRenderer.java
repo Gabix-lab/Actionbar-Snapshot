@@ -15,6 +15,8 @@ public class CustomHudRenderer {
         if (client == null || client.textRenderer == null || client.player == null) return;
 
         StorageConfig config = ActionbarStorageClient.getConfig();
+        if (config != null && config.pauseHudOnInactive && !client.isWindowFocused()) return;
+
         PlayerEntity player = client.player;
         int globalTick = ActionbarStorageClient.getInstance().getGlobalTickCounter();
 
@@ -57,7 +59,6 @@ public class CustomHudRenderer {
                         int nextExpiry = CloneManager.INSTANCE.getNextExpiryTick();
                         int remTicks = Math.max(0, nextExpiry - globalTick);
                         float secondsLeft = remTicks / 20.0f;
-                        // Optimalizált: String.format helyett
                         String foglaltStr = "§cFOGLALT §7(" + round1(secondsLeft) + "s)";
                         client.textRenderer.drawWithShadow(matrices, foglaltStr, slotX + slotSize + 4, slotY + (int)(14 * scale), 0xFFFFFF);
                     }

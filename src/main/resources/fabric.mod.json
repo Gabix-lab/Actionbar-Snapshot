@@ -14,18 +14,21 @@
       "me.Gabix.core.ActionbarStorage"
     ],
     "client": [
-      "me.Gabix.core.ActionbarStorageClient"
+      "me.Gabix.core.ActionbarStorageClient",
+      "me.Gabix.renderscale.FabricRenderScaleEntrypoint"
     ]
   },
   "mixins": [
     "hud.mixins.json",
     "cooldown.mixins.json",
+    "core.mixins.json",
     "badge.mixins.json",
     "fireoverlay.mixins.json",
     "fpsreducer.mixins.json",
     "fullbright.mixins.json",
     "norender.mixins.json",
-    "soundreducer.mixins.json"
+    "soundreducer.mixins.json",
+    "renderscale.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

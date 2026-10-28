@@ -112,6 +112,7 @@ public class StorageConfigScreen extends Screen {
 
             if (!developerUnlocked && buf.endsWith(DEV_CODE)) {
                 developerUnlocked = true;
+                DevAccess.setToolsEnabled(true);
                 currentCategory = Category.DEVELOPER;
                 matched = true;
                 notifyUnlock("Developer mód");
@@ -277,6 +278,10 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new SectionHeader("Inaktív ablak", 0xFFFFA040));
                     addEntry(new NoRenderInactiveEntry(config));
                     addEntry(new MuteOnInactiveEntry(config));
+                    addEntry(new PauseHudOnInactiveEntry(config));
+                    addEntry(new PauseBossMonitorOnInactiveEntry(config));
+                    addEntry(new PauseChunkLoadingOnInactiveEntry(config));
+                    addEntry(new DownscaleOnInactiveEntry(config));
                     addEntry(new SectionHeader("FPS Limit", 0xFFFF6060));
                     addEntry(new FpsLimitEntry(config));
                     addEntry(new FpsLimitImmediateEntry(config));
@@ -562,6 +567,87 @@ public class StorageConfigScreen extends Screen {
             }
         }
 
+        private class PauseHudOnInactiveEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            PauseHudOnInactiveEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.pauseHudOnInactive,
+                        v -> { c.pauseHudOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AA5500);
+                label(m, "§6HUD renderelés szüneteltetése inaktívkor", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class PauseBossMonitorOnInactiveEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            PauseBossMonitorOnInactiveEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.pauseBossMonitorOnInactive,
+                        v -> { c.pauseBossMonitorOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AA5500);
+                label(m, "§6BossMonitor tick szüneteltetése inaktívkor", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class PauseChunkLoadingOnInactiveEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            PauseChunkLoadingOnInactiveEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.pauseChunkLoadingOnInactive,
+                        v -> { c.pauseChunkLoadingOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AA5500);
+                label(m, "§6Chunk mesh építés szüneteltetése inaktívkor", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class DownscaleOnInactiveEntry extends BaseEntry {
+            private final ButtonWidget toggleBtn;
+            private final RenderScaleSlider slider;
+
+            DownscaleOnInactiveEntry(StorageConfig c) {
+                toggleBtn = track(toggleButton(50,
+                        () -> c.downscaleOnInactive,
+                        v -> { c.downscaleOnInactive = v; c.save(); },
+                        "§aBE", "§cKI"));
+                slider = new RenderScaleSlider(0, 0, 130, 18, c);
+                children.add(slider);
+                selectables.add(slider);
+            }
+
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AA5500);
+                label(m, "§6Render felbontás csökkentés inaktívkor", x + 10, y + 5);
+                toggleBtn.setX(x + w - 200);
+                toggleBtn.setY(y + 1);
+                toggleBtn.render(m, mx, my, d);
+                slider.setX(x + w - 140);
+                slider.setY(y + 1);
+                slider.render(m, mx, my, d);
+            }
+
+            @Override public boolean mouseClicked(double mx, double my, int b) {
+                return slider.mouseClicked(mx, my, b) || super.mouseClicked(mx, my, b);
+            }
+            @Override public boolean mouseDragged(double mx, double my, int b, double dx, double dy) {
+                return slider.mouseDragged(mx, my, b, dx, dy);
+            }
+            @Override public boolean mouseReleased(double mx, double my, int b) {
+                boolean r = slider.mouseReleased(mx, my, b);
+                config.save();
+                return r;
+            }
+        }
+
         private class FpsLimitEntry extends BaseEntry {
             private final ButtonWidget toggle, minM, minP, secM, secP;
             private final TextFieldWidget field;
@@ -820,6 +906,23 @@ public class StorageConfigScreen extends Screen {
             if (mc != null && mc.options != null) {
                 try { mc.options.getMaxFps().setValue(v); } catch (Throwable ignored) {}
             }
+        }
+    }
+
+    private static class RenderScaleSlider extends SliderWidget {
+        private final StorageConfig config;
+        RenderScaleSlider(int x, int y, int w, int h, StorageConfig c) {
+            super(x, y, w, h, Text.empty(), (c.inactiveResolutionScale - 10) / 90.0);
+            this.config = c;
+            this.updateMessage();
+        }
+        @Override protected void updateMessage() {
+            int v = 10 + (int) Math.round(this.value * 90);
+            this.setMessage(Text.literal("§e" + String.format(java.util.Locale.ROOT, "%.1fx", v / 100.0f)));
+        }
+        @Override protected void applyValue() {
+            int value = Math.max(10, Math.min(100, 10 + (int) Math.round(this.value * 90)));
+            config.inactiveResolutionScale = value;
         }
     }
 }

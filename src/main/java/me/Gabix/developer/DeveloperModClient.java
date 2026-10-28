@@ -23,18 +23,19 @@ public class DeveloperModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        if (DevAccess.isToolsEnabled()) {
-            readActionbarKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "Actionbar Nyers Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "Developer Tools"));
-            readBossBarsKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "BossBar Név Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "Developer Tools"));
-            itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Developer Tools"));
-            readLeaderboardKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "Leaderboard Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "Developer Tools"));
-            readTablistKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "Tab Lista Körítés Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "Developer Tools"));
-        }
+        // Always register the key bindings. DevAccess is a runtime toggle (and starts
+        // disabled), so gating registration on it meant the binds were never created
+        // when developer mode was enabled later from the config screen.
+        readActionbarKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "Actionbar Nyers Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "Developer Tools"));
+        readBossBarsKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "BossBar Név Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "Developer Tools"));
+        itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Developer Tools"));
+        readLeaderboardKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "Leaderboard Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "Developer Tools"));
+        readTablistKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "Tab Lista Körítés Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "Developer Tools"));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
