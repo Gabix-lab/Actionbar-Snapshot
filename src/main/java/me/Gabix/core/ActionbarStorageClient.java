@@ -123,9 +123,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
             CloneManager.INSTANCE.tick(globalTickCounter);
             HudMod.getFpsCpsCounter().tick(client);
             HudMod.getArrowCounter().tick(client);
-            if (HudMod.getArrowCounter().getNewArrowsThisTick() > 0 && client.player.isSneaking()) {
-                handleSneakShotCooldown(client);
-            }
 
             heartbeatCounter++;
             fetchCounter++;
@@ -151,11 +148,12 @@ public class ActionbarStorageClient implements ClientModInitializer {
             boolean isLeftClicked = isAttackPressedNow && !wasAttackKeyPressedLastTick;
 
             boolean isUsePressedNow = client.options.useKey.isPressed();
+            boolean isUsePressedEdge = isUsePressedNow && !wasUseKeyPressedLastTick;
 
             boolean hasBowInOffhand = isOffhandBow(client);
 
             boolean isRightClicked = hasBowInOffhand
-                    ? (isUsePressedNow && !wasUseKeyPressedLastTick)
+                    ? isUsePressedEdge
                     : isUsePressedNow;
 
             if (slotEnabled) {
@@ -166,7 +164,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
                     }
                 }
                 if (isLeftClicked) handleLeftClick(client, activeSlot);
-                if (isRightClicked) handleRightClick(client, activeSlot);
+                if (isRightClicked) handleRightClick(client, activeSlot, isUsePressedEdge);
             } else {
                 while (CooldownMod.resetCooldownKeyBinding.wasPressed()) {}
             }
@@ -208,11 +206,14 @@ public class ActionbarStorageClient implements ClientModInitializer {
         }
     }
 
-    private void handleRightClick(MinecraftClient client, int activeSlot) {
+    private void handleRightClick(MinecraftClient client, int activeSlot, boolean isUsePressedEdge) {
+        boolean sneaking = client.player.isSneaking();
+
         ItemStack offhandStack = client.player.getOffHandStack();
         SlotSettings offhandSettings = getSettingsForItem(offhandStack);
         boolean offhandReady = false;
-        if (offhandSettings != null && offhandSettings.cooldownKey() != null && offhandSettings.rightCD() > 0 && !offhandSettings.sneakShotOnly()) {
+        if (offhandSettings != null && offhandSettings.cooldownKey() != null && offhandSettings.rightCD() > 0
+                && isRightClickAllowed(offhandSettings, sneaking, isUsePressedEdge)) {
             if (CooldownTracker.INSTANCE.isReady(offhandSettings.cooldownKey(), offhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)) {
                 offhandReady = true;
             }
@@ -220,7 +221,8 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
         SlotSettings mainhandSettings = getSlotSettings(activeSlot);
         boolean mainhandReady = false;
-        if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0 && !mainhandSettings.sneakShotOnly()) {
+        if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0
+                && isRightClickAllowed(mainhandSettings, sneaking, isUsePressedEdge)) {
             if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
                 if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)
                         && CloneManager.INSTANCE.getActiveClonesCount() < 2) {
@@ -248,26 +250,13 @@ public class ActionbarStorageClient implements ClientModInitializer {
     }
 
     /**
-     * Shiftes lövés: a jobb klikkes cooldown csak a tényleges nyílkilövéskor indul,
-     * és csak akkor, ha a játékos közben le van guggolva (shift).
+     * A shiftes íjaknál (sneakShotOnly) a jobb klikkes cooldown csak akkor indul,
+     * ha a játékos le van guggolva és épp most nyomta le a jobb klikket.
+     * Nem kell hozzá kilőni a nyilat.
      */
-    private void handleSneakShotCooldown(MinecraftClient client) {
-        if (client.player == null) return;
-        registerSneakShotCooldown(client.player.getMainHandStack());
-        if (client.player.getOffHandStack().getItem() instanceof BowItem) {
-            registerSneakShotCooldown(client.player.getOffHandStack());
-        }
-    }
-
-    private void registerSneakShotCooldown(ItemStack stack) {
-        SlotSettings settings = getSettingsForItem(stack);
-        if (settings == null || settings.cooldownKey() == null) return;
-        if (!settings.sneakShotOnly() || settings.rightCD() <= 0) return;
-        if (!CooldownTracker.INSTANCE.isReady(settings.cooldownKey(), settings, globalTickCounter,
-                HudMod.getManaManager().getCurrentMana(), true)) {
-            return;
-        }
-        CooldownTracker.INSTANCE.registerRightClick(settings.cooldownKey(), globalTickCounter, settings.rightCD());
+    private static boolean isRightClickAllowed(SlotSettings settings, boolean sneaking, boolean isUsePressedEdge) {
+        if (!settings.sneakShotOnly()) return true;
+        return sneaking && isUsePressedEdge;
     }
 
     private boolean isOffhandLeftClickable(ItemStack offhandStack) {

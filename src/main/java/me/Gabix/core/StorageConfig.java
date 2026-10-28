@@ -47,6 +47,8 @@ public class StorageConfig implements ConfigProvider {
     public boolean hideBlockTextures = false;
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
+    /** Ha igaz, a szerverek által a title-be küldött PUA karakterek (custom HUD effektek) nem jelennek meg. */
+    public boolean hidePuaInTitle = false;
     public boolean muteOnInactive = false;
     public boolean pauseHudOnInactive = true;
     public boolean pauseBossMonitorOnInactive = true;
@@ -274,7 +276,7 @@ public class StorageConfig implements ConfigProvider {
         public int rightMana;
         public int autoMode;
         public int maxCharges;
-        /** Ha igaz, a jobb klikkes cooldown csak akkor indul, ha a játékos shiftelve lő (nyíl kilövésekor). */
+        /** Ha igaz, a jobb klikkes cooldown csak akkor indul, ha a játékos shiftelve jobb klikkel. */
         public boolean sneakShotOnly;
         public ItemPreset() {}
         public ItemPreset(String name, String itemId, int customModelData, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {
@@ -341,6 +343,7 @@ public class StorageConfig implements ConfigProvider {
     @Override public boolean hideBlockTextures() { return hideBlockTextures; }
     @Override public boolean hideFireOverlay() { return hideFireOverlay; }
     @Override public int fireOverlayHeight() { return fireOverlayHeight; }
+    @Override public boolean hidePuaInTitle() { return hidePuaInTitle; }
     @Override public boolean muteOnInactive() { return muteOnInactive; }
     @Override public boolean autoBossDetection() { return autoBossDetection; }
     @Override public String selectedBossNotification() { return selectedBossNotification; }

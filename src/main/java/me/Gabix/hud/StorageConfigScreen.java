@@ -296,6 +296,9 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new HideAllParticlesEntry(config));
                     addEntry(new SectionHeader("Egyéb", 0xFFFF8040));
                     addEntry(new FireOverlayEntry(config));
+                    addEntry(new SectionHeader("Title / HUD effektek", 0xFF60C0FF));
+                    addEntry(new HidePuaTitleEntry(config));
+                    addEntry(new HintEntry("§7A szerverek PUA karakterekkel rajzolnak HUD ikonokat a title-be."));
                 }
                 case DEVELOPER -> {
                     addEntry(new SectionHeader("Fejlesztői eszközök", 0xFFFF4040));
@@ -816,6 +819,20 @@ public class StorageConfigScreen extends Screen {
                 label(m, "§cTűz Overlay", x + 10, y + 5);
                 toggle.setX(x + 120); toggle.setY(y + 1); toggle.render(m, mx, my, d);
                 cfgBtn.setX(x + 162); cfgBtn.setY(y + 1); cfgBtn.render(m, mx, my, d);
+            }
+        }
+
+        private class HidePuaTitleEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            HidePuaTitleEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.hidePuaInTitle,
+                        v -> { c.hidePuaInTitle = v; c.save(); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AA88AA);
+                label(m, "§dSzerver HUD effektek (PUA) elrejtése a title-ből", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
             }
         }
 

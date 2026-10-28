@@ -1,7 +1,6 @@
 package me.Gabix.hud;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 
 public class HudMod implements ClientModInitializer {
     private static final ManaManager manaManager = new ManaManager();
@@ -22,7 +21,6 @@ public class HudMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        HudRenderCallback.EVENT.register(CustomHudRenderer::render);
     }
 
     public static void registerLeftClick() {
