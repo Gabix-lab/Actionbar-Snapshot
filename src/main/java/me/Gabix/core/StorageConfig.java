@@ -10,7 +10,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class StorageConfig implements ConfigProvider {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -21,6 +23,7 @@ public class StorageConfig implements ConfigProvider {
     public transient List<ItemPreset> normalItems;
     public transient List<LeveledItemPreset> leveledItems;
     public transient String selectedBossNotification = "Ki";
+    public Map<String, String> customCharLabels = new LinkedHashMap<>();
     public boolean autoBossDetection = true;
     public boolean showMana = true;
     public boolean showDamage = true;
@@ -41,6 +44,7 @@ public class StorageConfig implements ConfigProvider {
     public float[] hudSlotsScale = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
     public boolean hideBlockBreakingParticles = false;
     public boolean hideAllParticles = false;
+    public boolean hideBlockTextures = false;
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
     public boolean muteOnInactive = false;
@@ -65,6 +69,14 @@ public class StorageConfig implements ConfigProvider {
         this.normalItems = createDefaultNormalItems();
         this.leveledItems = createDefaultLeveledItems();
         this.motionBlurEnabled = false;
+        populateDefaultCharLabels();
+    }
+
+    private void populateDefaultCharLabels() {
+        if (customCharLabels == null) customCharLabels = new LinkedHashMap<>();
+        customCharLabels.putIfAbsent("\uE111", "[MVP]");
+        customCharLabels.putIfAbsent("是", "[DEV]");
+        customCharLabels.putIfAbsent("鄍", "[OWNER]");
     }
 
     @Override
@@ -203,6 +215,9 @@ public class StorageConfig implements ConfigProvider {
                 if (loaded.maxFps < 10) loaded.maxFps = 10;
                 if (loaded.maxFps > 260) loaded.maxFps = 260;
 
+                if (loaded.customCharLabels == null) loaded.customCharLabels = new LinkedHashMap<>();
+                loaded.populateDefaultCharLabels();
+
                 return loaded;
             }
         } catch (IOException e) {
@@ -299,6 +314,7 @@ public class StorageConfig implements ConfigProvider {
     @Override public int fpsLimitValue() { return fpsLimitValue; }
     @Override public boolean hideBlockBreakingParticles() { return hideBlockBreakingParticles; }
     @Override public boolean hideAllParticles() { return hideAllParticles; }
+    @Override public boolean hideBlockTextures() { return hideBlockTextures; }
     @Override public boolean hideFireOverlay() { return hideFireOverlay; }
     @Override public int fireOverlayHeight() { return fireOverlayHeight; }
     @Override public boolean muteOnInactive() { return muteOnInactive; }

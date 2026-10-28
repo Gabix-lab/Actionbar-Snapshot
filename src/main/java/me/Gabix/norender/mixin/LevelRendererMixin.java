@@ -34,7 +34,17 @@ public class LevelRendererMixin {
 
     @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;renderLayer(Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/util/math/MatrixStack;DDDLorg/joml/Matrix4f;)V"), require = 0)
     private boolean hideBlocks(WorldRenderer instance, RenderLayer renderLayer, MatrixStack matrices, double cameraX, double cameraY, double cameraZ, Matrix4f positionMatrix) {
-        return !NoRenderEngine.enabled;
+        if (NoRenderEngine.enabled) return false;
+        StorageConfig config = ActionbarStorageClient.getConfig();
+        if (config != null && config.hideBlockTextures) {
+            if (renderLayer == RenderLayer.getSolid()
+                    || renderLayer == RenderLayer.getCutoutMipped()
+                    || renderLayer == RenderLayer.getCutout()
+                    || renderLayer == RenderLayer.getTranslucent()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkBuilder$BuiltChunk$RebuildTask$RenderData;getBlockEntities()Ljava/util/List;"), require = 0)

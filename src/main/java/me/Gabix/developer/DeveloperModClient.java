@@ -40,7 +40,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readActionbarKeyBinding.isPressed()) {
                 if (!readActionbarPressed) {
                     readActionbarPressed = true;
-                    ActionbarParser.handleReadActionbar(client);
+                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadActionbar(client);
                 }
             } else {
                 readActionbarPressed = false;
@@ -49,7 +49,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readBossBarsKeyBinding.isPressed()) {
                 if (!readBossBarsPressed) {
                     readBossBarsPressed = true;
-                    ActionbarParser.handleReadBossBars(client);
+                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadBossBars(client);
                 }
             } else {
                 readBossBarsPressed = false;
@@ -58,7 +58,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (itemInfoKeyBinding.isPressed()) {
                 if (!itemInfoPressed) {
                     itemInfoPressed = true;
-                    ActionbarParser.handleItemInfo(client);
+                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleItemInfo(client);
                 }
             } else {
                 itemInfoPressed = false;
@@ -67,7 +67,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readLeaderboardKeyBinding.isPressed()) {
                 if (!readLeaderboardPressed) {
                     readLeaderboardPressed = true;
-                    ActionbarParser.handleReadLeaderboard(client);
+                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadLeaderboard(client);
                 }
             } else {
                 readLeaderboardPressed = false;
@@ -76,7 +76,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readTablistKeyBinding.isPressed()) {
                 if (!readTablistPressed) {
                     readTablistPressed = true;
-                    ActionbarParser.handleReadTablist(client);
+                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadTablist(client);
                 }
             } else {
                 readTablistPressed = false;
