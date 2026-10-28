@@ -49,7 +49,7 @@ public abstract class PlayerListEntryMixin {
             if (baseDisplayName.getString().contains("\uE111")) return;
 
             Style iconStyle = Style.EMPTY.withFont(DEFAULT_FONT).withColor(0xFFFFFF);
-            MutableText badge = Text.literal("\uE111 ").setStyle(iconStyle);
+            MutableText badge = Text.literal("\uE111").setStyle(iconStyle);
 
             MutableText result = Text.empty();
             result.append(badge);

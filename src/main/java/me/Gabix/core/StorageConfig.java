@@ -40,6 +40,7 @@ public class StorageConfig implements ConfigProvider {
     public int[] hudSlotsY = {32, 50, 68, 86, 104, 122, 140, 158, 176};
     public float[] hudSlotsScale = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
     public boolean hideBlockBreakingParticles = false;
+    public boolean hideAllParticles = false;
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
     public boolean muteOnInactive = false;
@@ -88,6 +89,12 @@ public class StorageConfig implements ConfigProvider {
         list.add(new ItemPreset("Lunar horseshoe staff", "minecraft:paper", 10641, 10, 160, 2, 15, 2, 0));
         list.add(new ItemPreset("Easter slingshot", "minecraft:paper", 585, 600, 10, 8, 0, 2, 0));
         list.add(new ItemPreset("Lunar snake staff", "minecraft:paper", 581, 10, 26, 1, 15, 2, 2));
+        list.add(new ItemPreset("Bölcsek Bájitala", "minecraft:paper", 7004, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("Istenek Bájitala", "minecraft:paper", 7005, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("Botanikusok Bájitala", "minecraft:paper", 7007, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("Kalandorok bájitala", "minecraft:paper", 7008, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("Bestiák Bájitala", "minecraft:paper", 7009, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("Gyógyítók Bájitala", "minecraft:paper", 70010, 0, 3600, 0, 0, 1, 0));
         return list;
     }
 
@@ -135,6 +142,26 @@ public class StorageConfig implements ConfigProvider {
         staffInjection.levels.add(new ItemLevel("- MAXIMUM SZINT", 16, 200, 10, 30));
         list.add(staffInjection);
 
+        LeveledItemPreset healingPotion = new LeveledItemPreset("Gyógyítás Bájitala", "minecraft:paper", 7002, 0, 3600, 0, 0, 1, 0);
+        healingPotion.levels.add(new ItemLevel("[II.]", 0, 3600, 0, 0));
+        healingPotion.levels.add(new ItemLevel("[III.]", 0, 3600, 0, 0));
+        list.add(healingPotion);
+
+        LeveledItemPreset magicansPotion = new LeveledItemPreset("Mágusok Bájitala", "minecraft:paper", 7003, 0, 3600, 0, 0, 1, 0);
+        magicansPotion.levels.add(new ItemLevel("[II.]", 0, 3600, 0, 0));
+        magicansPotion.levels.add(new ItemLevel("[III.]", 0, 3600, 0, 0));
+        list.add(magicansPotion);
+
+        LeveledItemPreset defenseHealthPotion = new LeveledItemPreset("Vitalitás Bájitala", "minecraft:paper", 7000, 0, 3600, 0, 0, 1, 0);
+        defenseHealthPotion.levels.add(new ItemLevel("[II.]", 3600, 3600, 0, 0));
+        defenseHealthPotion.levels.add(new ItemLevel("[III.]", 3600, 3600, 0, 0));
+        list.add(defenseHealthPotion);
+
+        LeveledItemPreset fightersPotion = new LeveledItemPreset("Harcosok Bájitala", "minecraft:paper", 7001, 0, 3600, 0, 0, 1, 0);
+        fightersPotion.levels.add(new ItemLevel("[II.]", 0, 3600, 0, 0));
+        fightersPotion.levels.add(new ItemLevel("[III.]", 0, 3600, 0, 0));
+        list.add(fightersPotion);
+
         return list;
     }
 
@@ -147,7 +174,6 @@ public class StorageConfig implements ConfigProvider {
         try (FileReader reader = new FileReader(CONFIG_FILE)) {
             StorageConfig loaded = GSON.fromJson(reader, StorageConfig.class);
             if (loaded != null) {
-                // Csak a tömb hosszakat validáljuk
                 if (loaded.hudSlotsX == null || loaded.hudSlotsX.length < 9)
                     loaded.hudSlotsX = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
                 if (loaded.hudSlotsY == null || loaded.hudSlotsY.length < 9)
@@ -157,13 +183,11 @@ public class StorageConfig implements ConfigProvider {
                 if (loaded.hudSlotsEnabled == null || loaded.hudSlotsEnabled.length < 9)
                     loaded.hudSlotsEnabled = new boolean[]{true, true, true, true, true, true, true, true, true};
 
-                // Preset-ek: csak akkor inicializáljuk, ha null vagy üres
                 if (loaded.normalItems == null || loaded.normalItems.isEmpty())
                     loaded.normalItems = DEFAULT_INSTANCE.normalItems;
                 if (loaded.leveledItems == null || loaded.leveledItems.isEmpty())
                     loaded.leveledItems = DEFAULT_INSTANCE.leveledItems;
 
-                // NEM írjuk felül a user beállítását!
                 if (loaded.selectedBossNotification == null)
                     loaded.selectedBossNotification = "Ki";
 
@@ -268,6 +292,7 @@ public class StorageConfig implements ConfigProvider {
     @Override public int fpsLimitSeconds() { return fpsLimitSeconds; }
     @Override public int fpsLimitValue() { return fpsLimitValue; }
     @Override public boolean hideBlockBreakingParticles() { return hideBlockBreakingParticles; }
+    @Override public boolean hideAllParticles() { return hideAllParticles; }
     @Override public boolean hideFireOverlay() { return hideFireOverlay; }
     @Override public int fireOverlayHeight() { return fireOverlayHeight; }
     @Override public boolean muteOnInactive() { return muteOnInactive; }

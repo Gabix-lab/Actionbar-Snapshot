@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public class ActionbarParser {
     private static String lastRawActionbarText = "";
     private static String lastCleanActionbarText = "";
-    private static final Pattern MANA_PATTERN = Pattern.compile("§b(\\d+)§8/§b\\d+");
+    private static final Pattern MANA_PATTERN = Pattern.compile("§b(\\d+)§8/§b(\\d+)");
     private static final Pattern DAMAGE_PATTERN = Pattern.compile("Sebzés:\\s*.*?§f(\\d+)");
     private static Field cachedBossBarsField = null;
     private static Field cachedHeaderField = null;
@@ -46,6 +46,7 @@ public class ActionbarParser {
         if (manaMatcher.find()) {
             try {
                 manaManager.setCurrentMana(Integer.parseInt(manaMatcher.group(1)));
+                manaManager.setMaxMana(Integer.parseInt(manaMatcher.group(2)));
             } catch (NumberFormatException ignored) {}
         }
 

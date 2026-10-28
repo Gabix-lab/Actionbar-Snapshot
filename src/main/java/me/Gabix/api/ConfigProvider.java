@@ -32,6 +32,7 @@ public interface ConfigProvider {
     int fpsLimitSeconds();
     int fpsLimitValue();
     boolean hideBlockBreakingParticles();
+    boolean hideAllParticles();
     boolean hideFireOverlay();
     int fireOverlayHeight();
     boolean muteOnInactive();

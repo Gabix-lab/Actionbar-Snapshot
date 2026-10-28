@@ -177,6 +177,7 @@ public class StorageConfigScreen extends Screen {
             addEntry(new FpsLimitEntry(config));
             addEntry(new FpsLimitImmediateEntry(config));
             addEntry(new HideBlockBreakingParticlesEntry(config));
+            addEntry(new HideAllParticlesEntry(config));
             addEntry(new FireOverlayEntry(config));
             addEntry(new FpsCpsToggleEntry(config));
 
@@ -486,6 +487,26 @@ public class StorageConfigScreen extends Screen {
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6Block Break Részecskék:", x + 6, y + 5);
                 toggleBtn.setX(x + w - 55); toggleBtn.setY(y + 1); toggleBtn.render(m, mx, my, d);
+            }
+        }
+
+        private class HideAllParticlesEntry extends BaseEntry {
+            private final ButtonWidget toggleBtn;
+
+            HideAllParticlesEntry(StorageConfig config) {
+                toggleBtn = track(toggleButton(45,
+                        () -> config.hideAllParticles,
+                        v -> { config.hideAllParticles = v; config.save(); },
+                        "§aBE", "§cKI"));
+            }
+
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44CC0000);
+                label(m, "§c§l100% MINDEN PARTICLE KIKAPCSOLÁSA:", x + 6, y + 5);
+                toggleBtn.setX(x + w - 55);
+                toggleBtn.setY(y + 1);
+                toggleBtn.render(m, mx, my, d);
             }
         }
 

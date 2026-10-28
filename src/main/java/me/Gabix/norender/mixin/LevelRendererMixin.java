@@ -2,6 +2,8 @@ package me.Gabix.norender.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
 import me.Gabix.norender.NoRenderEngine;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.particle.ParticleManager;
@@ -57,6 +59,8 @@ public class LevelRendererMixin {
 
     @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleManager;renderParticles(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/render/LightmapTextureManager;Lnet/minecraft/client/render/Camera;F)V"), require = 0)
     private boolean hideParticles(ParticleManager instance, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float f) {
-        return !NoRenderEngine.enabled;
+        if (NoRenderEngine.enabled) return false;
+        StorageConfig config = ActionbarStorageClient.getConfig();
+        return config == null || !config.hideAllParticles;
     }
 }

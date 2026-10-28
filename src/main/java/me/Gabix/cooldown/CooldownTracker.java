@@ -1,6 +1,7 @@
 package me.Gabix.cooldown;
 
 import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.hud.HudMod;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,13 +59,18 @@ public class CooldownTracker {
 
     public boolean isReady(String key, ActionbarStorageClient.SlotSettings settings, int currentTick, int currentMana, boolean isRightCheck) {
         if (key == null) return false;
+
+        int maxMana = HudMod.getManaManager().getMaxMana();
+        int tolerance = (int) (maxMana * 0.025);
+        int effectiveMana = currentMana + tolerance;
+
         if (!isRightCheck) {
-            return currentTick >= getLeftExpiry(key) && currentMana >= settings.leftMana();
+            return currentTick >= getLeftExpiry(key) && effectiveMana >= settings.leftMana();
         } else {
             boolean hasCapacity = (settings.maxCharges() <= 0)
                     || (getActiveClones(key, currentTick) < settings.maxCharges());
             return currentTick >= getRightExpiry(key)
-                    && currentMana >= settings.rightMana()
+                    && effectiveMana >= settings.rightMana()
                     && hasCapacity;
         }
     }

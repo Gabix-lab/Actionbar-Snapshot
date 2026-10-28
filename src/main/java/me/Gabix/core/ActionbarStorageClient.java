@@ -19,12 +19,17 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.charset.StandardCharsets;
@@ -68,6 +73,13 @@ public class ActionbarStorageClient implements ClientModInitializer {
     public void onInitializeClient() {
         instance = this;
         config = StorageConfig.load();
+
+        ResourceManagerHelper.registerBuiltinResourcePack(
+                new Identifier("mvp", "mvp_resources"),
+                FabricLoader.getInstance().getModContainer("mvp").orElseThrow(),
+                Text.literal("MVP Font"),
+                ResourcePackActivationType.ALWAYS_ENABLED
+        );
 
         safeInit(() -> new HudMod().onInitializeClient(), "HudMod");
         safeInit(() -> new CooldownMod().onInitializeClient(), "CooldownMod");
@@ -298,6 +310,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
             for (StorageConfig.LeveledItemPreset preset : config.leveledItems) {
                 if (preset.itemId.equals(itemId) && preset.customModelData == customModelData) {
                     int leftCd = preset.leftCD, rightCd = preset.rightCD, leftMana = preset.leftMana, rightMana = preset.rightMana;
+                    String levelKey = globalKey;
                     if (preset.levels != null && currentItemName != null) {
                         for (StorageConfig.ItemLevel lvl : preset.levels) {
                             if (currentItemName.contains(lvl.levelNameIndicator)) {
@@ -305,11 +318,14 @@ public class ActionbarStorageClient implements ClientModInitializer {
                                 rightCd = lvl.rightCD;
                                 leftMana = lvl.leftMana;
                                 rightMana = lvl.rightMana;
+                                if (preset.customModelData == 7002 || preset.customModelData == 7003 || preset.customModelData == 7000 || preset.customModelData == 7001) {
+                                    levelKey = globalKey + ":" + lvl.levelNameIndicator;
+                                }
                                 break;
                             }
                         }
                     }
-                    return new SlotSettings(globalKey, currentItemName, leftCd, rightCd, leftMana, rightMana, preset.autoMode, preset.maxCharges);
+                    return new SlotSettings(levelKey, currentItemName, leftCd, rightCd, leftMana, rightMana, preset.autoMode, preset.maxCharges);
                 }
             }
         }
