@@ -39,4 +39,6 @@ public interface ConfigProvider {
     boolean autoBossDetection();
     String selectedBossNotification();
     int getTargetBossDamage();
+    int maxFps();
+    boolean vsyncEnabled();
 }

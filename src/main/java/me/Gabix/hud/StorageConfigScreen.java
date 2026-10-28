@@ -3,11 +3,13 @@ package me.Gabix.hud;
 import me.Gabix.core.MinecraftSettingsApplier;
 import me.Gabix.core.StorageConfig;
 import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
+import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
@@ -176,6 +178,8 @@ public class StorageConfigScreen extends Screen {
             addEntry(new MuteOnInactiveEntry(config));
             addEntry(new FpsLimitEntry(config));
             addEntry(new FpsLimitImmediateEntry(config));
+            addEntry(new MaxFpsEntry(config));
+            addEntry(new VsyncEntry(config));
             addEntry(new HideBlockBreakingParticlesEntry(config));
             addEntry(new HideAllParticlesEntry(config));
             addEntry(new FireOverlayEntry(config));
@@ -472,6 +476,74 @@ public class StorageConfigScreen extends Screen {
             }
         }
 
+        private class MaxFpsEntry extends BaseEntry {
+            private final FpsSlider fpsSlider;
+
+            MaxFpsEntry(StorageConfig config) {
+                fpsSlider = new FpsSlider(0, 0, 200, 18, config);
+                children.add(fpsSlider);
+                selectables.add(fpsSlider);
+            }
+
+            @Override
+            public boolean mouseClicked(double mx, double my, int b) {
+                return fpsSlider.mouseClicked(mx, my, b);
+            }
+
+            @Override
+            public boolean mouseDragged(double mx, double my, int b, double dx, double dy) {
+                return fpsSlider.mouseDragged(mx, my, b, dx, dy);
+            }
+
+            @Override
+            public boolean mouseReleased(double mx, double my, int b) {
+                boolean handled = fpsSlider.mouseReleased(mx, my, b);
+                config.save();
+                return handled;
+            }
+
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AAAA00);
+                label(m, "§eMax FPS Limit:", x + 6, y + 5);
+                fpsSlider.setX(x + 100);
+                fpsSlider.setY(y + 1);
+                fpsSlider.render(m, mx, my, d);
+            }
+        }
+
+        private class VsyncEntry extends BaseEntry {
+            private final ButtonWidget toggleBtn;
+
+            VsyncEntry(StorageConfig config) {
+                toggleBtn = track(toggleButton(45,
+                        () -> config.vsyncEnabled,
+                        v -> {
+                            config.vsyncEnabled = v;
+                            MinecraftClient mc = MinecraftClient.getInstance();
+                            if (mc != null && mc.options != null) {
+                                try {
+                                    mc.options.getEnableVsync().setValue(v);
+                                    if (mc.getWindow() != null) {
+                                        mc.getWindow().setVsync(v);
+                                    }
+                                } catch (Throwable ignored) {}
+                            }
+                            config.save();
+                        },
+                        "§aBE", "§cKI"));
+            }
+
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AAAA00);
+                label(m, "§eV-Sync:", x + 6, y + 5);
+                toggleBtn.setX(x + w - 55);
+                toggleBtn.setY(y + 1);
+                toggleBtn.render(m, mx, my, d);
+            }
+        }
+
         private class HideBlockBreakingParticlesEntry extends BaseEntry {
             private final ButtonWidget toggleBtn;
 
@@ -637,6 +709,39 @@ public class StorageConfigScreen extends Screen {
                         + " §7| J: §d" + (level.rightCD / 20.0f) + "s (" + level.rightMana + "m)";
                 int statsWidth = StorageConfigScreen.this.textRenderer.getWidth(stats);
                 label(m, stats, x + w - statsWidth - 6, y + 6, 0xCCCCCC);
+            }
+        }
+    }
+
+    private static class FpsSlider extends SliderWidget {
+        private final StorageConfig config;
+
+        FpsSlider(int x, int y, int width, int height, StorageConfig config) {
+            super(x, y, width, height, Text.empty(), (config.maxFps - 10) / 250.0);
+            this.config = config;
+            this.updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            int v = 10 + (int) Math.round(this.value * 250);
+            if (v >= 260) {
+                this.setMessage(Text.literal("§aVégtelen (∞)"));
+            } else {
+                this.setMessage(Text.literal("§e" + v + " FPS"));
+            }
+        }
+
+        @Override
+        protected void applyValue() {
+            int v = 10 + (int) Math.round(this.value * 250);
+            v = Math.max(10, Math.min(260, v));
+            config.maxFps = v;
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.options != null) {
+                try {
+                    mc.options.getMaxFps().setValue(v);
+                } catch (Throwable ignored) {}
             }
         }
     }

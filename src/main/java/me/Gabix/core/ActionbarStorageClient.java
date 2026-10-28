@@ -43,6 +43,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
     private int fetchCounter = 0;
     private boolean wasAttackKeyPressedLastTick = false;
     private boolean wasUseKeyPressedLastTick = false;
+    private boolean optionsApplied = false;
 
     public static ActionbarStorageClient getInstance() {
         if (instance == null) {
@@ -119,6 +120,24 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 "MC Beállítások Alkalmazása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F9, "MVP Mod"));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.options != null) {
+                StorageConfig cfg = getConfig();
+                try {
+                    boolean firstRun = !optionsApplied;
+                    if (firstRun) optionsApplied = true;
+
+                    if (firstRun || client.options.getMaxFps().getValue() != cfg.maxFps) {
+                        client.options.getMaxFps().setValue(cfg.maxFps);
+                    }
+                    if (firstRun || client.options.getEnableVsync().getValue() != cfg.vsyncEnabled) {
+                        client.options.getEnableVsync().setValue(cfg.vsyncEnabled);
+                        if (client.getWindow() != null) {
+                            client.getWindow().setVsync(cfg.vsyncEnabled);
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+
             while (applyPresetKey.wasPressed()) {
                 MinecraftSettingsApplier.applyPreset(client);
             }

@@ -18,13 +18,14 @@ public final class MinecraftSettingsApplier {
         if (client == null || client.options == null) return;
 
         GameOptions o = client.options;
+        StorageConfig cfg = ActionbarStorageClient.getConfig();
 
         try { o.getAutoJump().setValue(false); } catch (Throwable ignored) {}
 
         try { o.getChatColors().setValue(true); } catch (Throwable ignored) {}
         try { o.getChatLinks().setValue(true); } catch (Throwable ignored) {}
         try { o.getChatLinksPrompt().setValue(true); } catch (Throwable ignored) {}
-        try { o.getEnableVsync().setValue(false); } catch (Throwable ignored) {}
+        try { o.getEnableVsync().setValue(cfg.vsyncEnabled); } catch (Throwable ignored) {}
         try { o.getEntityShadows().setValue(false); } catch (Throwable ignored) {}
         try { o.getForceUnicodeFont().setValue(false); } catch (Throwable ignored) {}
         try { o.getDiscreteMouseScroll().setValue(false); } catch (Throwable ignored) {}
@@ -47,7 +48,7 @@ public final class MinecraftSettingsApplier {
         try { o.getSimulationDistance().setValue(12); } catch (Throwable ignored) {}
         try { o.getEntityDistanceScaling().setValue(5.0); } catch (Throwable ignored) {}
         try { o.getGuiScale().setValue(2); } catch (Throwable ignored) {}
-        try { o.getMaxFps().setValue(260); } catch (Throwable ignored) {}
+        try { o.getMaxFps().setValue(cfg.maxFps); } catch (Throwable ignored) {}
         try { o.getBiomeBlendRadius().setValue(7); } catch (Throwable ignored) {}
         try { o.getParticles().setValue(ParticlesMode.DECREASED); } catch (Throwable ignored) {}
         try { o.getGraphicsMode().setValue(GraphicsMode.FANCY); } catch (Throwable ignored) {}
@@ -68,6 +69,12 @@ public final class MinecraftSettingsApplier {
         applyKeyBindings(o);
 
         try { o.write(); } catch (Throwable ignored) {}
+
+        try {
+            if (client.getWindow() != null) {
+                client.getWindow().setVsync(cfg.vsyncEnabled);
+            }
+        } catch (Throwable ignored) {}
     }
 
     private static void applyKeyBindings(GameOptions o) {

@@ -57,6 +57,8 @@ public class StorageConfig implements ConfigProvider {
     public int offhandX = 62;
     public int offhandY = 32;
     public float offhandScale = 1.0f;
+    public int maxFps = 260;
+    public boolean vsyncEnabled = false;
 
     public StorageConfig() {
         this.selectedBossNotification = "Ki";
@@ -197,6 +199,10 @@ public class StorageConfig implements ConfigProvider {
                     loaded.offhandY = 32;
                     loaded.offhandScale = 1.0f;
                 }
+
+                if (loaded.maxFps < 10) loaded.maxFps = 10;
+                if (loaded.maxFps > 260) loaded.maxFps = 260;
+
                 return loaded;
             }
         } catch (IOException e) {
@@ -298,4 +304,6 @@ public class StorageConfig implements ConfigProvider {
     @Override public boolean muteOnInactive() { return muteOnInactive; }
     @Override public boolean autoBossDetection() { return autoBossDetection; }
     @Override public String selectedBossNotification() { return selectedBossNotification; }
+    @Override public int maxFps() { return maxFps; }
+    @Override public boolean vsyncEnabled() { return vsyncEnabled; }
 }
