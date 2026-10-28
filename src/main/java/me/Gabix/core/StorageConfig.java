@@ -115,7 +115,16 @@ public class StorageConfig implements ConfigProvider {
         list.add(new ItemPreset("Bestiák Bájitala", "minecraft:paper", 7009, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("Gyógyítók Bájitala", "minecraft:paper", 7010, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("☠ Csontváz Gyógyító Pálca", "minecraft:blaze_rod", 11221, 14, 200, 4, 30, 2,  0));
+        list.add(createSneakBowPreset("Halloween Íj - Csontváz", 11228));
+        list.add(createSneakBowPreset("Halloween Íj - Denevér", 11229));
+        list.add(createSneakBowPreset("Halloween Íj - Tök", 11227));
         return list;
+    }
+
+    private static ItemPreset createSneakBowPreset(String name, int customModelData) {
+        ItemPreset preset = new ItemPreset(name, "minecraft:bow", customModelData, 0, 600, 0, 0, 0, 0);
+        preset.sneakShotOnly = true;
+        return preset;
     }
 
     private List<LeveledItemPreset> createDefaultLeveledItems() {
@@ -265,6 +274,8 @@ public class StorageConfig implements ConfigProvider {
         public int rightMana;
         public int autoMode;
         public int maxCharges;
+        /** Ha igaz, a jobb klikkes cooldown csak akkor indul, ha a játékos shiftelve lő (nyíl kilövésekor). */
+        public boolean sneakShotOnly;
         public ItemPreset() {}
         public ItemPreset(String name, String itemId, int customModelData, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {
             this.name = name;

@@ -123,6 +123,9 @@ public class ActionbarStorageClient implements ClientModInitializer {
             CloneManager.INSTANCE.tick(globalTickCounter);
             HudMod.getFpsCpsCounter().tick(client);
             HudMod.getArrowCounter().tick(client);
+            if (HudMod.getArrowCounter().getNewArrowsThisTick() > 0 && client.player.isSneaking()) {
+                handleSneakShotCooldown(client);
+            }
 
             heartbeatCounter++;
             fetchCounter++;
@@ -209,7 +212,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
         ItemStack offhandStack = client.player.getOffHandStack();
         SlotSettings offhandSettings = getSettingsForItem(offhandStack);
         boolean offhandReady = false;
-        if (offhandSettings != null && offhandSettings.cooldownKey() != null && offhandSettings.rightCD() > 0) {
+        if (offhandSettings != null && offhandSettings.cooldownKey() != null && offhandSettings.rightCD() > 0 && !offhandSettings.sneakShotOnly()) {
             if (CooldownTracker.INSTANCE.isReady(offhandSettings.cooldownKey(), offhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)) {
                 offhandReady = true;
             }
@@ -217,7 +220,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
 
         SlotSettings mainhandSettings = getSlotSettings(activeSlot);
         boolean mainhandReady = false;
-        if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0) {
+        if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0 && !mainhandSettings.sneakShotOnly()) {
             if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
                 if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)
                         && CloneManager.INSTANCE.getActiveClonesCount() < 2) {
@@ -242,6 +245,29 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
             }
         }
+    }
+
+    /**
+     * Shiftes lövés: a jobb klikkes cooldown csak a tényleges nyílkilövéskor indul,
+     * és csak akkor, ha a játékos közben le van guggolva (shift).
+     */
+    private void handleSneakShotCooldown(MinecraftClient client) {
+        if (client.player == null) return;
+        registerSneakShotCooldown(client.player.getMainHandStack());
+        if (client.player.getOffHandStack().getItem() instanceof BowItem) {
+            registerSneakShotCooldown(client.player.getOffHandStack());
+        }
+    }
+
+    private void registerSneakShotCooldown(ItemStack stack) {
+        SlotSettings settings = getSettingsForItem(stack);
+        if (settings == null || settings.cooldownKey() == null) return;
+        if (!settings.sneakShotOnly() || settings.rightCD() <= 0) return;
+        if (!CooldownTracker.INSTANCE.isReady(settings.cooldownKey(), settings, globalTickCounter,
+                HudMod.getManaManager().getCurrentMana(), true)) {
+            return;
+        }
+        CooldownTracker.INSTANCE.registerRightClick(settings.cooldownKey(), globalTickCounter, settings.rightCD());
     }
 
     private boolean isOffhandLeftClickable(ItemStack offhandStack) {
@@ -297,7 +323,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
         if (config.normalItems != null) {
             for (StorageConfig.ItemPreset preset : config.normalItems) {
                 if (preset.itemId.equals(itemId) && preset.customModelData == customModelData) {
-                    return new SlotSettings(globalKey, currentItemName, preset.leftCD, preset.rightCD, preset.leftMana, preset.rightMana, preset.autoMode, preset.maxCharges);
+                    return new SlotSettings(globalKey, currentItemName, preset.leftCD, preset.rightCD, preset.leftMana, preset.rightMana, preset.autoMode, preset.maxCharges, preset.sneakShotOnly);
                 }
             }
         }
@@ -320,12 +346,12 @@ public class ActionbarStorageClient implements ClientModInitializer {
                             }
                         }
                     }
-                    return new SlotSettings(levelKey, currentItemName, leftCd, rightCd, leftMana, rightMana, preset.autoMode, preset.maxCharges);
+                    return new SlotSettings(levelKey, currentItemName, leftCd, rightCd, leftMana, rightMana, preset.autoMode, preset.maxCharges, preset.sneakShotOnly);
                 }
             }
         }
         return null;
     }
 
-    public record SlotSettings(String cooldownKey, String displayName, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {}
+    public record SlotSettings(String cooldownKey, String displayName, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges, boolean sneakShotOnly) {}
 }

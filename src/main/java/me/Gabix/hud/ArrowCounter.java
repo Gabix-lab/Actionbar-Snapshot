@@ -19,9 +19,11 @@ public class ArrowCounter {
     private final Set<Integer> seenArrows = new HashSet<>();
     private final Deque<Long> shots = new ArrayDeque<>();
     private int currentAps = 0;
+    private int newArrowsThisTick = 0;
 
     public void tick(MinecraftClient client) {
         long now = System.currentTimeMillis();
+        newArrowsThisTick = 0;
 
         if (client != null && client.player != null && client.world != null) {
             for (Entity entity : client.world.getEntities()) {
@@ -30,6 +32,7 @@ public class ArrowCounter {
 
                 if (seenArrows.add(arrow.getId())) {
                     shots.addLast(now);
+                    newArrowsThisTick++;
                 }
             }
         }
@@ -44,9 +47,15 @@ public class ArrowCounter {
         return currentAps;
     }
 
+    /** Az előző tick óta újonnan megjelent, saját nyilak száma. */
+    public int getNewArrowsThisTick() {
+        return newArrowsThisTick;
+    }
+
     public void reset() {
         seenArrows.clear();
         shots.clear();
         currentAps = 0;
+        newArrowsThisTick = 0;
     }
 }
