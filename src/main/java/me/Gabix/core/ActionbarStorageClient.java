@@ -116,9 +116,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
         KeyBinding configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Actionbar Config Megnyitása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "MVP Mod"));
 
-        KeyBinding applyPresetKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "MC Beállítások Alkalmazása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F9, "MVP Mod"));
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.options != null) {
                 StorageConfig cfg = getConfig();
@@ -136,10 +133,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
                         }
                     }
                 } catch (Throwable ignored) {}
-            }
-
-            while (applyPresetKey.wasPressed()) {
-                MinecraftSettingsApplier.applyPreset(client);
             }
 
             if (client.player == null) return;

@@ -23,24 +23,28 @@ public class DeveloperModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        readActionbarKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Actionbar Nyers Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "Developer Tools"));
-        readBossBarsKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "BossBar Név Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "Developer Tools"));
-        itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Developer Tools"));
-        readLeaderboardKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Leaderboard Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "Developer Tools"));
-        readTablistKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "Tab Lista Körítés Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "Developer Tools"));
+        if (DevAccess.isToolsEnabled()) {
+            readActionbarKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                    "Actionbar Nyers Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "Developer Tools"));
+            readBossBarsKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                    "BossBar Név Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "Developer Tools"));
+            itemInfoKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                    "Item Info Megjelenítése", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "Developer Tools"));
+            readLeaderboardKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                    "Leaderboard Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "Developer Tools"));
+            readTablistKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                    "Tab Lista Körítés Beolvasása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "Developer Tools"));
+        }
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
+            if (!DevAccess.isToolsEnabled()) return;
+            if (readActionbarKeyBinding == null) return;
 
             if (readActionbarKeyBinding.isPressed()) {
                 if (!readActionbarPressed) {
                     readActionbarPressed = true;
-                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadActionbar(client);
+                    ActionbarParser.handleReadActionbar(client);
                 }
             } else {
                 readActionbarPressed = false;
@@ -49,7 +53,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readBossBarsKeyBinding.isPressed()) {
                 if (!readBossBarsPressed) {
                     readBossBarsPressed = true;
-                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadBossBars(client);
+                    ActionbarParser.handleReadBossBars(client);
                 }
             } else {
                 readBossBarsPressed = false;
@@ -58,7 +62,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (itemInfoKeyBinding.isPressed()) {
                 if (!itemInfoPressed) {
                     itemInfoPressed = true;
-                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleItemInfo(client);
+                    ActionbarParser.handleItemInfo(client);
                 }
             } else {
                 itemInfoPressed = false;
@@ -67,7 +71,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readLeaderboardKeyBinding.isPressed()) {
                 if (!readLeaderboardPressed) {
                     readLeaderboardPressed = true;
-                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadLeaderboard(client);
+                    ActionbarParser.handleReadLeaderboard(client);
                 }
             } else {
                 readLeaderboardPressed = false;
@@ -76,7 +80,7 @@ public class DeveloperModClient implements ClientModInitializer {
             if (readTablistKeyBinding.isPressed()) {
                 if (!readTablistPressed) {
                     readTablistPressed = true;
-                    if (DevAccess.isToolsEnabled()) ActionbarParser.handleReadTablist(client);
+                    ActionbarParser.handleReadTablist(client);
                 }
             } else {
                 readTablistPressed = false;
