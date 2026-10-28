@@ -43,7 +43,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
     private int fetchCounter = 0;
     private boolean wasAttackKeyPressedLastTick = false;
     private boolean wasUseKeyPressedLastTick = false;
-    private boolean optionsApplied = false;
 
     public static ActionbarStorageClient getInstance() {
         if (instance == null) {
@@ -111,35 +110,19 @@ public class ActionbarStorageClient implements ClientModInitializer {
                 }
             }
             ModPlayerTracker.clear();
+            HudMod.getArrowCounter().reset();
         });
 
         KeyBinding configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "Actionbar Config Megnyitása", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "MVP Mod"));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.options != null) {
-                StorageConfig cfg = getConfig();
-                try {
-                    boolean firstRun = !optionsApplied;
-                    if (firstRun) optionsApplied = true;
-
-                    if (firstRun || client.options.getMaxFps().getValue() != cfg.maxFps) {
-                        client.options.getMaxFps().setValue(cfg.maxFps);
-                    }
-                    if (firstRun || client.options.getEnableVsync().getValue() != cfg.vsyncEnabled) {
-                        client.options.getEnableVsync().setValue(cfg.vsyncEnabled);
-                        if (client.getWindow() != null) {
-                            client.getWindow().setVsync(cfg.vsyncEnabled);
-                        }
-                    }
-                } catch (Throwable ignored) {}
-            }
-
             if (client.player == null) return;
 
             globalTickCounter++;
             CloneManager.INSTANCE.tick(globalTickCounter);
             HudMod.getFpsCpsCounter().tick(client);
+            HudMod.getArrowCounter().tick(client);
 
             heartbeatCounter++;
             fetchCounter++;

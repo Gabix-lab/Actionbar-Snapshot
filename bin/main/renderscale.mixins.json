@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.Gabix.renderscale.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "mvp-refmap.json",
+  "client": [
+    "MixinGameRenderer",
+    "MixinRenderTarget",
+    "MixinDebugScreenOverlay",
+    "accessors.MixinMinecraftAccessor",
+    "compat.iris.MixinIris"
+  ],
+  "injectors": { "defaultRequire": 1 }
+}

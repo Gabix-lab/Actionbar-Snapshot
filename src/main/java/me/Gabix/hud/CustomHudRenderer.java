@@ -164,6 +164,55 @@ public class CustomHudRenderer {
 
             matrices.pop();
         }
+
+        if (config.showArrowAps) {
+            String arrowText = "§e" + HudMod.getArrowCounter().getAps() + " §fNyíl/mp";
+            int textWidth = client.textRenderer.getWidth(arrowText);
+            int boxWidth = (int) (80 * config.arrowScale);
+            int boxHeight = (int) (16 * config.arrowScale);
+
+            matrices.push();
+            matrices.translate(config.arrowX, config.arrowY, 0);
+            matrices.scale(config.arrowScale, config.arrowScale, 1.0f);
+
+            net.minecraft.client.gui.hud.InGameHud.fill(matrices, 0, 0, boxWidth, boxHeight, 0x77000000);
+            int textX = (boxWidth - textWidth) / 2;
+            int textY = (boxHeight - textHeight) / 2;
+            client.textRenderer.drawWithShadow(matrices, arrowText, textX, textY, 0xFFFFFF);
+
+            matrices.pop();
+        }
+
+        if (config.showTotems) {
+            int totemCount = countTotems(player);
+            String totemText = "§d" + totemCount + " §fTotem";
+            int textWidth = client.textRenderer.getWidth(totemText);
+            int boxWidth = (int) (80 * config.totemScale);
+            int boxHeight = (int) (16 * config.totemScale);
+
+            matrices.push();
+            matrices.translate(config.totemX, config.totemY, 0);
+            matrices.scale(config.totemScale, config.totemScale, 1.0f);
+
+            net.minecraft.client.gui.hud.InGameHud.fill(matrices, 0, 0, boxWidth, boxHeight, 0x77000000);
+            int textX = (boxWidth - textWidth) / 2;
+            int textY = (boxHeight - textHeight) / 2;
+            client.textRenderer.drawWithShadow(matrices, totemText, textX, textY, 0xFFFFFF);
+
+            matrices.pop();
+        }
+    }
+
+    private static int countTotems(PlayerEntity player) {
+        int count = 0;
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
+            if (!stack.isEmpty() && stack.isOf(net.minecraft.item.Items.TOTEM_OF_UNDYING)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     private static String getStatusText(String key, int cooldownTicks, boolean isRight, int currentTick) {

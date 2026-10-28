@@ -1,0 +1,31 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "mvp:font/mvp_title.png",
+      "ascent": 9,
+      "height": 9,
+      "chars": [
+        "\uE111"
+      ]
+    },
+    {
+      "ascent": 9,
+      "chars": [
+        "是"
+      ],
+      "file": "mvp:font/dev_title.png",
+      "height": 9,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 9,
+      "chars": [
+        "鄍"
+      ],
+      "file": "mvp:font/owner_title.png",
+      "height": 9,
+      "type": "bitmap"
+    }
+  ]
+}

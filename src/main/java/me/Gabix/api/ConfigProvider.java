@@ -25,6 +25,14 @@ public interface ConfigProvider {
     int getCpsX();
     int getCpsY();
     float getCpsScale();
+    boolean showArrowAps();
+    int getArrowX();
+    int getArrowY();
+    float getArrowScale();
+    boolean showTotems();
+    int getTotemX();
+    int getTotemY();
+    float getTotemScale();
     boolean noRenderOnInactive();
     boolean fpsLimitOnInactive();
     boolean fpsLimitImmediateOnInactive();

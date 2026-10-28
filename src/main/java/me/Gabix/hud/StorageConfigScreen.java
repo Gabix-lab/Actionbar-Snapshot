@@ -271,6 +271,7 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new SectionHeader("Kijelzés", 0xFF60C0FF));
                     addEntry(new DisplayTogglesEntry(config));
                     addEntry(new FpsCpsToggleEntry(config));
+                    addEntry(new ArrowTotemToggleEntry(config));
                     addEntry(new SectionHeader("HUD Slotok", 0xFF80FF80));
                     addEntry(new HudSlotsToggleEntry(config));
                 }
@@ -508,6 +509,26 @@ public class StorageConfigScreen extends Screen {
                 fps.setX(x + 90); fps.setY(y + 1); fps.render(m, mx, my, d);
                 cps.setX(x + 175); cps.setY(y + 1); cps.render(m, mx, my, d);
                 label(m, "§7(" + cfg.fpsX + "," + cfg.fpsY + " | " + cfg.cpsX + "," + cfg.cpsY + ")",
+                        x + 260, y + 5, 0xAAAAAA);
+            }
+        }
+
+        private class ArrowTotemToggleEntry extends BaseEntry {
+            private final ButtonWidget arrows, totems;
+            ArrowTotemToggleEntry(StorageConfig c) {
+                arrows = track(toggleButton(80,
+                        () -> c.showArrowAps, v -> { c.showArrowAps = v; c.save(); }, "§aNYÍL BE", "§cNYÍL KI"));
+                totems = track(toggleButton(80,
+                        () -> c.showTotems, v -> { c.showTotems = v; c.save(); }, "§aTOTEM BE", "§cTOTEM KI"));
+            }
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                var cfg = StorageConfigScreen.this.config;
+                fillBg(m, x, y, w, h, 0x44AAAA88);
+                label(m, "§eNyíl/mp / Totem", x + 10, y + 5);
+                arrows.setX(x + 90); arrows.setY(y + 1); arrows.render(m, mx, my, d);
+                totems.setX(x + 175); totems.setY(y + 1); totems.render(m, mx, my, d);
+                label(m, "§7(" + cfg.arrowX + "," + cfg.arrowY + " | " + cfg.totemX + "," + cfg.totemY + ")",
                         x + 260, y + 5, 0xAAAAAA);
             }
         }

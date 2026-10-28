@@ -59,6 +59,14 @@ public class StorageConfig implements ConfigProvider {
     public int cpsY = 16;
     public float fpsScale = 1.0f;
     public float cpsScale = 1.0f;
+    public boolean showArrowAps = true;
+    public int arrowX = 100;
+    public int arrowY = 0;
+    public float arrowScale = 1.0f;
+    public boolean showTotems = true;
+    public int totemX = 100;
+    public int totemY = 16;
+    public float totemScale = 1.0f;
     public boolean motionBlurEnabled = false;
     public boolean offhandSlotEnabled = true;
     public int offhandX = 62;
@@ -74,14 +82,6 @@ public class StorageConfig implements ConfigProvider {
         this.normalItems = createDefaultNormalItems();
         this.leveledItems = createDefaultLeveledItems();
         this.motionBlurEnabled = false;
-        populateDefaultCharLabels();
-    }
-
-    private void populateDefaultCharLabels() {
-        if (customCharLabels == null) customCharLabels = new LinkedHashMap<>();
-        customCharLabels.putIfAbsent("\uE111", "[MVP]");
-        customCharLabels.putIfAbsent("是", "[DEV]");
-        customCharLabels.putIfAbsent("鄍", "[OWNER]");
     }
 
     @Override
@@ -113,7 +113,8 @@ public class StorageConfig implements ConfigProvider {
         list.add(new ItemPreset("Botanikusok Bájitala", "minecraft:paper", 7007, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("Kalandorok bájitala", "minecraft:paper", 7008, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("Bestiák Bájitala", "minecraft:paper", 7009, 0, 3600, 0, 0, 1, 0));
-        list.add(new ItemPreset("Gyógyítók Bájitala", "minecraft:paper", 70010, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("Gyógyítók Bájitala", "minecraft:paper", 7010, 0, 3600, 0, 0, 1, 0));
+        list.add(new ItemPreset("☠ Csontváz Gyógyító Pálca", "minecraft:blaze_rod", 11221, 14, 200, 4, 30, 2,  0));
         return list;
     }
 
@@ -221,7 +222,6 @@ public class StorageConfig implements ConfigProvider {
                 if (loaded.maxFps > 260) loaded.maxFps = 260;
 
                 if (loaded.customCharLabels == null) loaded.customCharLabels = new LinkedHashMap<>();
-                loaded.populateDefaultCharLabels();
 
                 return loaded;
             }
@@ -311,6 +311,14 @@ public class StorageConfig implements ConfigProvider {
     @Override public int getCpsX() { return cpsX; }
     @Override public int getCpsY() { return cpsY; }
     @Override public float getCpsScale() { return cpsScale; }
+    @Override public boolean showArrowAps() { return showArrowAps; }
+    @Override public int getArrowX() { return arrowX; }
+    @Override public int getArrowY() { return arrowY; }
+    @Override public float getArrowScale() { return arrowScale; }
+    @Override public boolean showTotems() { return showTotems; }
+    @Override public int getTotemX() { return totemX; }
+    @Override public int getTotemY() { return totemY; }
+    @Override public float getTotemScale() { return totemScale; }
     @Override public boolean noRenderOnInactive() { return noRenderOnInactive; }
     @Override public boolean fpsLimitOnInactive() { return fpsLimitOnInactive; }
     @Override public boolean fpsLimitImmediateOnInactive() { return fpsLimitImmediateOnInactive; }

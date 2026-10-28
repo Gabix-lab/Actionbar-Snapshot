@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.Gabix.fullbright.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "SimpleOptionMixin",
+    "GameOptionsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

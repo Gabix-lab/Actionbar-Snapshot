@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 public class HudMod implements ClientModInitializer {
     private static final ManaManager manaManager = new ManaManager();
     private static final FpsCpsCounter fpsCpsCounter = new FpsCpsCounter();
+    private static final ArrowCounter arrowCounter = new ArrowCounter();
 
     public static ManaManager getManaManager() {
         return manaManager;
@@ -13,6 +14,10 @@ public class HudMod implements ClientModInitializer {
 
     public static FpsCpsCounter getFpsCpsCounter() {
         return fpsCpsCounter;
+    }
+
+    public static ArrowCounter getArrowCounter() {
+        return arrowCounter;
     }
 
     @Override
