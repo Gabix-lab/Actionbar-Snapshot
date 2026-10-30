@@ -27,7 +27,8 @@
     "fpsreducer.mixins.json",
     "fullbright.mixins.json",
     "norender.mixins.json",
-    "soundreducer.mixins.json"
+    "soundreducer.mixins.json",
+    "renderscale.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

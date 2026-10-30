@@ -20,23 +20,12 @@ public final class PuaTitleFilter {
     private PuaTitleFilter() {
     }
 
-    /** A beállítás be van-e kapcsolva. */
-    public static boolean isEnabled() {
-        try {
-            // Mind a TITLE és SUBTITLE beállítása is kell, hogy érvényes legyen
-            return ActionbarStorageClient.getConfig().hidePuaInTitle && 
-                   ActionbarStorageClient.getConfig().hidePuaInSubtitle;
-        } catch (Throwable ignored) {
-            return false;
-        }
-    }
-
     /**
-     * Kiszűri a PUA karaktereket a megadott szövegből (title vagy subtitle), ha a beállítás aktív mindkét albeállításnál.
+     * Kiszűri a PUA karaktereket a megadott szövegből (title vagy subtitle), ha a beállítás aktív.
      * Ha nincs benne ilyen karakter, a kapott példányt adja vissza változatlanul.
      */
-    public static Text filter(Text text) {
-        if (text == null || !isEnabled() || !hasPua(text)) return text;
+    public static Text filter(Text text, boolean enabled) {
+        if (text == null || !enabled || !hasPua(text)) return text;
 
         Text stripped = stripNode(text);
         return stripped == null ? Text.empty() : stripped;

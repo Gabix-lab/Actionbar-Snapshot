@@ -1,5 +1,6 @@
 package me.Gabix.hud.mixin;
 
+import me.Gabix.core.ActionbarStorageClient;
 import me.Gabix.hud.PuaTitleFilter;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.text.Text;
@@ -16,11 +17,11 @@ public class TitleMixin {
 
     @ModifyVariable(method = "setTitle", at = @At("HEAD"), argsOnly = true)
     private Text mvp$filterTitle(Text title) {
-        return PuaTitleFilter.filter(title);
+        return PuaTitleFilter.filter(title, ActionbarStorageClient.getConfig().hidePuaInTitle);
     }
 
     @ModifyVariable(method = "setSubtitle", at = @At("HEAD"), argsOnly = true)
     private Text mvp$filterSubtitle(Text subtitle) {
-        return PuaTitleFilter.filter(subtitle);
+        return PuaTitleFilter.filter(subtitle, ActionbarStorageClient.getConfig().hidePuaInSubtitle);
     }
 }

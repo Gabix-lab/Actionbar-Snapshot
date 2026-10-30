@@ -7,7 +7,7 @@ import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.Screen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
@@ -824,7 +824,7 @@ public class StorageConfigScreen extends Screen {
             private final ButtonWidget btn;
             HidePuaTitleSubtitleEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
-                        () -> (c.hidePuaInTitle || c.hidePuaInSubtitle) ? "§aBE" : "§cKI"),
+                        () -> (c.hidePuaInTitle || c.hidePuaInSubtitle),
                         v -> { 
                             if (v) { c.hidePuaInTitle = true; c.hidePuaInSubtitle = true; }
                             else { c.hidePuaInTitle = false; c.hidePuaInSubtitle = false; }
