@@ -1,7 +1,12 @@
 package me.Gabix.hud;
 
+import me.Gabix.boss.BossMonitor;
+import me.Gabix.core.ActionbarStorageClient;
+import me.Gabix.core.StorageConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.BossBarHud;
+import net.minecraft.client.gui.hud.PlayerListHud;
+import net.minecraft.client.util.Clipboard;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -12,326 +17,503 @@ import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ActionbarParser {
     private static String lastRawActionbarText = "";
     private static String lastCleanActionbarText = "";
-    
-    // Pattern for extracting numbers from string values
-    private static final java.util.regex.Pattern MANA_PATTERN = java.util.regex.Pattern.compile("§b(\\\\d+)§8/§b(\\\\d+)");
-    private static final java.util.regex.Pattern DAMAGE_PATTERN = java.util.regex.Pattern.compile("Sebzés:\\s*.*?§f(\\\\d+)");
-    
-    // Cache for field access
-    private static net.minecraft.client.gui.hud.BossBarHud.HudBars cachedBossBarsField = null;
+    private static final Pattern MANA_PATTERN = Pattern.compile("§b(\\d+)§8/§b(\\d+)");
+    private static final Pattern DAMAGE_PATTERN = Pattern.compile("Sebzés:\\s*.*?§f(\\d+)");
+    private static Field cachedBossBarsField = null;
+    private static Field cachedHeaderField = null;
+    private static Field cachedFooterField = null;
 
-    /** Custom char map */
-    private static final HashMap<Integer, String> CUSTOM_CHARS = new HashMap<>();
-
-    public ActionbarParser() {
-        initCustomChars();
-    }
-
-    public void initCustomChars() {
-        // Initialize common custom character mappings
-        if (CUSTOM_CHARS.size() == 0) {
-            // MVP-specific chars
-            int mvpChar = 0xE111;
-            CUSTOM_CHARS.put(mvpChar, "[MVP]");
-            
-            // Developer char
-            int devChar = 0x662F;
-            CUSTOM_CHARS.put(devChar, "[DEV]");
-            
-            // Owner char  
-            int ownerChar = 0x910D;
-            CUSTOM_CHARS.put(ownerChar, "[OWNER]");
-        }
-    }
-
-    /** Get the current custom character map */
-    public Map<Integer, String> getCustomChars() {
-        if (CUSTOM_CHARS.size() == 0) {
-            initCustomChars();
-        }
-        return CUSTOM_CHARS;
-    }
-
-    /** Process action bar text and extract data */
-    public void processActionbarText(String rawInput) {
-        if (rawInput.trim().isEmpty()) {
-            lastRawActionbarText = "";
-            lastCleanActionbarText = "";
-            System.err.println("[DEBUG] No action bar detected");
-            return;
-        }
-
-        // Extract and parse the input text
-        int startIndex = 0;
-        int lastIndex = rawInput.length();
-        String cleanVersion = rawInput.replace("§", "&");
-        
-        lastRawActionbarText = "";
-        lastCleanActionbarText = cleanVersion;
-
-        Map<net.minecraft.text.Text, java.util.List<String>> resultData = new HashMap<>();
-
-        for (int i = 0; i < lastIndex; ) {
-            // Parse code point at current index
-            int cp = rawInput.codePointAt(i);
-            
-            // Handle high surrogate (for UTF-16 > U+FFFF)
-            char lowSurrogate = Character.highSurrogate((char)(cp & 0xFFFF));
-            if (lowSurrogate >= 0xD800 && lowSurrogate <= 0xDBFF) {
-                int nextCp = rawInput.codePointAt(i + Character.charCount(cp)); // Get next code point
-                
-                // If we found a valid surrogate pair, append the character using Unicode escape
-                String result = String.format("\\u%04X\\u%04X", cp, (nextCp & 0xFFFF) | 0xDC00);
-                lastRawActionbarText += result;
-                
-                // Handle any potential overflow
-                if (cp >= 0x110000) {
-                    result = String.format("\\u%04X\\u%04X", cp, (nextCp & 0xFFFF));
-                    lastRawActionbarText += result;
-                }
-            } else {
-                // Standard single code point handling with proper Unicode escape
-                if (cp < 0x10000) {
-                    lastRawActionbarText += String.format("\\u%04X", cp);
-                } else {
-                    // Supplementary plane character
-                    int surrogateA = (cp - 0x10000) >> 10;
-                    int surrogateB = (cp - 0x10000) & 0x3FF;
-                    lastRawActionbarText += String.format("\\u%04X\\u%04X", 0xD800 + surrogateA, 0xDC00 + surrogateB);
-                }
-            }
-            
-            i += Character.charCount(cp);
-        }
-
-        System.err.println("[DEBUG] Actionbar processed: " + lastRawActionbarText.length() + " characters");
-    }
-
-    /** Get the full code point array for debugging */
-    public char[] getCodePointArray(String input) {
-        int length = input.length();
-        char[] result = new char[length];
-        
-        // Process each code point with proper UTF-16 encoding
-        for (int i = 0; i < length; ) {
-            int cp = input.codePointAt(i);
-            int cc = Character.charCount(cp);
-            
-            // Use Character.toChars() for proper surrogate handling
-            char[] chars = Character.toChars(cp);
-            
-            System.err.println("[DEBUG] Code point: 0x" + Integer.toHexString(cp) + " Length: " + chars.length);
-            
-            // Append to result using proper encoding
-            for (int j = 0; j < cc; j++) {
-                result[i] = input.charAt(i + j);
-                i += j + 1;
+    private static Map<Integer, String> buildCharLabelMap() {
+        Map<Integer, String> map = new HashMap<>();
+        StorageConfig cfg = ActionbarStorageClient.getConfig();
+        if (cfg != null && cfg.customCharLabels != null) {
+            for (Map.Entry<String, String> e : cfg.customCharLabels.entrySet()) {
+                String key = e.getKey();
+                String val = e.getValue();
+                if (key == null || key.isEmpty() || val == null) continue;
+                int cp = key.codePointAt(0);
+                map.put(cp, val);
             }
         }
-        
-        return result;
+        if (!map.containsKey(0xE111)) map.put(0xE111, "[MVP]");
+        if (!map.containsKey(0x662F)) map.put(0x662F, "[DEV]");
+        if (!map.containsKey(0x910D)) map.put(0x910D, "[OWNER]");
+        return map;
     }
 
-    /** Parse text with proper legacy formatting handling */
-    public Text parseLegacyFormattedText(String text) {
+    public static void updateText(Text text, ManaManager manaManager) {
+        if (text == null) return;
+        lastCleanActionbarText = text.getString();
+        String rawText = toRawLegacyText(text).replace("&", "§");
+        lastRawActionbarText = rawText;
+
+        Matcher manaMatcher = MANA_PATTERN.matcher(rawText);
+        if (manaMatcher.find()) {
+            try {
+                manaManager.setCurrentMana(Integer.parseInt(manaMatcher.group(1)));
+                manaManager.setMaxMana(Integer.parseInt(manaMatcher.group(2)));
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Matcher dmgMatcher = DAMAGE_PATTERN.matcher(rawText);
+        if (dmgMatcher.find()) {
+            try {
+                int foundDamage = Integer.parseInt(dmgMatcher.group(1));
+                manaManager.setCurrentDamage(foundDamage);
+                BossMonitor.setCurrentDamage(foundDamage);
+            } catch (NumberFormatException ignored) {}
+        }
+    }
+
+    private static Text parseLegacyText(String input) {
+        if (input == null) return Text.empty();
         MutableText result = Text.empty();
-        
-        // Process with standard Minecraft formatting parsing
-        StringBuilder rawBuilder = new StringBuilder(text);
-        String[] parts = processRawText(rawBuilder.toString());
-        
-        for (String part : parts) {
-            if (part.contains("$")) {
-                continue; // Skip special characters
+        Style currentStyle = Style.EMPTY;
+        StringBuilder segment = new StringBuilder();
+
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '§' && i + 1 < input.length()) {
+                if (segment.length() > 0) {
+                    result.append(Text.literal(segment.toString()).setStyle(currentStyle));
+                    segment.setLength(0);
+                }
+                char code = Character.toLowerCase(input.charAt(i + 1));
+                i++;
+                if (code == 'r') {
+                    currentStyle = Style.EMPTY;
+                } else {
+                    Formatting fmt = switch (code) {
+                        case '0' -> Formatting.BLACK;
+                        case '1' -> Formatting.DARK_BLUE;
+                        case '2' -> Formatting.DARK_GREEN;
+                        case '3' -> Formatting.DARK_AQUA;
+                        case '4' -> Formatting.DARK_RED;
+                        case '5' -> Formatting.DARK_PURPLE;
+                        case '6' -> Formatting.GOLD;
+                        case '7' -> Formatting.GRAY;
+                        case '8' -> Formatting.DARK_GRAY;
+                        case '9' -> Formatting.BLUE;
+                        case 'a' -> Formatting.GREEN;
+                        case 'b' -> Formatting.AQUA;
+                        case 'c' -> Formatting.RED;
+                        case 'd' -> Formatting.LIGHT_PURPLE;
+                        case 'e' -> Formatting.YELLOW;
+                        case 'f' -> Formatting.WHITE;
+                        case 'k' -> Formatting.OBFUSCATED;
+                        case 'l' -> Formatting.BOLD;
+                        case 'm' -> Formatting.STRIKETHROUGH;
+                        case 'n' -> Formatting.UNDERLINE;
+                        case 'o' -> Formatting.ITALIC;
+                        default -> null;
+                    };
+                    if (fmt != null) {
+                        currentStyle = currentStyle.withFormatting(fmt);
+                    }
+                }
+            } else {
+                segment.append(c);
             }
-            
-            result.append(Text.literal(part));
         }
-        
+        if (segment.length() > 0) {
+            result.append(Text.literal(segment.toString()).setStyle(currentStyle));
+        }
         return result;
     }
 
-    private java.util.List<String> processRawText(String raw) {
-        if (raw.isEmpty()) {
-            return new ArrayList<>();
-        }
+    private static boolean isCustomRange(int cp) {
+        if (cp >= 0xE000 && cp <= 0xF8FF) return true;
+        if (cp >= 0xF900 && cp <= 0xFAFF) return true;
+        if (cp >= 0xF0000 && cp <= 0x10FFFD) return true;
+        return false;
+    }
 
-        int startIndex = 0;
-        java.util.List<String> parts = new ArrayList<>();
-        String currentSegment = "";
+    private static String expandCustomChars(String s) {
+        if (s == null) return "";
+        Map<Integer, String> map = buildCharLabelMap();
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < s.length()) {
+            int cp = s.codePointAt(i);
+            int cc = Character.charCount(cp);
 
-        for (int i = 0; i < raw.length(); i++) {
-            char c = raw.charAt(i);
-            
-            // Handle escape sequences and formatting codes
-            if (c == '\n' || c == '§') {
-                if (currentSegment.length() > 0) {
-                    parts.add(currentSegment.trim());
+            String label = map.get(cp);
+            if (label != null) {
+                sb.append(label);
+            } else if (isCustomRange(cp)) {
+                if (cp <= 0xFFFF) {
+                    sb.append(String.format("\\u%04X", cp));
+                } else {
+                    sb.append(String.format("\\u%05X", cp));
                 }
-                currentSegment = "";
+            } else if (cp >= 0xFFF0 && cp <= 0xFFFF) {
+                sb.append(String.format("\\u%04X", cp));
             } else {
-                StringBuilder segment = new StringBuilder(" " + c);
-                i++; // Skip the next character
-            
-                // Append to current segment
-                currentSegment = currentSegment + " " + c;
+                sb.appendCodePoint(cp);
             }
-            
-            if (currentSegment == null || !currentSegment.isEmpty()) {
-                rawBuilder.append(currentSegment);
-                parts.add(rawBuilder.toString());
-            }
-        }
-
-        return parts;
-    }
-
-    /** Process text with proper Unicode escaping */
-    public java.util.List<String> processTextWithUnicode(String raw) {
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < raw.length(); ) {
-            int cp = Character.codePointAt(raw, i);
-            int cc = Character.charCount(cp);
-
-            // Debug each code point with character count info
-            System.err.println("[DEBUG] Processing: U+" + Integer.toHexString(cp) + " (" + cc + " chars)");
-
-            String processed = Character.toString(cp);
-
-            sb.append(processed);
             i += cc;
         }
-
-        return java.util.Arrays.asList(sb.toString(), sb.toString());
-    }
-
-    /** Convert code point to UTF-8 string representation */
-    private String utf8Encode(int cp) {
-        if (cp < 0x10000) {
-            return String.format("\\u%04X", cp);
-        }
-        
-        // Handle supplementary plane characters with proper surrogate logic
-        int high = (int)((cp - 0x10000L) >> 18);
-        int low = ((cp - 0x10000L) & 0xFFFFL) | 0x0E000;
-
-        return String.format("\\u%04X\\u%04X", high, low);
-    }
-
-    /** Get the code point as UTF-8 surrogate pair */
-    public String getCodePointAsUtf8(int cp) {
-        if (cp < 0x10000) {
-            return String.format("\\u%04X", cp);
-        }
-
-        // Handle supplementary characters with proper surrogate encoding logic
-        int high = (int)((cp - 0x10000L) >> 18);
-        int low = ((cp - 0x10000L) & 0xFFFFL) | 0x0E000;
-
-        return String.format("\\u%04X\\u%04X", high, low);
-    }
-
-    /** Convert raw text into usable string format */
-    public String convertRawToUsable(String rawStr) {
-        StringBuilder sb = new StringBuilder();
-        System.err.println("[DEBUG] Converting raw length: " + rawStr.length() + " -> usable");
-
-        for (int i = 0; i < rawStr.length(); ) {
-            int cp = Character.codePointAt(rawStr, i);
-            int cc = Character.charCount(cp);
-
-            sb.append(Character.toChars(cp));
-
-            // Debug output for proper Unicode handling
-            if (Character.isHighSurrogate(cp)) {
-                System.err.println("[DEBUG] High surrogate: 0x" + Integer.toHexString(cp));
-            } else if (cc > 1) {
-                System.err.println("[DEBUG] Low surrogate: 0x" + Integer.toChars(cp));
-            }
-
-            i += cc;
-        }
-
         return sb.toString();
     }
 
-    /** Process boss bar information with proper encoding */
-    public void processBossBars(String[] values) {
-        StringBuilder output = new StringBuilder();
-
-        for (String value : values) {
-            System.err.println("[DEBUG] Processing boss bar: '" + value + "'");
-            
-            // Convert each character with proper Unicode handling
-            String cleaned = convertRawToUsable(value);
-            output.append(cleaned);
-        }
-
-        System.err.println("[DEBUG] Boss bars processed into: " + output.length() + " characters");
-    }
-
-    /** Process tablist data with proper formatting */
-    public void processTablist(String playerName, int score) {
-        String displayName = "";
-        
-        if (playerName != null && !playerName.isEmpty()) {
-            // Handle potential Unicode characters in team/decoration names if needed
-            String cleanName = playerName;
-            
-            for (int i = 0; i < cleanName.length(); ) {
-                int cp = Character.codePointAt(cleanName, i);
-                
-                System.err.println("[DEBUG] Tablist char: U+" + Integer.toHexString(cp));
-                
-                if (i > 0 && Character.isLowSurrogate(cleanName.charAt(i))) {
-                    continue; // Skip surrogate chars for debugging purposes
-                }
-
-                displayName += cleanName.charAt(i);
-                i += Character.charCount(cp);
+    private static String stripColorCodes(String s) {
+        if (s == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '§' && i + 1 < s.length()) {
+                i++;
+            } else {
+                sb.append(c);
             }
         }
-
-        String output = displayName + " - Score: " + score;
-        System.err.println("[DEBUG] Tablist output: " + output);
+        return sb.toString();
     }
 
-    /** Debug method for proper character processing */
-    public static void debugStringProcessing(String inputStr) {
-        if (inputStr != null && inputStr.length() > 0) {
-            StringBuilder chars = new StringBuilder();
-            
-            // Process character by character with UTF-8 logic
-            for (int i = 0; i < inputStr.length(); ) {
-                int cp = Character.codePointAt(inputStr, i);
+    private static String toReadable(String raw) {
+        return expandCustomChars(stripColorCodes(raw));
+    }
 
-                System.err.println("[DEBUG] Raw char: '" + inputStr.charAt(i) + "' -> U" + Integer.toHexString(cp));
-
-                if (!inputStr.isEmpty() && Character.isHighSurrogate(cp)) {
-                    continue;
-                }
-
-                String escaped = Character.toString(cp);
-                
-                // Append with proper encoding
-                chars.append(escaped);
-            }
-            
-            System.err.println("[DEBUG] Processed: " + chars.toString().length());
+    public static void handleReadActionbar(MinecraftClient client) {
+        if (client.player == null) return;
+        if (lastRawActionbarText == null || lastRawActionbarText.isEmpty()) {
+            client.player.sendMessage(parseLegacyText("§c[Actionbar] Jelenleg nincs aktív Actionbar a képernyőn!"), false);
+        } else {
+            String formattedWithAmpersand = lastRawActionbarText.replace("§", "&");
+            client.player.sendMessage(parseLegacyText("§a[Actionbar] Aktív Actionbar adatok:"), false);
+            client.player.sendMessage(parseLegacyText("§e - Tiszta név: §f" + expandCustomChars(lastCleanActionbarText)), false);
+            client.player.sendMessage(parseLegacyText("§e   Színezett/Kódolt (&): §f" + expandCustomChars(formattedWithAmpersand)), false);
         }
     }
 
+    public static void handleReadBossBars(MinecraftClient client) {
+        readBossBars(client);
+    }
+
+    public static void handleItemInfo(MinecraftClient client) {
+        if (client.player == null) return;
+        ItemStack held = client.player.getMainHandStack();
+        if (held.isEmpty()) {
+            client.player.sendMessage(parseLegacyText("§c[Item Info] Nincs tárgy a kezedben!"), false);
+            return;
+        }
+
+        StringBuilder out = new StringBuilder();
+
+        String nameRaw = toRawLegacyText(held.getName()).replace("&", "§");
+        out.append("Név: ").append(toReadable(nameRaw)).append("\n");
+
+        String itemId = Registries.ITEM.getId(held.getItem()).toString();
+        out.append("ID: ").append(itemId).append("\n");
+
+        int cmd = 0;
+        boolean hasCmd = false;
+        if (held.hasNbt() && held.getNbt().contains("CustomModelData")) {
+            cmd = held.getNbt().getInt("CustomModelData");
+            hasCmd = true;
+        }
+        out.append("CMD: ").append(hasCmd ? String.valueOf(cmd) : "nincs").append("\n");
+
+        boolean isDyeableLeather = itemId.equals("minecraft:leather_helmet")
+                || itemId.equals("minecraft:leather_chestplate")
+                || itemId.equals("minecraft:leather_leggings")
+                || itemId.equals("minecraft:leather_boots")
+                || itemId.equals("minecraft:leather_horse_armor")
+                || itemId.equals("minecraft:wolf_armor");
+
+        if (isDyeableLeather) {
+            boolean hasColor = false;
+            if (held.hasNbt() && held.getNbt().contains("display", 10)) {
+                NbtCompound display = held.getNbt().getCompound("display");
+                if (display.contains("color", 99)) {
+                    int colorInt = display.getInt("color") & 0xFFFFFF;
+                    String hexColor = String.format("#%06X", colorInt);
+                    int r = (colorInt >> 16) & 0xFF;
+                    int g = (colorInt >> 8) & 0xFF;
+                    int b = colorInt & 0xFF;
+                    out.append("Szín (festés): ").append(hexColor)
+                            .append(" (RGB: ").append(r).append(", ").append(g).append(", ").append(b).append(")")
+                            .append(" [Int: ").append(display.getInt("color")).append("]\n");
+                    hasColor = true;
+                }
+            }
+            if (!hasColor) out.append("Szín (festés): alapértelmezett (nincs festve)\n");
+        }
+
+        out.append("Lore:\n");
+        if (held.hasNbt() && held.getNbt().contains("display")) {
+            NbtCompound display = held.getNbt().getCompound("display");
+            if (display.contains("Lore", 9)) {
+                NbtList loreList = display.getList("Lore", 8);
+                boolean hasLore = false;
+                for (int i = 0; i < loreList.size(); i++) {
+                    String jsonText = loreList.getString(i);
+                    try {
+                        Text line = Text.Serializer.fromJson(jsonText);
+                        if (line != null) {
+                            String lineRaw = toRawLegacyText(line).replace("&", "§");
+                            out.append("- ").append(toReadable(lineRaw)).append("\n");
+                            hasLore = true;
+                        } else {
+                            out.append("- [hibás JSON]\n");
+                            hasLore = true;
+                        }
+                    } catch (Exception e) {
+                        out.append("- [hibás formátum]\n");
+                        hasLore = true;
+                    }
+                }
+                if (!hasLore) out.append("- (üres)\n");
+            } else {
+                out.append("nincs\n");
+            }
+        } else {
+            out.append("nincs\n");
+        }
+
+        Clipboard clipboard = new Clipboard();
+        clipboard.setClipboard(client.getWindow().getHandle(), out.toString());
+
+        client.player.sendMessage(parseLegacyText("§a[Item Info] Az adatok a vágólapra másolva!"), false);
+    }
+
+    public static void handleReadLeaderboard(MinecraftClient client) {
+        if (client.player == null || client.world == null) return;
+
+        try {
+            Scoreboard scoreboard = client.world.getScoreboard();
+            ScoreboardObjective objective = scoreboard.getObjectiveForSlot(Scoreboard.SIDEBAR_DISPLAY_SLOT_ID);
+
+            if (objective == null) {
+                client.player.sendMessage(parseLegacyText("§c[Leaderboard] Jelenleg nincs aktív leaderboard a képernyőn!"), false);
+                return;
+            }
+
+            Collection<ScoreboardPlayerScore> entries = scoreboard.getAllPlayerScores(objective);
+            if (entries == null || entries.isEmpty()) {
+                client.player.sendMessage(parseLegacyText("§c[Leaderboard] A leaderboard üres!"), false);
+                return;
+            }
+
+            List<ScoreboardPlayerScore> sorted = new ArrayList<>(entries);
+            sorted.sort(Comparator.comparingInt(ScoreboardPlayerScore::getScore).reversed());
+
+            StringBuilder out = new StringBuilder();
+            String titleRaw = objective.getDisplayName().getString();
+            String titleFormatted = toRawLegacyText(objective.getDisplayName()).replace("&", "§");
+
+            out.append("===== LEADERBOARD =====\n");
+            out.append("Cím (tiszta): ").append(expandCustomChars(titleRaw)).append("\n");
+            out.append("Cím (színezett): ").append(toReadable(titleFormatted)).append("\n");
+            out.append("========================\n\n");
+
+            out.append("--- Tiszta lista ---\n");
+            int rank = 1;
+            for (ScoreboardPlayerScore entry : sorted) {
+                Team team = scoreboard.getPlayerTeam(entry.getPlayerName());
+                Text displayName = Team.decorateName(team, Text.literal(entry.getPlayerName()));
+                out.append(rank).append(". ").append(expandCustomChars(displayName.getString()))
+                        .append(" - ").append(entry.getScore()).append("\n");
+                rank++;
+            }
+
+            out.append("\n--- Színezett lista ---\n");
+            rank = 1;
+            for (ScoreboardPlayerScore entry : sorted) {
+                Team team = scoreboard.getPlayerTeam(entry.getPlayerName());
+                Text displayName = Team.decorateName(team, Text.literal(entry.getPlayerName()));
+                String colored = toRawLegacyText(displayName).replace("&", "§");
+                out.append(rank).append(". ").append(toReadable(colored))
+                        .append(" - ").append(entry.getScore()).append("\n");
+                rank++;
+            }
+
+            out.append("\n--- Nyers (name;score) ---\n");
+            for (ScoreboardPlayerScore entry : sorted) {
+                out.append(entry.getPlayerName()).append(";").append(entry.getScore()).append("\n");
+            }
+
+            Clipboard clipboard = new Clipboard();
+            clipboard.setClipboard(client.getWindow().getHandle(), out.toString());
+
+            client.player.sendMessage(parseLegacyText("§a[Leaderboard] " + sorted.size() + " bejegyzés a vágólapra másolva!"), false);
+        } catch (Exception e) {
+            client.player.sendMessage(parseLegacyText("§c[Leaderboard] Hiba: " + e.getMessage()), false);
+            e.printStackTrace();
+        }
+    }
+
+    public static void handleReadTablist(MinecraftClient client) {
+        if (client.player == null || client.inGameHud == null) {
+            if (client.player != null) {
+                client.player.sendMessage(parseLegacyText("§c[Tablist] Nem vagy játékban!"), false);
+            }
+            return;
+        }
+
+        try {
+            PlayerListHud playerListHud = client.inGameHud.getPlayerListHud();
+            initTablistFields();
+
+            Text header = null;
+            Text footer = null;
+
+            if (cachedHeaderField != null) header = (Text) cachedHeaderField.get(playerListHud);
+            if (cachedFooterField != null) footer = (Text) cachedFooterField.get(playerListHud);
+
+            if ((header == null || header.getString().isEmpty())
+                    && (footer == null || footer.getString().isEmpty())) {
+                client.player.sendMessage(parseLegacyText("§c[Tablist] Nincs header/footer a tab listán!"), false);
+                return;
+            }
+
+            StringBuilder out = new StringBuilder();
+            out.append("===== TABLIST KÖRÍTÉS =====\n\n");
+
+            out.append("--- HEADER ---\n");
+            if (header != null && !header.getString().isEmpty()) {
+                String headerRaw = toRawLegacyText(header);
+                out.append("Tiszta (olvasható):\n").append(expandCustomChars(header.getString())).append("\n\n");
+                out.append("Színezett (&):\n").append(toReadable(headerRaw)).append("\n\n");
+                out.append("Nyers (& + escape-elt custom chars):\n").append(expandCustomChars(headerRaw)).append("\n\n");
+            } else {
+                out.append("(üres)\n\n");
+            }
+
+            out.append("--- FOOTER ---\n");
+            if (footer != null && !footer.getString().isEmpty()) {
+                String footerRaw = toRawLegacyText(footer);
+                out.append("Tiszta (olvasható):\n").append(expandCustomChars(footer.getString())).append("\n\n");
+                out.append("Színezett (&):\n").append(toReadable(footerRaw)).append("\n\n");
+                out.append("Nyers (& + escape-elt custom chars):\n").append(expandCustomChars(footerRaw)).append("\n");
+            } else {
+                out.append("(üres)\n");
+            }
+
+            Clipboard clipboard = new Clipboard();
+            clipboard.setClipboard(client.getWindow().getHandle(), out.toString());
+
+            client.player.sendMessage(parseLegacyText("§a[Tablist] A körítés (header/footer) a vágólapra másolva!"), false);
+        } catch (Exception e) {
+            client.player.sendMessage(parseLegacyText("§c[Tablist] Hiba: " + e.getMessage()), false);
+            e.printStackTrace();
+        }
+    }
+
+    private static void initTablistFields() {
+        if (cachedHeaderField != null && cachedFooterField != null) return;
+        for (Field field : PlayerListHud.class.getDeclaredFields()) {
+            if (field.getType() == Text.class) {
+                field.setAccessible(true);
+                if (cachedHeaderField == null) {
+                    cachedHeaderField = field;
+                } else if (cachedFooterField == null) {
+                    cachedFooterField = field;
+                    break;
+                }
+            }
+        }
+    }
+
+    public static void readBossBars(MinecraftClient client) {
+        if (client.player == null || client.inGameHud == null) return;
+        try {
+            BossBarHud bossBarHud = client.inGameHud.getBossBarHud();
+            if (cachedBossBarsField == null) {
+                for (Field field : BossBarHud.class.getDeclaredFields()) {
+                    if (Map.class.isAssignableFrom(field.getType())) {
+                        field.setAccessible(true);
+                        cachedBossBarsField = field;
+                        break;
+                    }
+                }
+            }
+            if (cachedBossBarsField != null) {
+                Map<?, ?> bossBars = (Map<?, ?>) cachedBossBarsField.get(bossBarHud);
+                if (bossBars == null || bossBars.isEmpty()) {
+                    client.player.sendMessage(parseLegacyText("§c[BossBar] Jelenleg nincs aktív BossBar a képernyőn!"), false);
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("BossBar adatok:\n");
+                    for (Object value : bossBars.values()) {
+                        if (value instanceof BossBar bossBar) {
+                            String clean = bossBar.getName().getString();
+                            String colored = toRawLegacyText(bossBar.getName());
+                            sb.append("Tiszta név: ").append(expandCustomChars(clean)).append("\n");
+                            sb.append("Színezett (&): ").append(expandCustomChars(colored)).append("\n\n");
+                        }
+                    }
+                    Clipboard clipboard = new Clipboard();
+                    clipboard.setClipboard(client.getWindow().getHandle(), sb.toString());
+                    client.player.sendMessage(parseLegacyText("§a[BossBar] Az adatok a vágólapra másolva!"), false);
+                }
+            }
+        } catch (Exception e) {
+            client.player.sendMessage(parseLegacyText("§c[BossBar] Hiba történt a BossBar-ok kiolvasása közben!"), false);
+        }
+    }
+
+    private static String toRawLegacyText(Text text) {
+        if (text == null) return "";
+        StringBuilder raw = new StringBuilder();
+        text.visit((style, string) -> {
+            if (style != null) {
+                if (style.getColor() != null) {
+                    String colorName = style.getColor().getName();
+                    if (colorName != null && colorName.startsWith("#") && colorName.length() == 7) {
+                        raw.append("&x");
+                        for (int i = 1; i < 7; i++) {
+                            raw.append("&").append(Character.toLowerCase(colorName.charAt(i)));
+                        }
+                    } else {
+                        switch (colorName) {
+                            case "black": raw.append("&0"); break;
+                            case "dark_blue": raw.append("&1"); break;
+                            case "dark_green": raw.append("&2"); break;
+                            case "dark_aqua": raw.append("&3"); break;
+                            case "dark_red": raw.append("&4"); break;
+                            case "dark_purple": raw.append("&5"); break;
+                            case "gold": raw.append("&6"); break;
+                            case "gray": raw.append("&7"); break;
+                            case "dark_gray": raw.append("&8"); break;
+                            case "blue": raw.append("&9"); break;
+                            case "green": raw.append("&a"); break;
+                            case "aqua": raw.append("&b"); break;
+                            case "red": raw.append("&c"); break;
+                            case "light_purple": raw.append("&d"); break;
+                            case "yellow": raw.append("&e"); break;
+                            case "white": raw.append("&f"); break;
+                            default: break;
+                        }
+                    }
+                }
+                if (style.isObfuscated()) raw.append("&k");
+                if (style.isBold()) raw.append("&l");
+                if (style.isStrikethrough()) raw.append("&m");
+                if (style.isUnderlined()) raw.append("&n");
+                if (style.isItalic()) raw.append("&o");
+            }
+            raw.append(string);
+            return Optional.empty();
+        }, Style.EMPTY);
+        return raw.toString();
+    }
 }
