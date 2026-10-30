@@ -7,7 +7,7 @@ import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
@@ -297,8 +297,7 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new SectionHeader("Egyéb", 0xFFFF8040));
                     addEntry(new FireOverlayEntry(config));
                     addEntry(new SectionHeader("Title / HUD effektek", 0xFF60C0FF));
-                    addEntry(new HidePuaTitleEntry(config));
-                    addEntry(new HintEntry("§7A szerverek PUA karakterekkel rajzolnak HUD ikonokat a title-be."));
+                    addEntry(new HidePuaTitleSubtitleEntry(config));
                 }
                 case DEVELOPER -> {
                     addEntry(new SectionHeader("Fejlesztői eszközök", 0xFFFF4040));
@@ -450,8 +449,7 @@ public class StorageConfigScreen extends Screen {
                         v -> { c.autoBossDetection = v; c.save(); },
                         "§aBE", "§cKI"));
             }
-            @Override
-            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x4400AAAA);
                 label(m, "§bAuto Boss Felismerés", x + 10, y + 5);
                 btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
@@ -463,8 +461,8 @@ public class StorageConfigScreen extends Screen {
             BossNotificationEntry(StorageConfig c) {
                 cycle = track(ButtonWidget.builder(Text.literal(c.selectedBossNotification), b -> {
                     int cur = 0;
-                    for (int i = 0; i < BOSS_CHOICES.length; i++)
-                        if (BOSS_CHOICES[i].equals(c.selectedBossNotification)) { cur = i; break; }
+                    for (int idx = 0; idx < BOSS_CHOICES.length; idx++)
+                        if (BOSS_CHOICES[idx].equals(c.selectedBossNotification)) { cur = idx; break; }
                     c.selectedBossNotification = BOSS_CHOICES[(cur + 1) % BOSS_CHOICES.length];
                     b.setMessage(Text.literal(c.selectedBossNotification));
                     c.save();
@@ -681,7 +679,7 @@ public class StorageConfigScreen extends Screen {
                 minM = track(actionButton(16, "-", () -> { if (c.fpsLimitMinutes > 0) c.fpsLimitMinutes--; c.save(); }));
                 minP = track(actionButton(16, "+", () -> { if (c.fpsLimitMinutes < 60) c.fpsLimitMinutes++; c.save(); }));
                 secM = track(actionButton(16, "-", () -> { if (c.fpsLimitSeconds >= 5) c.fpsLimitSeconds -= 5; c.save(); }));
-                secP = track(actionButton(16, "+", () -> { if (c.fpsLimitSeconds < 55) c.fpsLimitSeconds += 5; c.save(); }));
+                secP = track(actionButton(16, "+", () -> { if (c.fpsLimitSeconds < 55) c.fpsLimitSeconds += 55; c.save(); }));
 
                 field = new TextFieldWidget(StorageConfigScreen.this.textRenderer, 0, 0, 44, 16, Text.literal("FPS"));
                 field.setText(String.valueOf(c.fpsLimitValue));
@@ -822,16 +820,21 @@ public class StorageConfigScreen extends Screen {
             }
         }
 
-        private class HidePuaTitleEntry extends BaseEntry {
+        private class HidePuaTitleSubtitleEntry extends BaseEntry {
             private final ButtonWidget btn;
-            HidePuaTitleEntry(StorageConfig c) {
+            HidePuaTitleSubtitleEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
-                        () -> c.hidePuaInTitle,
-                        v -> { c.hidePuaInTitle = v; c.save(); }, "§aBE", "§cKI"));
+                        () -> (c.hidePuaInTitle || c.hidePuaInSubtitle) ? "§aBE" : "§cKI"),
+                        v -> { 
+                            if (v) { c.hidePuaInTitle = true; c.hidePuaInSubtitle = true; }
+                            else { c.hidePuaInTitle = false; c.hidePuaInSubtitle = false; }
+                            c.save(); 
+                        }, 
+                        "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA88AA);
-                label(m, "§dSzerver HUD effektek (PUA) elrejtése a title-ből", x + 10, y + 5);
+                label(m, "§dSzerver HUD effektek (PUA) elrejtése a title-ből és subtitle-ből", x + 10, y + 5);
                 btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
             }
         }

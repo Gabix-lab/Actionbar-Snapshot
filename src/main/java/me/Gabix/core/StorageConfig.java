@@ -49,6 +49,7 @@ public class StorageConfig implements ConfigProvider {
     public int fireOverlayHeight = 100;
     /** Ha igaz, a szerverek által a title-be küldött PUA karakterek (custom HUD effektek) nem jelennek meg. */
     public boolean hidePuaInTitle = false;
+    public boolean hidePuaInSubtitle = false;
     public boolean muteOnInactive = false;
     public boolean pauseHudOnInactive = true;
     public boolean pauseBossMonitorOnInactive = true;
@@ -344,6 +345,7 @@ public class StorageConfig implements ConfigProvider {
     @Override public boolean hideFireOverlay() { return hideFireOverlay; }
     @Override public int fireOverlayHeight() { return fireOverlayHeight; }
     @Override public boolean hidePuaInTitle() { return hidePuaInTitle; }
+    @Override public boolean hidePuaInSubtitle() { return hidePuaInSubtitle; }
     @Override public boolean muteOnInactive() { return muteOnInactive; }
     @Override public boolean autoBossDetection() { return autoBossDetection; }
     @Override public String selectedBossNotification() { return selectedBossNotification; }

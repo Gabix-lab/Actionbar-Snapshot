@@ -45,6 +45,7 @@ public interface ConfigProvider {
     boolean hideFireOverlay();
     int fireOverlayHeight();
     boolean hidePuaInTitle();
+    boolean hidePuaInSubtitle();
     boolean muteOnInactive();
     boolean autoBossDetection();
     String selectedBossNotification();
