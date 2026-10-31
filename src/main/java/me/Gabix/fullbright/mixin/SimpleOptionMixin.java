@@ -17,28 +17,26 @@ public class SimpleOptionMixin<T> {
     @SuppressWarnings("unchecked")
     @Inject(method = "getValue", at = @At("HEAD"), cancellable = true)
     private void forceGammaValue(CallbackInfoReturnable<T> cir) {
+        if (!ToggleEvent.isFullbrightEnabled()) return;
         if (ToggleEvent.isSaving) return;
+        if (!(value instanceof Double)) return;
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null && client.options != null) {
-            SimpleOption<Double> gammaOption = client.options.getGamma();
-            if ((Object) this == (Object) gammaOption && value instanceof Double) {
-                if (ToggleEvent.isFullbrightEnabled()) {
-                    cir.setReturnValue((T) Double.valueOf(ToggleEvent.MAX_GAMMA));
-                }
-            }
+        if (client == null || client.options == null) return;
+        SimpleOption<Double> gammaOption = client.options.getGamma();
+        if ((Object) this == (Object) gammaOption) {
+            cir.setReturnValue((T) Double.valueOf(ToggleEvent.MAX_GAMMA));
         }
     }
 
     @Inject(method = "setValue", at = @At("HEAD"), cancellable = true)
     private void clampGammaValue(T newValue, CallbackInfo ci) {
+        if (!(newValue instanceof Double d)) return;
+        if (d >= 0.0 && d <= 1.0) return;
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null && client.options != null) {
-            SimpleOption<Double> gammaOption = client.options.getGamma();
-            if ((Object) this == (Object) gammaOption && newValue instanceof Double d) {
-                if (d < 0.0 || d > 1.0) {
-                    ci.cancel();
-                }
-            }
+        if (client == null || client.options == null) return;
+        SimpleOption<Double> gammaOption = client.options.getGamma();
+        if ((Object) this == (Object) gammaOption) {
+            ci.cancel();
         }
     }
 }

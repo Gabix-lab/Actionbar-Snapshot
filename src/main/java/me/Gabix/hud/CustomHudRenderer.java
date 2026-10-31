@@ -5,6 +5,7 @@ import me.Gabix.cooldown.CloneManager;
 import me.Gabix.cooldown.CooldownTracker;
 import me.Gabix.core.ActionbarStorageClient;
 import me.Gabix.core.StorageConfig;
+import me.Gabix.core.WindowFocusState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.BufferBuilder;
@@ -22,23 +23,7 @@ import org.joml.Matrix4f;
 
 import java.util.List;
 
-/**
- * Egyedi HUD renderelő.
- *
- * <p>Fő optimalizálások:
- * <ul>
- *     <li>a hotbar item -> SlotSettings keresés csak inventory változáskor fut;</li>
- *     <li>a cooldown szövegek 2 tickenként (10 Hz) frissülnek, nem minden frame-ben;</li>
- *     <li>a totem szám cache-elt, csak inventory változáskor / biztonsági időközönként számolódik újra;</li>
- *     <li>minden háttér/keret egyetlen batchelt draw call-ban megy ki;</li>
- *     <li>a String-ek és szövegszélességek csak értékváltozáskor épülnek újra.</li>
- * </ul>
- */
 public final class CustomHudRenderer {
-
-    // ---------------------------------------------------------------------
-    // Alap méretek / színek
-    // ---------------------------------------------------------------------
 
     private static final int HOTBAR_SLOTS = 9;
     private static final int OFFHAND_INDEX = HOTBAR_SLOTS;
@@ -50,11 +35,7 @@ public final class CustomHudRenderer {
     private static final int STAT_BOX_WIDTH = 80;
     private static final int STAT_BOX_PADDING = 8;
 
-    // mana + sebzés + FPS + CPS + nyíl + totem = 6 látható panel egyszerre.
     private static final int MAX_STAT_TEXT_BOXES = 8;
-
-    // A dobozok a saját, már skálázott koordináta-rendszerükben fix méretűek.
-    // A config.scale a MatrixStack.scale()-ben érvényesül, így nem duplázódik a méret.
 
     private static final int COLOR_BAR_BG = 0x88000000;
     private static final int COLOR_LEFT_BAR = 0xCCFFFF55;
@@ -66,22 +47,11 @@ public final class CustomHudRenderer {
     private static final String NO_COOLDOWN_LINE = "§7- §f| §7-";
     private static final String CLONE_COOLDOWN_PREFIX = "minecraft:paper:581";
 
-    // Biztonsági újraszámolás: a PlayerInventory changeCount nem minden kliensoldali
-    // count-változásnál nő (pl. totem elhasználás), ezért 2 tickenként (10 Hz) még
-    // egyszer megszámoljuk a totemeket. Ez még mindig 6x ritkább a frame-enkéntinél.
     private static final int TOTEM_REFRESH_TICKS = 2;
-
-    // Ritka biztonsági újraszámolás a preset-keresésre. Az ItemStack referencia
-    // változását azonnal látjuk; ez csak az in-place NBT/config preset változásokat
-    // kapja el, ezért elég 1 másodpercenként.
     private static final int SETTINGS_REFRESH_TICKS = 20;
 
     private CustomHudRenderer() {
     }
-
-    // ---------------------------------------------------------------------
-    // Renderelés
-    // ---------------------------------------------------------------------
 
     public static void render(MatrixStack matrices, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -90,26 +60,19 @@ public final class CustomHudRenderer {
         StorageConfig config = ActionbarStorageClient.getConfig();
         if (config == null) return;
 
-        // Változatlan viselkedés: fókuszvesztésnél az egész custom HUD kimarad.
-        if (config.pauseHudOnInactive && !client.isWindowFocused()) return;
+        if (config.pauseHudOnInactive && !WindowFocusState.isFocused()) return;
 
-        // F1 (hudHidden): a vanilla HUD-dal együtt az egész custom HUD is eltűnik,
-        // beleértve az FPS/CPS/nyíl/totem boxokat is.
         if (client.options.hudHidden) return;
 
         PlayerEntity player = client.player;
         int globalTick = ActionbarStorageClient.getInstance().getGlobalTickCounter();
 
-        // Egyetlen helyen döntjük el, hogy változott-e az inventory.
         refreshInventoryCaches(player, config, globalTick);
 
         TextRenderer textRenderer = client.textRenderer;
 
         renderInventoryHud(matrices, client, player, config, textRenderer, globalTick);
-        // A renderInventoryHud már flush-ölte a maga batch-ét (slot hátterek + cooldown barok).
 
-        // A stat box paneleket egyetlen batch-be gyűjtjük. A szövegeket külön,
-        // a flush UTÁN rajzoljuk, különben a panelek a szöveg fölé kerülnének.
         RECT_BATCH.reset();
         statTextBoxCount = 0;
         renderMana(matrices, textRenderer, config, HudMod.getManaManager());
@@ -119,9 +82,6 @@ public final class CustomHudRenderer {
         drawStatBoxTexts(matrices, textRenderer);
     }
 
-    /**
-     * Hotbar + offhand + hozzájuk tartozó cooldown feliratok.
-     */
     private static void renderInventoryHud(MatrixStack matrices, MinecraftClient client,
                                            PlayerEntity player, StorageConfig config,
                                            TextRenderer textRenderer, int globalTick) {
@@ -129,8 +89,6 @@ public final class CustomHudRenderer {
         ItemStack offhandStack = player.getOffHandStack();
         boolean renderOffhand = !offhandStack.isEmpty() && config.offhandSlotEnabled;
 
-        // --- 1. fázis: minden háttér és keret egyetlen batchelt draw call-ban ---
-        // A fill hívások számát így nem a slotok száma, hanem a draw call-ok száma korlátozza.
         RECT_BATCH.reset();
         int selectedSlot = inventory.selectedSlot;
 
@@ -142,15 +100,13 @@ public final class CustomHudRenderer {
             float scale = config.hudSlotsScale[i];
             int slotSize = (int) (BASE_SLOT_SIZE * scale);
 
-            // Régi stílus: sima sötét háttér, keret csak az aktív sloton.
             RECT_BATCH.add(slotX, slotY, slotX + slotSize, slotY + slotSize, 0x80000000);
 
             if (i == selectedSlot) {
-                // Régi stílus: 4 külön 1 px fehér vonal az aktív sloton.
-                RECT_BATCH.add(slotX, slotY, slotX + slotSize, slotY + 1, 0xFFFFFFFF);                       // felső
-                RECT_BATCH.add(slotX, slotY + slotSize - 1, slotX + slotSize, slotY + slotSize, 0xFFFFFFFF); // alsó
-                RECT_BATCH.add(slotX, slotY, slotX + 1, slotY + slotSize, 0xFFFFFFFF);                       // bal
-                RECT_BATCH.add(slotX + slotSize - 1, slotY, slotX + slotSize, slotY + slotSize, 0xFFFFFFFF); // jobb
+                RECT_BATCH.add(slotX, slotY, slotX + slotSize, slotY + 1, 0xFFFFFFFF);
+                RECT_BATCH.add(slotX, slotY + slotSize - 1, slotX + slotSize, slotY + slotSize, 0xFFFFFFFF);
+                RECT_BATCH.add(slotX, slotY, slotX + 1, slotY + slotSize, 0xFFFFFFFF);
+                RECT_BATCH.add(slotX + slotSize - 1, slotY, slotX + slotSize, slotY + slotSize, 0xFFFFFFFF);
             }
         }
 
@@ -159,14 +115,11 @@ public final class CustomHudRenderer {
             int offY = config.offhandY;
             int offSize = (int) (BASE_SLOT_SIZE * config.offhandScale);
 
-            // Régi stílus: csak sötét háttér, keret nélkül.
             RECT_BATCH.add(offX, offY, offX + offSize, offY + offSize, 0x80000000);
         }
 
         RECT_BATCH.flush(matrices);
 
-        // --- 2. fázis: itemek, szövegek, cooldown progress barok ---
-        // A barokat külön batch gyűjti, mert csak az itemek fölé kell kerülniük.
         for (int i = 0; i < HOTBAR_SLOTS; i++) {
             if (!config.hudSlotsEnabled[i]) continue;
             renderHotbarSlot(matrices, client, player, config, textRenderer, globalTick, i);
@@ -176,7 +129,6 @@ public final class CustomHudRenderer {
             renderOffhand(matrices, client, player, config, textRenderer, globalTick, offhandStack);
         }
 
-        // Cooldown progress barok: legfeljebb egy draw call.
         RECT_BATCH.flush(matrices);
     }
 
@@ -194,8 +146,6 @@ public final class CustomHudRenderer {
             renderItem(matrices, client, stack, slotX, slotY, scale);
         }
 
-        // Cache: csak akkor hívja a preset-listás keresést, ha az inventory
-        // változott, vagy a slotban lévő ItemStack referencia más lett.
         ActionbarStorageClient.SlotSettings settings = getCachedSlotSettings(slot, stack);
         int textX = slotX + slotSize + 4;
         int textY = slotY + (int) (5 * scale);
@@ -210,7 +160,6 @@ public final class CustomHudRenderer {
             textRenderer.drawWithShadow(matrices, getStatusLine(slot, left, right),
                     textX, textY, 0xFFFFFF);
 
-            // A Lunar snake staff speciális clone cooldownja.
             if (settings.cooldownKey().startsWith(CLONE_COOLDOWN_PREFIX)) {
                 String cloneText = getCloneText(globalTick);
                 if (cloneText != null) {
@@ -221,7 +170,6 @@ public final class CustomHudRenderer {
 
             addCooldownBars(RECT_BATCH, slotX, slotY, slotSize, settings, globalTick);
         } else {
-            // Nincs preset: statikus String, nem allokálunk frame-enként.
             textRenderer.drawWithShadow(matrices, NO_COOLDOWN_LINE, textX, textY, 0xFFFFFF);
         }
     }
@@ -254,9 +202,6 @@ public final class CustomHudRenderer {
 
     private static void renderItem(MatrixStack matrices, MinecraftClient client, ItemStack stack,
                                    int slotX, int slotY, float scale) {
-        // Az item renderelése továbbra is frame-enként szükséges; framebuffer cache
-        // nélkül nem hagyható ki. A drága rész a preset keresés és a String építés,
-        // azokat cache-eljük.
         matrices.push();
         matrices.translate(slotX + 1, slotY + 1, 0);
         matrices.scale(scale, scale, 1.0f);
@@ -265,14 +210,6 @@ public final class CustomHudRenderer {
         matrices.pop();
     }
 
-    // ---------------------------------------------------------------------
-    // Mana / sebzés
-    // ---------------------------------------------------------------------
-
-    /**
-     * Mana ugyanabban a panel-stílusban, mint a többi stat box.
-     * Nincs pop animáció: a szöveg és a scale mindig fix.
-     */
     private static void renderMana(MatrixStack matrices, TextRenderer textRenderer,
                                    StorageConfig config, ManaManager manaManager) {
         if (!config.showMana) return;
@@ -282,10 +219,6 @@ public final class CustomHudRenderer {
                 STAT_BOX_WIDTH, MANA_WIDTH_CACHE);
     }
 
-    /**
-     * Sebzés ugyanabban a panel-stílusban, mint a többi stat box.
-     * A panel a hosszabb szöveghez automatikusan szélesedik (lásd renderStatBox).
-     */
     private static void renderDamage(MatrixStack matrices, TextRenderer textRenderer,
                                      StorageConfig config, ManaManager manaManager) {
         if (!config.showDamage) return;
@@ -295,10 +228,6 @@ public final class CustomHudRenderer {
                 config.damageX, config.damageY, config.damageScale,
                 STAT_BOX_WIDTH, DAMAGE_WIDTH_CACHE);
     }
-
-    // ---------------------------------------------------------------------
-    // FPS / CPS / nyíl / totem boxok
-    // ---------------------------------------------------------------------
 
     private static void renderStatBoxes(MatrixStack matrices, MinecraftClient client,
                                         PlayerEntity player, StorageConfig config,
@@ -334,22 +263,14 @@ public final class CustomHudRenderer {
                     config.totemX, config.totemY, config.totemScale,
                     STAT_BOX_WIDTH, TOTEM_WIDTH_CACHE);
         }
-
-        // Megjegyzés: az FPS és CPS box szándékosan külön maradt, mert a config-ban
-        // külön fpsX/fpsY és cpsX/cpsY pozíciók vannak; összevonásuk eltörné a
-        // HudPositionEditorScreen működését.
     }
 
     private static void renderStatBox(MatrixStack matrices, TextRenderer textRenderer,
                                       String text, int x, int y, float scale,
                                       int boxWidth, WidthCache widthCache) {
         int textWidth = widthCache.get(textRenderer, text);
-        // A panel alapból a kért szélességű, de hosszú szövegnél (pl. sebzés)
-        // automatikusan szélesedik, hogy ne lógjon ki a háttérből.
         int panelWidth = Math.max(boxWidth, textWidth + STAT_BOX_PADDING * 2);
 
-        // Csak hozzáadjuk a közös batch-hez, NEM reset/flush. A panel abszolút
-        // képernyő-koordinátába kerül, mert a flush már a popolt matrixszel fut.
         RECT_BATCH.add(x, y,
                 x + Math.round(panelWidth * scale),
                 y + Math.round(STAT_BOX_HEIGHT * scale),
@@ -358,8 +279,6 @@ public final class CustomHudRenderer {
         int textX = Math.max(0, (panelWidth - textWidth) / 2);
         int textY = Math.max(0, (STAT_BOX_HEIGHT - textRenderer.fontHeight) / 2);
 
-        // A szöveget később, a batch kirajzolása után adjuk hozzá, hogy ne
-        // takarja el a panel. Így a 6 háttér 1 draw call-ból megy ki.
         if (statTextBoxCount < MAX_STAT_TEXT_BOXES) {
             int index = statTextBoxCount++;
             statTextBoxText[index] = text;
@@ -385,10 +304,6 @@ public final class CustomHudRenderer {
         }
         statTextBoxCount = 0;
     }
-
-    // ---------------------------------------------------------------------
-    // Szöveg cache-ek (csak változáskor allokálnak)
-    // ---------------------------------------------------------------------
 
     private static String getManaText(int mana) {
         if (mana != cachedManaValue) {
@@ -449,21 +364,15 @@ public final class CustomHudRenderer {
     private static String getTotemText(int total) {
         if (total != cachedTotemTextValue) {
             cachedTotemTextValue = total;
-            // Mindig rózsaszín szám + fehér felirat, 0 esetén is (eredeti viselkedés).
             cachedTotemText = "§d" + total + " §fTotem";
         }
         return cachedTotemText;
     }
 
-    // ---------------------------------------------------------------------
-    // Cooldown szöveg cache
-    // ---------------------------------------------------------------------
-
     private static String getStatusTextCached(int cacheIndex, boolean rightSide, String key,
                                               int cooldownTicks, int currentTick, String readyText) {
         StatusCache cache = rightSide ? RIGHT_STATUS_CACHE[cacheIndex] : LEFT_STATUS_CACHE[cacheIndex];
 
-        // Nincs beállított cooldown erre az oldalra.
         if (cooldownTicks <= 0) {
             cache.key = key;
             cache.cooldownTicks = cooldownTicks;
@@ -479,9 +388,6 @@ public final class CustomHudRenderer {
                 : CooldownTracker.INSTANCE.getLeftExpiry(key);
         int tickBucket = currentTick >> 1;
 
-        // Csak akkor építünk Stringet, ha a kulcs, a cooldown hossza, a lejárat,
-        // a kész-jelzés stílusa vagy a 2 tickes frissítési bucket változott.
-        // 10 Hz elég a 0.1 s kijelzéshez.
         if (cache.key != null && cache.key.equals(key)
                 && cache.cooldownTicks == cooldownTicks
                 && cache.expiry == expiry
@@ -508,7 +414,6 @@ public final class CustomHudRenderer {
         return text;
     }
 
-    /** A cooldown lejártakor megjelenő jelzés a config beállítása szerint. */
     private static String getReadyText(StorageConfig config) {
         return config.cooldownReadyText ? READY_TEXT : READY_CHECKMARK;
     }
@@ -562,18 +467,6 @@ public final class CustomHudRenderer {
         return whole + "." + decimal;
     }
 
-    // ---------------------------------------------------------------------
-    // Inventory cache
-    // ---------------------------------------------------------------------
-
-    /**
-     * Csak akkor invalidál, ha a játékos / inventory / config preset lista
-     * vagy az inventory changeCount változott.
-     *
-     * <p>A PlayerInventory.getChangeCount() a markDirty hívásoknál nő. Kliensoldali
-     * predikciós count-módosulás ezt nem feltétlenül növeli, ezért van a 2 tickes
-     * totem- és a 20 tickes preset-újraszámolási fallback is.
-     */
     private static void refreshInventoryCaches(PlayerEntity player, StorageConfig config, int currentTick) {
         PlayerInventory inventory = player.getInventory();
         int inventoryVersion = inventory.getChangeCount();
@@ -600,8 +493,6 @@ public final class CustomHudRenderer {
             invalidateCaches();
         }
 
-        // Fallback: ha valami in-place változik (NBT, preset mező) anélkül, hogy a
-        // changeCount nőne, akkor is legfeljebb 1 másodpercig maradhat elavult a preset.
         if (currentTick < lastSettingsRefreshTick
                 || (long) currentTick - lastSettingsRefreshTick >= SETTINGS_REFRESH_TICKS) {
             invalidateSlotSettingsCaches();
@@ -609,13 +500,6 @@ public final class CustomHudRenderer {
         }
     }
 
-    /**
-     * Külső hook (pl. ScreenHandler / ClientPlayerInteractionManager mixin számára).
-     *
-     * <p>A jelenlegi implementáció a PlayerInventory changeCount-ját figyeli, ezért
-     * a hook használata nem kötelező, de azonnali invalidálást biztosít, ha valaki
-     * később beköti.
-     */
     public static void onInventoryChanged() {
         cachedInventoryVersion = Integer.MIN_VALUE;
         invalidateCaches();
@@ -655,8 +539,6 @@ public final class CustomHudRenderer {
             return SLOT_SETTINGS_CACHE[cacheIndex];
         }
 
-        // Ez a drága hívás: normalItems + leveledItems végigjárása és
-        // Registries.ITEM.getId() minden presetnél. Csak cache miss esetén fut.
         ActionbarStorageClient.SlotSettings settings = ActionbarStorageClient.getSettingsForItem(stack);
 
         SLOT_STACK_CACHE[cacheIndex] = stack;
@@ -680,7 +562,6 @@ public final class CustomHudRenderer {
         int count = 0;
         PlayerInventory inventory = player.getInventory();
 
-        // Ez már nem frame-enként fut, csak inventory változáskor vagy 1 másodpercenként.
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack stack = inventory.getStack(i);
             if (!stack.isEmpty() && stack.isOf(Items.TOTEM_OF_UNDYING)) {
@@ -693,10 +574,6 @@ public final class CustomHudRenderer {
     private static int sizeOf(List<?> list) {
         return list == null ? 0 : list.size();
     }
-
-    // ---------------------------------------------------------------------
-    // Cooldown progress bar
-    // ---------------------------------------------------------------------
 
     private static void addCooldownBars(RectBatch batch, int slotX, int slotY, int slotSize,
                                         ActionbarStorageClient.SlotSettings settings,
@@ -743,14 +620,8 @@ public final class CustomHudRenderer {
         return Math.max(1, Math.min(innerWidth, width));
     }
 
-    // ---------------------------------------------------------------------
-    // Batchelt téglalap renderelés
-    // ---------------------------------------------------------------------
-
     private static final RectBatch RECT_BATCH = new RectBatch();
 
-    // Stat box szövegek: a paneleket egy batch-ben rajzoljuk, ezért a szöveget
-    // egy későbbi pass-ra eltároljuk (fix méretű tömb, nincs frame-allokáció).
     private static final String[] statTextBoxText = new String[MAX_STAT_TEXT_BOXES];
     private static final int[] statTextBoxX = new int[MAX_STAT_TEXT_BOXES];
     private static final int[] statTextBoxY = new int[MAX_STAT_TEXT_BOXES];
@@ -759,15 +630,10 @@ public final class CustomHudRenderer {
     private static final int[] statTextBoxTextY = new int[MAX_STAT_TEXT_BOXES];
     private static int statTextBoxCount;
 
-    /**
-     * Kerekített sarkú panel: 1 px border + sötét háttér.
-     * A sarkokat 1 px levágással imitáljuk; minden téglalap egyetlen draw call-ba kerül.
-     */
     private static void addRoundedPanel(RectBatch batch, int x, int y, int width, int height,
                                         int backgroundColor, int borderColor) {
         if (width <= 2 || height <= 2) return;
 
-        // Nagyon kicsi (pl. 0.25 scale) slotnál a kerekítés nem látszik, marad az egyszerű fill.
         if (width < 8 || height < 8) {
             batch.add(x, y, x + width, y + height, backgroundColor);
             return;
@@ -776,7 +642,6 @@ public final class CustomHudRenderer {
         int x2 = x + width;
         int y2 = y + height;
 
-        // Háttér 1 px-rel beljebb, levágott belső sarkokkal.
         int bgX1 = x + 1;
         int bgY1 = y + 1;
         int bgX2 = x2 - 1;
@@ -786,17 +651,12 @@ public final class CustomHudRenderer {
         batch.add(bgX1, bgY1 + 1, bgX2, bgY2 - 1, backgroundColor);
         batch.add(bgX1 + 1, bgY2 - 1, bgX2 - 1, bgY2, backgroundColor);
 
-        // 1 px border, a sarkoknál 1 px kihagyással.
         batch.add(x + 1, y, x2 - 1, y + 1, borderColor);
         batch.add(x + 1, y2 - 1, x2 - 1, y2, borderColor);
         batch.add(x, y + 1, x + 1, y2 - 1, borderColor);
         batch.add(x2 - 1, y + 1, x2, y2 - 1, borderColor);
     }
 
-    /**
-     * Egyszerű, fix méretű float/int tömbös gyűjtő. Frame-enként újrahasznosított,
-     * így nincs allokáció és a sok kis fill hívás helyett egy BufferBuilder draw lesz.
-     */
     private static final class RectBatch {
         private static final int MAX_RECTS = 256;
 
@@ -854,11 +714,6 @@ public final class CustomHudRenderer {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Állapot / cache mezők
-    // ---------------------------------------------------------------------
-
-    // Inventory cache
     private static PlayerEntity cachedPlayer;
     private static PlayerInventory cachedInventory;
     private static int cachedInventoryVersion = Integer.MIN_VALUE;
@@ -868,32 +723,27 @@ public final class CustomHudRenderer {
     private static int cachedNormalItemsSize = -1;
     private static int cachedLeveledItemsSize = -1;
 
-    // Slot -> SlotSettings cache
     private static final ActionbarStorageClient.SlotSettings[] SLOT_SETTINGS_CACHE =
             new ActionbarStorageClient.SlotSettings[CACHE_SIZE];
     private static final ItemStack[] SLOT_STACK_CACHE = new ItemStack[CACHE_SIZE];
     private static final boolean[] SLOT_CACHE_VALID = new boolean[CACHE_SIZE];
     private static int lastSettingsRefreshTick = Integer.MIN_VALUE;
 
-    // Cooldown szöveg cache
     private static final StatusCache[] LEFT_STATUS_CACHE = createStatusCaches();
     private static final StatusCache[] RIGHT_STATUS_CACHE = createStatusCaches();
     private static final String[] STATUS_LINE_CACHE = new String[CACHE_SIZE];
     private static final String[] STATUS_LINE_LEFT_CACHE = new String[CACHE_SIZE];
     private static final String[] STATUS_LINE_RIGHT_CACHE = new String[CACHE_SIZE];
 
-    // Clone cooldown szöveg cache
     private static String cloneTextCache;
     private static int cloneTextTickBucket = Integer.MIN_VALUE;
     private static int cloneTextCloneCount = -1;
     private static int cloneTextExpiry = -1;
 
-    // Totem cache
     private static int totemCountCache;
     private static int totemCacheTick = -1;
     private static boolean totemCacheValid;
 
-    // Stat szöveg cache-ek
     private static int cachedManaValue = Integer.MIN_VALUE;
     private static String cachedManaText = "§bMana: 0";
 
@@ -914,17 +764,12 @@ public final class CustomHudRenderer {
     private static int cachedTotemTextValue = Integer.MIN_VALUE;
     private static String cachedTotemText = "§d0 §fTotem";
 
-    // Szövegszélesség cache
     private static final WidthCache MANA_WIDTH_CACHE = new WidthCache();
     private static final WidthCache DAMAGE_WIDTH_CACHE = new WidthCache();
     private static final WidthCache FPS_WIDTH_CACHE = new WidthCache();
     private static final WidthCache CPS_WIDTH_CACHE = new WidthCache();
     private static final WidthCache ARROW_WIDTH_CACHE = new WidthCache();
     private static final WidthCache TOTEM_WIDTH_CACHE = new WidthCache();
-
-    // ---------------------------------------------------------------------
-    // Segédosztályok
-    // ---------------------------------------------------------------------
 
     private static StatusCache[] createStatusCaches() {
         StatusCache[] caches = new StatusCache[CACHE_SIZE];

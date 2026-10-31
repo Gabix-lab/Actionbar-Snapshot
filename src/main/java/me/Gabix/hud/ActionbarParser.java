@@ -63,15 +63,20 @@ public class ActionbarParser {
     public static void updateText(Text text, ManaManager manaManager) {
         if (text == null) return;
 
-        // A Text immutable; azonos példány esetén a tartalom is azonos.
-        // Ez a leggyakoribb eset, és megspórolja a StringBuilder + regex munkát.
         if (text == lastParsedText) return;
 
         String cleanText = text.getString();
-        // Ha a szerver új Text példányt küld, de a látható szöveg ugyanaz,
-        // szintén nincs mit újraparse-olni.
         if (cleanText.equals(lastCleanActionbarText)) {
             lastParsedText = text;
+            return;
+        }
+
+        boolean maybeMana = cleanText.indexOf('/') >= 0;
+        boolean maybeDmg = cleanText.contains("Sebz");
+
+        if (!maybeMana && !maybeDmg) {
+            lastParsedText = text;
+            lastCleanActionbarText = cleanText;
             return;
         }
 
@@ -80,21 +85,25 @@ public class ActionbarParser {
         String rawText = toRawLegacyText(text).replace("&", "§");
         lastRawActionbarText = rawText;
 
-        Matcher manaMatcher = MANA_PATTERN.matcher(rawText);
-        if (manaMatcher.find()) {
-            try {
-                manaManager.setCurrentMana(Integer.parseInt(manaMatcher.group(1)));
-                manaManager.setMaxMana(Integer.parseInt(manaMatcher.group(2)));
-            } catch (NumberFormatException ignored) {}
+        if (maybeMana) {
+            Matcher manaMatcher = MANA_PATTERN.matcher(rawText);
+            if (manaMatcher.find()) {
+                try {
+                    manaManager.setCurrentMana(Integer.parseInt(manaMatcher.group(1)));
+                    manaManager.setMaxMana(Integer.parseInt(manaMatcher.group(2)));
+                } catch (NumberFormatException ignored) {}
+            }
         }
 
-        Matcher dmgMatcher = DAMAGE_PATTERN.matcher(rawText);
-        if (dmgMatcher.find()) {
-            try {
-                int foundDamage = Integer.parseInt(dmgMatcher.group(1));
-                manaManager.setCurrentDamage(foundDamage);
-                BossMonitor.setCurrentDamage(foundDamage);
-            } catch (NumberFormatException ignored) {}
+        if (maybeDmg) {
+            Matcher dmgMatcher = DAMAGE_PATTERN.matcher(rawText);
+            if (dmgMatcher.find()) {
+                try {
+                    int foundDamage = Integer.parseInt(dmgMatcher.group(1));
+                    manaManager.setCurrentDamage(foundDamage);
+                    BossMonitor.setCurrentDamage(foundDamage);
+                } catch (NumberFormatException ignored) {}
+            }
         }
     }
 

@@ -95,6 +95,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
         safeInit(() -> new DeveloperModClient().onInitializeClient(), "DeveloperModClient");
         safeInit(ChunkLoadOptimizer::init, "ChunkLoadOptimizer");
         safeInit(ChunkFadeManager::init, "ChunkFadeManager");
+        safeInit(WindowFocusState::init, "WindowFocusState");
         if ("1".equals(System.getenv("MVP_RUNTIME_TEST"))) {
             safeInit(HotPathRuntimeSelfTest::register, "HotPathRuntimeSelfTest");
         }
@@ -256,11 +257,6 @@ public class ActionbarStorageClient implements ClientModInitializer {
         }
     }
 
-    /**
-     * A shiftes íjaknál (sneakShotOnly) a jobb klikkes cooldown csak akkor indul,
-     * ha a játékos le van guggolva és épp most nyomta le a jobb klikket.
-     * Nem kell hozzá kilőni a nyilat.
-     */
     private static boolean isRightClickAllowed(SlotSettings settings, boolean sneaking, boolean isUsePressedEdge) {
         if (!settings.sneakShotOnly()) return true;
         return sneaking && isUsePressedEdge;

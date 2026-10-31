@@ -12,9 +12,14 @@ public class ModPlayerTracker {
 
     private static final Set<String> activeUsers = Collections.synchronizedSet(new HashSet<>());
     private static final Map<String, String> offlineUuidCache = new ConcurrentHashMap<>();
+    private static final Map<UUID, String> normalizedUuidCache = new ConcurrentHashMap<>();
 
     public static String normalizeUuid(Object uuid) {
         if (uuid == null) return null;
+        if (uuid instanceof UUID u) {
+            return normalizedUuidCache.computeIfAbsent(u,
+                    k -> k.toString().replace("-", "").toLowerCase());
+        }
         return uuid.toString().replace("-", "").toLowerCase().trim();
     }
 

@@ -8,17 +8,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * A custom HUD-et a teljes GUI (vanilla HUD, képernyők, toastok) után rajzolja ki,
- * így az minden más elem felett jelenik meg.
- */
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
+
+    private static final MatrixStack HUD_MATRIX = new MatrixStack();
 
     @Inject(method = "render", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/toast/ToastManager;draw(Lnet/minecraft/client/util/math/MatrixStack;)V",
             shift = At.Shift.AFTER))
     private void mvp$renderCustomHudOnTop(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
-        CustomHudRenderer.render(new MatrixStack(), tickDelta);
+        while (!HUD_MATRIX.isEmpty()) HUD_MATRIX.pop();
+        HUD_MATRIX.push();
+        try {
+            CustomHudRenderer.render(HUD_MATRIX, tickDelta);
+        } finally {
+            while (!HUD_MATRIX.isEmpty()) HUD_MATRIX.pop();
+        }
     }
 }

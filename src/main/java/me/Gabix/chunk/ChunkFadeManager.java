@@ -13,39 +13,14 @@ import net.minecraft.client.render.chunk.ChunkBuilder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Smooth per-chunk fade-in for newly built terrain.
- *
- * <p>Fade state is tracked per {@code BuiltChunk}. Rendering works by setting
- * {@link RenderSystem#setShaderColor(float, float, float, float)} and updating
- * the already bound {@code ColorModulator} uniform right before the chunk's
- * {@code VertexBuffer.draw()} call. Only the opaque/cutout block layers are
- * blended; depth testing and depth writes are deliberately left untouched.</p>
- *
- * <p><b>Sodium:</b> Sodium owns terrain rendering and does not use vanilla's
- * {@code WorldRenderer.renderLayer}. Fade must never touch its GL state, so all
- * fade entry points become no-ops when Sodium is detected.</p>
- */
 public final class ChunkFadeManager {
 
     private static final boolean SODIUM_LOADED = FabricLoader.getInstance().isModLoaded("sodium");
 
-    /**
-     * Concurrent: {@code WorldRenderer.addBuiltChunk} may complete on a worker
-     * thread for chunks without visible geometry, while the render thread
-     * iterates/prunes this map during the frame and draw hooks. A plain HashMap
-     * caused a ConcurrentModificationException here.
-     */
     private static final Map<ChunkBuilder.BuiltChunk, Long> FADES = new ConcurrentHashMap<>();
 
-    /** Set by BuiltChunk.getBuffer on the render thread and consumed by the draw hook. */
     private static final ThreadLocal<ChunkBuilder.BuiltChunk> CURRENT_CHUNK = new ThreadLocal<>();
 
-    /**
-     * True between beforeChunkDraw and afterChunkDraw while GL state needs
-     * restoring. Draw hooks only run on the render thread, so a plain field is
-     * enough and avoids the ThreadLocal lookup per chunk draw.
-     */
     private static boolean fadeApplied = false;
 
     private static boolean initialized;
@@ -66,7 +41,6 @@ public final class ChunkFadeManager {
         }
     }
 
-    /** Frame boundary hook; also prunes fades of chunks that never reached the screen. */
     public static void beginFrame() {
         CURRENT_CHUNK.remove();
         fadeApplied = false;
@@ -89,10 +63,6 @@ public final class ChunkFadeManager {
         FADES.entrySet().removeIf(entry -> now - entry.getValue() > maxAge);
     }
 
-    /**
-     * Called after the chunk's GPU upload finished (WorldRenderer.addBuiltChunk).
-     * builtAt is recorded even on Sodium so other features (LOD) keep working.
-     */
     public static void onChunkBuilt(ChunkBuilder.BuiltChunk chunk) {
         if (chunk == null) return;
 
@@ -107,8 +77,6 @@ public final class ChunkFadeManager {
         StorageConfig config = ActionbarStorageClient.getConfig();
         if (config == null || !config.chunkFadeInEnabled) {
             FADES.remove(chunk);
-            // Consume eligibility so enabling fade later does not make already
-            // loaded chunks fade on their next block update.
             state.mvp$setFadeEligible(false);
             return;
         }
@@ -124,11 +92,9 @@ public final class ChunkFadeManager {
             FADES.remove(chunk);
         }
 
-        // A chunk is "new" only for its first successful build at this origin.
         state.mvp$setFadeEligible(false);
     }
 
-    /** World change / renderer reload resets the initial fade-skip window. */
     public static void onRendererReload() {
         FADES.clear();
         CURRENT_CHUNK.remove();
@@ -136,31 +102,25 @@ public final class ChunkFadeManager {
         skipWindowStart = System.currentTimeMillis();
     }
 
-    /** BuiltChunk is recycled for a different origin; forget its fade state. */
     public static void onOriginChanged(ChunkBuilder.BuiltChunk chunk) {
         if (chunk == null) return;
         FADES.remove(chunk);
         if (CURRENT_CHUNK.get() == chunk) CURRENT_CHUNK.remove();
     }
 
-    /**
-     * Called from BuiltChunk.getBuffer HEAD. The draw hook needs to know which
-     * chunk was bound; looking up a local variable in the render loop would be
-     * fragile across mappings, so we capture it here instead.
-     */
     public static void onBufferRequested(ChunkBuilder.BuiltChunk chunk, RenderLayer layer) {
+        if (FADES.isEmpty()) return;
         if (SODIUM_LOADED || !initialized || chunk == null) return;
         if (!isFadeLayer(layer)) return;
 
-        // getBuffer is also called by worker threads while completing uploads.
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || !client.isOnThread()) return;
 
         CURRENT_CHUNK.set(chunk);
     }
 
-    /** Immediately before VertexBuffer.draw() inside WorldRenderer.renderLayer. */
     public static void beforeChunkDraw(RenderLayer layer) {
+        if (FADES.isEmpty()) return;
         if (SODIUM_LOADED || !initialized) return;
         if (!isFadeLayer(layer)) return;
 
@@ -173,8 +133,6 @@ public final class ChunkFadeManager {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
         applyColorModulator(1.0F, 1.0F, 1.0F, alpha);
 
-        // Only opaque/cutout layers get blending. Translucent layers already
-        // blend themselves and are intentionally left alone.
         RenderSystem.enableBlend();
         RenderSystem.blendFuncSeparate(
                 GlStateManager.SrcFactor.SRC_ALPHA,
@@ -185,17 +143,13 @@ public final class ChunkFadeManager {
         fadeApplied = true;
     }
 
-    /** Immediately after VertexBuffer.draw(); always restores the global shader colour. */
     public static void afterChunkDraw() {
-        if (fadeApplied) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            applyColorModulator(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.disableBlend();
-            // defaultBlendFunc() intentionally omitted: blend is disabled above,
-            // so resetting the factors here would be a redundant GL call.
-            fadeApplied = false;
-        }
+        if (!fadeApplied) return;
 
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        applyColorModulator(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.disableBlend();
+        fadeApplied = false;
         CURRENT_CHUNK.remove();
     }
 
@@ -218,15 +172,9 @@ public final class ChunkFadeManager {
         if (elapsed <= 0L) return 0.0F;
 
         float t = Math.min(1.0F, elapsed / (float) duration);
-        // Smoothstep keeps the first/last frames from looking like a hard cut.
         return t * t * (3.0F - 2.0F * t);
     }
 
-    /**
-     * renderLayer uploads the ColorModulator uniform once, before the chunk
-     * loop. RenderSystem.setShaderColor alone would therefore only affect the
-     * *next* layer, not the current draw, so the bound uniform is updated too.
-     */
     private static void applyColorModulator(float red, float green, float blue, float alpha) {
         ShaderProgram shader = RenderSystem.getShader();
         if (shader != null && shader.colorModulator != null) {

@@ -4,9 +4,9 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.Gabix.core.ActionbarStorageClient;
 import me.Gabix.core.StorageConfig;
+import me.Gabix.core.WindowFocusState;
 import me.Gabix.norender.NoRenderEngine;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -80,11 +80,8 @@ public class LevelRendererMixin {
     @Inject(method = "setupTerrain", at = @At("HEAD"), cancellable = true, require = 0)
     private void mvp$pauseChunkSetup(Camera camera, Frustum frustum, boolean hasForcedFrustum, boolean spectator, CallbackInfo ci) {
         StorageConfig cfg = ActionbarStorageClient.getConfig();
-        if (cfg != null && cfg.pauseChunkLoadingOnInactive) {
-            MinecraftClient mc = MinecraftClient.getInstance();
-            if (mc != null && !mc.isWindowFocused()) {
-                ci.cancel();
-            }
+        if (cfg != null && cfg.pauseChunkLoadingOnInactive && !WindowFocusState.isFocused()) {
+            ci.cancel();
         }
     }
 }

@@ -1,17 +1,10 @@
 package me.Gabix.core;
 
-import me.Gabix.core.WindowAccess;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.util.Window;
 import org.lwjgl.opengl.GL11;
 
-/**
- * Renders the whole frame (world + GUI) at a lower resolution while the window is
- * inactive, then lets Minecraft upscale it to the real window size at the end of
- * the frame. Because both the framebuffer size and the GUI scale factor are scaled
- * by the same amount, the layout stays exactly the same, only the resolution drops.
- */
 public final class InactiveResolutionScale {
     private static boolean active = false;
     private static float factor = 1.0f;
@@ -35,7 +28,7 @@ public final class InactiveResolutionScale {
         if (window == null || framebuffer == null || client.gameRenderer == null) return;
 
         StorageConfig config = ActionbarStorageClient.getConfig();
-        boolean enabled = config != null && config.downscaleOnInactive && !client.isWindowFocused();
+        boolean enabled = config != null && config.downscaleOnInactive && !WindowFocusState.isFocused();
         float newFactor = enabled
                 ? Math.max(0.1f, Math.min(1.0f, config.inactiveResolutionScale / 100.0f))
                 : 1.0f;
@@ -61,8 +54,6 @@ public final class InactiveResolutionScale {
         }
 
         try {
-            // Keep the window getters at the real size while resizing, otherwise the
-            // resize helper would feed the scaled values back into the framebuffer.
             active = false;
             framebuffer.resize(targetWidth, targetHeight, MinecraftClient.IS_SYSTEM_MAC);
             factor = newFactor;
