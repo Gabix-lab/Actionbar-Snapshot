@@ -3,6 +3,8 @@ package me.Gabix.core;
 import me.Gabix.badge.ModPlayerTracker;
 import me.Gabix.badge.ModServerClient;
 import me.Gabix.boss.BossMod;
+import me.Gabix.chunk.ChunkFadeManager;
+import me.Gabix.chunk.ChunkLoadOptimizer;
 import me.Gabix.cooldown.CloneManager;
 import me.Gabix.cooldown.CooldownMod;
 import me.Gabix.cooldown.CooldownTracker;
@@ -91,6 +93,11 @@ public class ActionbarStorageClient implements ClientModInitializer {
         safeInit(() -> new FpsReducerMod().onInitializeClient(), "FpsReducerMod");
         safeInit(() -> new SoundReducerMod().onInitializeClient(), "SoundReducerMod");
         safeInit(() -> new DeveloperModClient().onInitializeClient(), "DeveloperModClient");
+        safeInit(ChunkLoadOptimizer::init, "ChunkLoadOptimizer");
+        safeInit(ChunkFadeManager::init, "ChunkFadeManager");
+        if ("1".equals(System.getenv("MVP_RUNTIME_TEST"))) {
+            safeInit(HotPathRuntimeSelfTest::register, "HotPathRuntimeSelfTest");
+        }
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             if (client.getSession() != null) {

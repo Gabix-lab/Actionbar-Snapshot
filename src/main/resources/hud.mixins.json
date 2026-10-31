@@ -7,7 +7,8 @@
     "ActionbarMixin",
     "MouseMixin",
     "GameRendererMixin",
-    "TitleMixin"
+    "TitleMixin",
+    "ClientWorldMixin"
   ],
   "injectors": {
     "defaultRequire": 1

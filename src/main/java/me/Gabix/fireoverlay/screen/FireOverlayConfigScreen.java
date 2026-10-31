@@ -2,6 +2,7 @@ package me.Gabix.fireoverlay.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.Gabix.core.StorageConfig;
+import me.Gabix.core.StorageConfigSaver;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.Screen;
@@ -77,7 +78,7 @@ public class FireOverlayConfigScreen extends Screen {
         double fraction = (clampedY - SLIDER_Y) / SLIDER_HEIGHT;
         int newValue = (int) Math.round((1.0 - fraction) * 100);
         config.fireOverlayHeight = Math.max(0, Math.min(100, newValue));
-        config.save();
+        StorageConfigSaver.requestSave(config);
     }
 
     @Override

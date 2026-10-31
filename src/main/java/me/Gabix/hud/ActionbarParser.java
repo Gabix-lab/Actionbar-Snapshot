@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 public class ActionbarParser {
     private static String lastRawActionbarText = "";
     private static String lastCleanActionbarText = "";
+    private static Text lastParsedText;
     private static final Pattern MANA_PATTERN = Pattern.compile("§b(\\d+)§8/§b(\\d+)");
     private static final Pattern DAMAGE_PATTERN = Pattern.compile("Sebzés:\\s*.*?§f(\\d+)");
     private static Field cachedBossBarsField = null;
@@ -61,7 +62,21 @@ public class ActionbarParser {
 
     public static void updateText(Text text, ManaManager manaManager) {
         if (text == null) return;
-        lastCleanActionbarText = text.getString();
+
+        // A Text immutable; azonos példány esetén a tartalom is azonos.
+        // Ez a leggyakoribb eset, és megspórolja a StringBuilder + regex munkát.
+        if (text == lastParsedText) return;
+
+        String cleanText = text.getString();
+        // Ha a szerver új Text példányt küld, de a látható szöveg ugyanaz,
+        // szintén nincs mit újraparse-olni.
+        if (cleanText.equals(lastCleanActionbarText)) {
+            lastParsedText = text;
+            return;
+        }
+
+        lastParsedText = text;
+        lastCleanActionbarText = cleanText;
         String rawText = toRawLegacyText(text).replace("&", "§");
         lastRawActionbarText = rawText;
 

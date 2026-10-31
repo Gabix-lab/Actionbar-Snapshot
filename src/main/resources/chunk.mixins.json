@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.Gabix.chunk.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "BuiltChunkMixin",
+    "ChunkBuilderMixin",
+    "ChunkOcclusionMixin",
+    "WorldRendererChunkMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -4,6 +4,7 @@ import me.Gabix.api.WindowFocusEvent;
 import me.Gabix.api.WindowFocusListener;
 import me.Gabix.core.ActionbarStorageClient;
 import me.Gabix.core.StorageConfig;
+import me.Gabix.core.StorageConfigSaver;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
@@ -64,6 +65,6 @@ public class NoRenderEngine implements WindowFocusListener {
             client.player.sendMessage(Text.literal("§7[GabixMod] §fNoRender Ablak Inaktívnál: " +
                     (config.noRenderOnInactive ? "§aBE" : "§cKI")), true);
         }
-        config.save();
+        StorageConfigSaver.requestSave(config);
     }
 }

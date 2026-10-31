@@ -1,6 +1,7 @@
 package me.Gabix.hud;
 
 import me.Gabix.core.StorageConfig;
+import me.Gabix.core.StorageConfigSaver;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -48,7 +49,7 @@ public class HudPositionEditorScreen extends Screen {
     @Override
     protected void init() {
         this.addDrawableChild(ButtonWidget.builder(Text.literal("Kész & Mentés"), button -> {
-            this.config.save();
+            StorageConfigSaver.saveNow(this.config);
             if (this.client != null) {
                 this.client.setScreen(this.parent);
             }
@@ -57,7 +58,7 @@ public class HudPositionEditorScreen extends Screen {
 
     @Override
     public void close() {
-        this.config.save();
+        StorageConfigSaver.saveNow(this.config);
         if (this.client != null) {
             this.client.setScreen(this.parent);
         }

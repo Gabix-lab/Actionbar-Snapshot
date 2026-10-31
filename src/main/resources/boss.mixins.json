@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.Gabix.boss.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "BossBarHudAccessor",
+    "BossBarHudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

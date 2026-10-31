@@ -54,6 +54,21 @@ public class StorageConfig implements ConfigProvider {
     public boolean pauseHudOnInactive = true;
     public boolean pauseBossMonitorOnInactive = true;
     public boolean pauseChunkLoadingOnInactive = false;
+    /**
+     * Chunk loading optimizations. The optimizer queues vanilla async rebuilds
+     * and submits at most chunkBuildBudget of them per frame.
+     */
+    public boolean chunkLoadOptimization = true;
+    public int chunkBuildBudget = 2;
+    public boolean chunkDistancePriority = true;
+    public boolean chunkOcclusionCulling = true;
+    public boolean chunkLodEnabled = false;
+    /** Smooth fade-in for newly built chunks. Not available with Sodium's renderer. */
+    public boolean chunkFadeInEnabled = true;
+    public int chunkFadeInDurationMs = 200;
+    public boolean chunkFadeInUseSkip = false;
+    public int chunkFadeInSkipMs = 0;
+    public boolean chunkFadeInOnlyNewChunks = true;
     public boolean showFps = true;
     public boolean showCps = true;
     public int fpsX = 0;
@@ -67,6 +82,8 @@ public class StorageConfig implements ConfigProvider {
     public int arrowY = 0;
     public float arrowScale = 1.0f;
     public boolean showTotems = true;
+    /** Lejárt cooldown jelzése: true = "kész" felirat (régi), false = ✔ pipa (új). */
+    public boolean cooldownReadyText = true;
     public int totemX = 100;
     public int totemY = 16;
     public float totemScale = 1.0f;
@@ -232,6 +249,13 @@ public class StorageConfig implements ConfigProvider {
 
                 if (loaded.maxFps < 10) loaded.maxFps = 10;
                 if (loaded.maxFps > 260) loaded.maxFps = 260;
+
+                if (loaded.chunkBuildBudget < 1) loaded.chunkBuildBudget = 1;
+                if (loaded.chunkBuildBudget > 8) loaded.chunkBuildBudget = 8;
+                if (loaded.chunkFadeInDurationMs < 50) loaded.chunkFadeInDurationMs = 50;
+                if (loaded.chunkFadeInDurationMs > 1000) loaded.chunkFadeInDurationMs = 1000;
+                if (loaded.chunkFadeInSkipMs < 0) loaded.chunkFadeInSkipMs = 0;
+                if (loaded.chunkFadeInSkipMs > 500) loaded.chunkFadeInSkipMs = 500;
 
                 if (loaded.customCharLabels == null) loaded.customCharLabels = new LinkedHashMap<>();
 

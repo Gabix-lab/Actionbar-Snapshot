@@ -28,7 +28,9 @@
     "fullbright.mixins.json",
     "norender.mixins.json",
     "soundreducer.mixins.json",
-    "renderscale.mixins.json"
+    "renderscale.mixins.json",
+    "chunk.mixins.json",
+    "boss.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.0",

@@ -2,6 +2,7 @@ package me.Gabix.hud;
 
 import me.Gabix.core.MinecraftSettingsApplier;
 import me.Gabix.core.StorageConfig;
+import me.Gabix.core.StorageConfigSaver;
 import me.Gabix.developer.DevAccess;
 import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
 import net.minecraft.client.MinecraftClient;
@@ -86,7 +87,7 @@ public class StorageConfigScreen extends Screen {
 
         addDrawableChild(ButtonWidget.builder(
                 Text.literal("§cBezárás"),
-                b -> { config.save(); close(); }
+                b -> { StorageConfigSaver.saveNow(config); close(); }
         ).dimensions(width / 2 + 5, bottomY, 150, 20).build());
     }
 
@@ -270,6 +271,7 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new BossNotificationEntry(config));
                     addEntry(new SectionHeader("Kijelzés", 0xFF60C0FF));
                     addEntry(new DisplayTogglesEntry(config));
+                    addEntry(new CooldownReadyEntry(config));
                     addEntry(new FpsCpsToggleEntry(config));
                     addEntry(new ArrowTotemToggleEntry(config));
                     addEntry(new SectionHeader("HUD Slotok", 0xFF80FF80));
@@ -289,6 +291,17 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new SectionHeader("Egyéb", 0xFF60C0FF));
                     addEntry(new MaxFpsEntry(config));
                     addEntry(new VsyncEntry(config));
+                    addEntry(new SectionHeader("Chunk optimalizálás", 0xFF60FF60));
+                    addEntry(new ChunkOptimizeEntry(config));
+                    addEntry(new ChunkBudgetEntry(config));
+                    addEntry(new ChunkDistancePriorityEntry(config));
+                    addEntry(new ChunkOcclusionEntry(config));
+                    addEntry(new ChunkLodEntry(config));
+                    addEntry(new SectionHeader("Chunk fade-in", 0xFF80FFFF));
+                    addEntry(new ChunkFadeEntry(config));
+                    addEntry(new ChunkFadeDurationEntry(config));
+                    addEntry(new ChunkFadeSkipToggleEntry(config));
+                    addEntry(new ChunkFadeSkipEntry(config));
                 }
                 case VISUAL -> {
                     addEntry(new SectionHeader("Részecskék", 0xFFD060FF));
@@ -446,7 +459,7 @@ public class StorageConfigScreen extends Screen {
             AutoBossDetectionEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.autoBossDetection,
-                        v -> { c.autoBossDetection = v; c.save(); },
+                        v -> { c.autoBossDetection = v; StorageConfigSaver.requestSave(c); },
                         "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
@@ -465,7 +478,7 @@ public class StorageConfigScreen extends Screen {
                         if (BOSS_CHOICES[idx].equals(c.selectedBossNotification)) { cur = idx; break; }
                     c.selectedBossNotification = BOSS_CHOICES[(cur + 1) % BOSS_CHOICES.length];
                     b.setMessage(Text.literal(c.selectedBossNotification));
-                    c.save();
+                    StorageConfigSaver.requestSave(c);
                 }).dimensions(0, 0, 110, 18).build());
             }
             @Override
@@ -480,9 +493,9 @@ public class StorageConfigScreen extends Screen {
             private final ButtonWidget mana, dmg;
             DisplayTogglesEntry(StorageConfig c) {
                 mana = track(toggleButton(50,
-                        () -> c.showMana, v -> { c.showMana = v; c.save(); }, "§aBE", "§cKI"));
+                        () -> c.showMana, v -> { c.showMana = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
                 dmg  = track(toggleButton(50,
-                        () -> c.showDamage, v -> { c.showDamage = v; c.save(); }, "§aBE", "§cKI"));
+                        () -> c.showDamage, v -> { c.showDamage = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
@@ -494,13 +507,29 @@ public class StorageConfigScreen extends Screen {
             }
         }
 
+        private class CooldownReadyEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            CooldownReadyEntry(StorageConfig c) {
+                btn = track(toggleButton(110,
+                        () -> c.cooldownReadyText,
+                        v -> { c.cooldownReadyText = v; StorageConfigSaver.requestSave(c); },
+                        "§eKész felirat", "§a✔ Pipa"));
+            }
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x44AAAA55);
+                label(m, "§eCooldown kész jelzés", x + 10, y + 5);
+                btn.setX(x + w - 120); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
         private class FpsCpsToggleEntry extends BaseEntry {
             private final ButtonWidget fps, cps;
             FpsCpsToggleEntry(StorageConfig c) {
                 fps = track(toggleButton(80,
-                        () -> c.showFps, v -> { c.showFps = v; c.save(); }, "§aFPS BE", "§cFPS KI"));
+                        () -> c.showFps, v -> { c.showFps = v; StorageConfigSaver.requestSave(c); }, "§aFPS BE", "§cFPS KI"));
                 cps = track(toggleButton(80,
-                        () -> c.showCps, v -> { c.showCps = v; c.save(); }, "§aCPS BE", "§cCPS KI"));
+                        () -> c.showCps, v -> { c.showCps = v; StorageConfigSaver.requestSave(c); }, "§aCPS BE", "§cCPS KI"));
             }
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
@@ -518,9 +547,9 @@ public class StorageConfigScreen extends Screen {
             private final ButtonWidget arrows, totems;
             ArrowTotemToggleEntry(StorageConfig c) {
                 arrows = track(toggleButton(80,
-                        () -> c.showArrowAps, v -> { c.showArrowAps = v; c.save(); }, "§aNYÍL BE", "§cNYÍL KI"));
+                        () -> c.showArrowAps, v -> { c.showArrowAps = v; StorageConfigSaver.requestSave(c); }, "§aNYÍL BE", "§cNYÍL KI"));
                 totems = track(toggleButton(80,
-                        () -> c.showTotems, v -> { c.showTotems = v; c.save(); }, "§aTOTEM BE", "§cTOTEM KI"));
+                        () -> c.showTotems, v -> { c.showTotems = v; StorageConfigSaver.requestSave(c); }, "§aTOTEM BE", "§cTOTEM KI"));
             }
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
@@ -542,11 +571,11 @@ public class StorageConfigScreen extends Screen {
                     ButtonWidget b = (i == 0)
                             ? toggleButton(18,
                             () -> c.offhandSlotEnabled,
-                            v -> { c.offhandSlotEnabled = v; c.save(); },
+                            v -> { c.offhandSlotEnabled = v; StorageConfigSaver.requestSave(c); },
                             "§a0", "§c0")
                             : toggleButton(18,
                             () -> c.hudSlotsEnabled[idx - 1],
-                            v -> { c.hudSlotsEnabled[idx - 1] = v; c.save(); },
+                            v -> { c.hudSlotsEnabled[idx - 1] = v; StorageConfigSaver.requestSave(c); },
                             "§a" + idx, "§c" + idx);
                     slots.add(b); track(b);
                 }
@@ -567,7 +596,7 @@ public class StorageConfigScreen extends Screen {
             private final ButtonWidget btn;
             NoRenderInactiveEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
-                        () -> c.noRenderOnInactive, v -> { c.noRenderOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+                        () -> c.noRenderOnInactive, v -> { c.noRenderOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -580,7 +609,7 @@ public class StorageConfigScreen extends Screen {
             private final ButtonWidget btn;
             MuteOnInactiveEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
-                        () -> c.muteOnInactive, v -> { c.muteOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+                        () -> c.muteOnInactive, v -> { c.muteOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -594,7 +623,7 @@ public class StorageConfigScreen extends Screen {
             PauseHudOnInactiveEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.pauseHudOnInactive,
-                        v -> { c.pauseHudOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.pauseHudOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -608,7 +637,7 @@ public class StorageConfigScreen extends Screen {
             PauseBossMonitorOnInactiveEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.pauseBossMonitorOnInactive,
-                        v -> { c.pauseBossMonitorOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.pauseBossMonitorOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -622,7 +651,7 @@ public class StorageConfigScreen extends Screen {
             PauseChunkLoadingOnInactiveEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.pauseChunkLoadingOnInactive,
-                        v -> { c.pauseChunkLoadingOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.pauseChunkLoadingOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -638,7 +667,7 @@ public class StorageConfigScreen extends Screen {
             DownscaleOnInactiveEntry(StorageConfig c) {
                 toggleBtn = track(toggleButton(50,
                         () -> c.downscaleOnInactive,
-                        v -> { c.downscaleOnInactive = v; c.save(); },
+                        v -> { c.downscaleOnInactive = v; StorageConfigSaver.requestSave(c); },
                         "§aBE", "§cKI"));
                 slider = new RenderScaleSlider(0, 0, 130, 18, c);
                 children.add(slider);
@@ -665,7 +694,7 @@ public class StorageConfigScreen extends Screen {
             }
             @Override public boolean mouseReleased(double mx, double my, int b) {
                 boolean r = slider.mouseReleased(mx, my, b);
-                config.save();
+                StorageConfigSaver.requestSave(config);
                 return r;
             }
         }
@@ -675,11 +704,11 @@ public class StorageConfigScreen extends Screen {
             private final TextFieldWidget field;
             FpsLimitEntry(StorageConfig c) {
                 toggle = track(toggleButton(36,
-                        () -> c.fpsLimitOnInactive, v -> { c.fpsLimitOnInactive = v; c.save(); }, "§aBE", "§cKI"));
-                minM = track(actionButton(16, "-", () -> { if (c.fpsLimitMinutes > 0) c.fpsLimitMinutes--; c.save(); }));
-                minP = track(actionButton(16, "+", () -> { if (c.fpsLimitMinutes < 60) c.fpsLimitMinutes++; c.save(); }));
-                secM = track(actionButton(16, "-", () -> { if (c.fpsLimitSeconds >= 5) c.fpsLimitSeconds -= 5; c.save(); }));
-                secP = track(actionButton(16, "+", () -> { if (c.fpsLimitSeconds < 55) c.fpsLimitSeconds += 55; c.save(); }));
+                        () -> c.fpsLimitOnInactive, v -> { c.fpsLimitOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+                minM = track(actionButton(16, "-", () -> { if (c.fpsLimitMinutes > 0) c.fpsLimitMinutes--; StorageConfigSaver.requestSave(c); }));
+                minP = track(actionButton(16, "+", () -> { if (c.fpsLimitMinutes < 60) c.fpsLimitMinutes++; StorageConfigSaver.requestSave(c); }));
+                secM = track(actionButton(16, "-", () -> { if (c.fpsLimitSeconds >= 5) c.fpsLimitSeconds -= 5; StorageConfigSaver.requestSave(c); }));
+                secP = track(actionButton(16, "+", () -> { if (c.fpsLimitSeconds < 55) c.fpsLimitSeconds += 55; StorageConfigSaver.requestSave(c); }));
 
                 field = new TextFieldWidget(StorageConfigScreen.this.textRenderer, 0, 0, 44, 16, Text.literal("FPS"));
                 field.setText(String.valueOf(c.fpsLimitValue));
@@ -687,7 +716,7 @@ public class StorageConfigScreen extends Screen {
                     try {
                         int v = Integer.parseInt(t);
                         boolean ok = v >= 1 && v <= 260;
-                        if (ok) { c.fpsLimitValue = v; c.save(); }
+                        if (ok) { c.fpsLimitValue = v; StorageConfigSaver.requestSave(c); }
                         field.setEditableColor(ok ? 0xFFFFFF : 0xFF5555);
                     } catch (NumberFormatException e) { field.setEditableColor(0xFF5555); }
                 });
@@ -723,7 +752,7 @@ public class StorageConfigScreen extends Screen {
             FpsLimitImmediateEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.fpsLimitImmediateOnInactive,
-                        v -> { c.fpsLimitImmediateOnInactive = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.fpsLimitImmediateOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -741,7 +770,7 @@ public class StorageConfigScreen extends Screen {
             @Override public boolean mouseClicked(double mx, double my, int b) { return slider.mouseClicked(mx, my, b); }
             @Override public boolean mouseDragged(double mx, double my, int b, double dx, double dy) { return slider.mouseDragged(mx, my, b, dx, dy); }
             @Override public boolean mouseReleased(double mx, double my, int b) {
-                boolean r = slider.mouseReleased(mx, my, b); config.save(); return r;
+                boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AAAA00);
@@ -763,7 +792,7 @@ public class StorageConfigScreen extends Screen {
                                     if (mc.getWindow() != null) mc.getWindow().setVsync(v);
                                 } catch (Throwable ignored) {}
                             }
-                            c.save();
+                            StorageConfigSaver.requestSave(c);
                         }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
@@ -773,12 +802,150 @@ public class StorageConfigScreen extends Screen {
             }
         }
 
+        private class ChunkOptimizeEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            ChunkOptimizeEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.chunkLoadOptimization,
+                        v -> { c.chunkLoadOptimization = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4455AA55);
+                label(m, "§aChunk betöltés optimalizálás", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkBudgetEntry extends BaseEntry {
+            private final ChunkBudgetSlider slider;
+            ChunkBudgetEntry(StorageConfig c) {
+                slider = new ChunkBudgetSlider(0, 0, 220, 18, c);
+                children.add(slider); selectables.add(slider);
+            }
+            @Override public boolean mouseClicked(double mx, double my, int b) { return slider.mouseClicked(mx, my, b); }
+            @Override public boolean mouseDragged(double mx, double my, int b, double dx, double dy) { return slider.mouseDragged(mx, my, b, dx, dy); }
+            @Override public boolean mouseReleased(double mx, double my, int b) {
+                boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4455AA55);
+                label(m, "§eChunk build budget / frame", x + 10, y + 5);
+                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkDistancePriorityEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            ChunkDistancePriorityEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.chunkDistancePriority,
+                        v -> { c.chunkDistancePriority = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4455AA55);
+                label(m, "§eTávolság prioritás (közeli chunk előbb)", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkOcclusionEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            ChunkOcclusionEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.chunkOcclusionCulling,
+                        v -> { c.chunkOcclusionCulling = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4455AA55);
+                label(m, "§eOcclusion culling (teljesen takart chunkok)", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkLodEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            ChunkLodEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.chunkLodEnabled,
+                        v -> { c.chunkLodEnabled = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4455AA55);
+                label(m, "§eLOD: távoli chunk rebuild ritkítás", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkFadeEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            ChunkFadeEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.chunkFadeInEnabled,
+                        v -> { c.chunkFadeInEnabled = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4460C0FF);
+                label(m, "§bChunk fade-in", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkFadeDurationEntry extends BaseEntry {
+            private final ChunkFadeSlider slider;
+            ChunkFadeDurationEntry(StorageConfig c) {
+                slider = new ChunkFadeSlider(0, 0, 220, 18, c);
+                children.add(slider); selectables.add(slider);
+            }
+            @Override public boolean mouseClicked(double mx, double my, int b) { return slider.mouseClicked(mx, my, b); }
+            @Override public boolean mouseDragged(double mx, double my, int b, double dx, double dy) { return slider.mouseDragged(mx, my, b, dx, dy); }
+            @Override public boolean mouseReleased(double mx, double my, int b) {
+                boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4460C0FF);
+                label(m, "§bFade időtartam", x + 10, y + 5);
+                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkFadeSkipToggleEntry extends BaseEntry {
+            private final ButtonWidget btn;
+            ChunkFadeSkipToggleEntry(StorageConfig c) {
+                btn = track(toggleButton(50,
+                        () -> c.chunkFadeInUseSkip,
+                        v -> { c.chunkFadeInUseSkip = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4460C0FF);
+                label(m, "§bKezdeti fade kihagyása", x + 10, y + 5);
+                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+            }
+        }
+
+        private class ChunkFadeSkipEntry extends BaseEntry {
+            private final ChunkFadeSkipSlider slider;
+            ChunkFadeSkipEntry(StorageConfig c) {
+                slider = new ChunkFadeSkipSlider(0, 0, 220, 18, c);
+                children.add(slider); selectables.add(slider);
+            }
+            @Override public boolean mouseClicked(double mx, double my, int b) { return slider.mouseClicked(mx, my, b); }
+            @Override public boolean mouseDragged(double mx, double my, int b, double dx, double dy) { return slider.mouseDragged(mx, my, b, dx, dy); }
+            @Override public boolean mouseReleased(double mx, double my, int b) {
+                boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
+            }
+            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+                fillBg(m, x, y, w, h, 0x4460C0FF);
+                label(m, "§bKihagyás hossza", x + 10, y + 5);
+                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+            }
+        }
+
         private class HideBlockBreakingParticlesEntry extends BaseEntry {
             private final ButtonWidget btn;
             HideBlockBreakingParticlesEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.hideBlockBreakingParticles,
-                        v -> { c.hideBlockBreakingParticles = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.hideBlockBreakingParticles = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x44AA5500);
@@ -792,7 +959,7 @@ public class StorageConfigScreen extends Screen {
             HideAllParticlesEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.hideAllParticles,
-                        v -> { c.hideAllParticles = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.hideAllParticles = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x55CC0000);
@@ -805,7 +972,7 @@ public class StorageConfigScreen extends Screen {
             private final ButtonWidget toggle, cfgBtn;
             FireOverlayEntry(StorageConfig c) {
                 toggle = track(toggleButton(36,
-                        () -> c.hideFireOverlay, v -> { c.hideFireOverlay = v; c.save(); }, "§aBE", "§cKI"));
+                        () -> c.hideFireOverlay, v -> { c.hideFireOverlay = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
                 cfgBtn = track(ButtonWidget.builder(Text.literal("§eBeállítás"), b -> {
                     if (StorageConfigScreen.this.client != null)
                         StorageConfigScreen.this.client.setScreen(
@@ -828,7 +995,7 @@ public class StorageConfigScreen extends Screen {
                         v -> { 
                             if (v) { c.hidePuaInTitle = true; c.hidePuaInSubtitle = true; }
                             else { c.hidePuaInTitle = false; c.hidePuaInSubtitle = false; }
-                            c.save(); 
+                            StorageConfigSaver.requestSave(c); 
                         }, 
                         "§aBE", "§cKI"));
             }
@@ -859,7 +1026,7 @@ public class StorageConfigScreen extends Screen {
             HideBlockTexturesEntry(StorageConfig c) {
                 btn = track(toggleButton(50,
                         () -> c.hideBlockTextures,
-                        v -> { c.hideBlockTextures = v; c.save(); }, "§aBE", "§cKI"));
+                        v -> { c.hideBlockTextures = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
             @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
                 fillBg(m, x, y, w, h, 0x55FF00FF);
@@ -964,6 +1131,54 @@ public class StorageConfigScreen extends Screen {
         @Override protected void applyValue() {
             int value = Math.max(10, Math.min(100, 10 + (int) Math.round(this.value * 90)));
             config.inactiveResolutionScale = value;
+        }
+    }
+
+    private static class ChunkBudgetSlider extends SliderWidget {
+        private final StorageConfig config;
+        ChunkBudgetSlider(int x, int y, int w, int h, StorageConfig c) {
+            super(x, y, w, h, Text.empty(), (Math.max(1, Math.min(8, c.chunkBuildBudget)) - 1) / 7.0);
+            this.config = c;
+            this.updateMessage();
+        }
+        @Override protected void updateMessage() {
+            int value = 1 + (int) Math.round(this.value * 7);
+            this.setMessage(Text.literal("§e" + value + " chunk/frame"));
+        }
+        @Override protected void applyValue() {
+            config.chunkBuildBudget = Math.max(1, Math.min(8, 1 + (int) Math.round(this.value * 7)));
+        }
+    }
+
+    private static class ChunkFadeSlider extends SliderWidget {
+        private final StorageConfig config;
+        ChunkFadeSlider(int x, int y, int w, int h, StorageConfig c) {
+            super(x, y, w, h, Text.empty(), (Math.max(50, Math.min(1000, c.chunkFadeInDurationMs)) - 50) / 950.0);
+            this.config = c;
+            this.updateMessage();
+        }
+        @Override protected void updateMessage() {
+            int value = 50 + (int) Math.round(this.value * 950);
+            this.setMessage(Text.literal("§e" + value + " ms"));
+        }
+        @Override protected void applyValue() {
+            config.chunkFadeInDurationMs = Math.max(50, Math.min(1000, 50 + (int) Math.round(this.value * 950)));
+        }
+    }
+
+    private static class ChunkFadeSkipSlider extends SliderWidget {
+        private final StorageConfig config;
+        ChunkFadeSkipSlider(int x, int y, int w, int h, StorageConfig c) {
+            super(x, y, w, h, Text.empty(), Math.max(0, Math.min(500, c.chunkFadeInSkipMs)) / 500.0);
+            this.config = c;
+            this.updateMessage();
+        }
+        @Override protected void updateMessage() {
+            int value = (int) Math.round(this.value * 500);
+            this.setMessage(Text.literal("§e" + value + " ms"));
+        }
+        @Override protected void applyValue() {
+            config.chunkFadeInSkipMs = Math.max(0, Math.min(500, (int) Math.round(this.value * 500)));
         }
     }
 }

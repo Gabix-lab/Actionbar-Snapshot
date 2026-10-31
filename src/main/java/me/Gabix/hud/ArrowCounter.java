@@ -1,7 +1,6 @@
 package me.Gabix.hud;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.ArrowEntity;
 
 import java.util.ArrayDeque;
@@ -20,20 +19,21 @@ public class ArrowCounter {
     private final Deque<Long> shots = new ArrayDeque<>();
     private int currentAps = 0;
 
+    /**
+     * A ClientWorldMixin hívja, amikor egy nyíl ténylegesen spawnol.
+     * A seenArrows továbbra is véd a dupla spawn / újraspawn ellen.
+     */
+    public void onArrowSpawned(ArrowEntity arrow) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.player == null || arrow == null) return;
+        if (arrow.getOwner() != client.player) return;
+        if (!seenArrows.add(arrow.getId())) return;
+        shots.addLast(System.currentTimeMillis());
+    }
+
     public void tick(MinecraftClient client) {
+        // Csak a lejárt shot-okat tisztítjuk; entitáslistát NEM iterálunk.
         long now = System.currentTimeMillis();
-
-        if (client != null && client.player != null && client.world != null) {
-            for (Entity entity : client.world.getEntities()) {
-                if (!(entity instanceof ArrowEntity arrow)) continue;
-                if (arrow.getOwner() != client.player) continue;
-
-                if (seenArrows.add(arrow.getId())) {
-                    shots.addLast(now);
-                }
-            }
-        }
-
         while (!shots.isEmpty() && now - shots.peekFirst() > SAMPLE_WINDOW_MS) {
             shots.pollFirst();
         }
