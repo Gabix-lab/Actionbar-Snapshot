@@ -47,23 +47,17 @@ public class StorageConfig implements ConfigProvider {
     public boolean hideBlockTextures = false;
     public boolean hideFireOverlay = false;
     public int fireOverlayHeight = 100;
-    /** Ha igaz, a szerverek által a title-be küldött PUA karakterek (custom HUD effektek) nem jelennek meg. */
     public boolean hidePuaInTitle = false;
     public boolean hidePuaInSubtitle = false;
     public boolean muteOnInactive = false;
     public boolean pauseHudOnInactive = true;
     public boolean pauseBossMonitorOnInactive = true;
     public boolean pauseChunkLoadingOnInactive = false;
-    /**
-     * Chunk loading optimizations. The optimizer queues vanilla async rebuilds
-     * and submits at most chunkBuildBudget of them per frame.
-     */
     public boolean chunkLoadOptimization = true;
     public int chunkBuildBudget = 2;
     public boolean chunkDistancePriority = true;
     public boolean chunkOcclusionCulling = true;
     public boolean chunkLodEnabled = false;
-    /** Smooth fade-in for newly built chunks. Not available with Sodium's renderer. */
     public boolean chunkFadeInEnabled = true;
     public int chunkFadeInDurationMs = 200;
     public boolean chunkFadeInUseSkip = false;
@@ -82,7 +76,11 @@ public class StorageConfig implements ConfigProvider {
     public int arrowY = 0;
     public float arrowScale = 1.0f;
     public boolean showTotems = true;
-    /** Lejárt cooldown jelzése: true = "kész" felirat (régi), false = ✔ pipa (új). */
+    public boolean showLidercTimer = true;
+    public int lidercTimerX = 100;
+    public int lidercTimerY = 32;
+    public float lidercTimerScale = 1.0f;
+    public int lidercCooldownTicks = 2400;
     public boolean cooldownReadyText = true;
     public int totemX = 100;
     public int totemY = 16;
@@ -301,7 +299,6 @@ public class StorageConfig implements ConfigProvider {
         public int rightMana;
         public int autoMode;
         public int maxCharges;
-        /** Ha igaz, a jobb klikkes cooldown csak akkor indul, ha a játékos shiftelve jobb klikkel. */
         public boolean sneakShotOnly;
         public ItemPreset() {}
         public ItemPreset(String name, String itemId, int customModelData, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {
@@ -357,6 +354,11 @@ public class StorageConfig implements ConfigProvider {
     @Override public int getTotemX() { return totemX; }
     @Override public int getTotemY() { return totemY; }
     @Override public float getTotemScale() { return totemScale; }
+    @Override public boolean showLidercTimer() { return showLidercTimer; }
+    @Override public int getLidercTimerX() { return lidercTimerX; }
+    @Override public int getLidercTimerY() { return lidercTimerY; }
+    @Override public float getLidercTimerScale() { return lidercTimerScale; }
+    @Override public int getLidercCooldownTicks() { return lidercCooldownTicks; }
     @Override public boolean noRenderOnInactive() { return noRenderOnInactive; }
     @Override public boolean fpsLimitOnInactive() { return fpsLimitOnInactive; }
     @Override public boolean fpsLimitImmediateOnInactive() { return fpsLimitImmediateOnInactive; }

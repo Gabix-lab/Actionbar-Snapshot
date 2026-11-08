@@ -33,6 +33,11 @@ public interface ConfigProvider {
     int getTotemX();
     int getTotemY();
     float getTotemScale();
+    boolean showLidercTimer();
+    int getLidercTimerX();
+    int getLidercTimerY();
+    float getLidercTimerScale();
+    int getLidercCooldownTicks();
     boolean noRenderOnInactive();
     boolean fpsLimitOnInactive();
     boolean fpsLimitImmediateOnInactive();

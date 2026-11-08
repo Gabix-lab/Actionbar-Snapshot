@@ -22,7 +22,7 @@ public class HudPositionEditorScreen extends Screen {
     private static final int SNAP_THRESHOLD = 5;
 
     private enum DragTarget {
-        MANA, DAMAGE, SLOT, FPS, CPS, OFFHAND, ARROW, TOTEM
+        MANA, DAMAGE, SLOT, FPS, CPS, OFFHAND, ARROW, TOTEM, LIDERC
     }
 
     private static class BoxBounds {
@@ -133,6 +133,16 @@ public class HudPositionEditorScreen extends Screen {
                 return true;
             }
 
+            int lidercW = (int) (80 * config.lidercTimerScale);
+            int lidercH = (int) (16 * config.lidercTimerScale);
+            if (isHovered(config.lidercTimerX, config.lidercTimerY, lidercW, lidercH, mouseX, mouseY)) {
+                draggingTarget = DragTarget.LIDERC;
+                draggedSlotIndex = -1;
+                dragOffsetX = (int) mouseX - config.lidercTimerX;
+                dragOffsetY = (int) mouseY - config.lidercTimerY;
+                return true;
+            }
+
             for (int i = 0; i < 9; i++) {
                 int slotW = (int) (18 * config.hudSlotsScale[i]);
                 int slotH = (int) (18 * config.hudSlotsScale[i]);
@@ -171,6 +181,7 @@ public class HudPositionEditorScreen extends Screen {
                 case OFFHAND -> { config.offhandX = snappedX; config.offhandY = snappedY; }
                 case ARROW -> { config.arrowX = snappedX; config.arrowY = snappedY; }
                 case TOTEM -> { config.totemX = snappedX; config.totemY = snappedY; }
+                case LIDERC -> { config.lidercTimerX = snappedX; config.lidercTimerY = snappedY; }
                 case SLOT -> {
                     if (draggedSlotIndex >= 0 && draggedSlotIndex < 9) {
                         config.hudSlotsX[draggedSlotIndex] = snappedX;
@@ -236,6 +247,13 @@ public class HudPositionEditorScreen extends Screen {
             return true;
         }
 
+        int lidercW = (int) (80 * config.lidercTimerScale);
+        int lidercH = (int) (16 * config.lidercTimerScale);
+        if (isHovered(config.lidercTimerX, config.lidercTimerY, lidercW, lidercH, mouseX, mouseY)) {
+            config.lidercTimerScale = Math.max(0.5f, Math.min(3.0f, config.lidercTimerScale + delta));
+            return true;
+        }
+
         for (int i = 0; i < 9; i++) {
             int slotW = (int) (18 * config.hudSlotsScale[i]);
             int slotH = (int) (18 * config.hudSlotsScale[i]);
@@ -287,6 +305,10 @@ public class HudPositionEditorScreen extends Screen {
         int totemW = (int) (80 * config.totemScale);
         int totemH = (int) (16 * config.totemScale);
         renderBox(matrices, config.totemX, config.totemY, totemW, totemH, "§dTotem", config.showTotems, mouseX, mouseY);
+
+        int lidercW = (int) (80 * config.lidercTimerScale);
+        int lidercH = (int) (16 * config.lidercTimerScale);
+        renderBox(matrices, config.lidercTimerX, config.lidercTimerY, lidercW, lidercH, "§dLidérc", config.showLidercTimer, mouseX, mouseY);
 
         for (int i = 0; i < 9; i++) {
             boolean enabled = config.hudSlotsEnabled[i];
@@ -344,6 +366,8 @@ public class HudPositionEditorScreen extends Screen {
             list.add(new BoxBounds(config.arrowX, config.arrowY, (int)(80 * config.arrowScale), (int)(16 * config.arrowScale), DragTarget.ARROW, -1));
         if (ignoreTarget != DragTarget.TOTEM)
             list.add(new BoxBounds(config.totemX, config.totemY, (int)(80 * config.totemScale), (int)(16 * config.totemScale), DragTarget.TOTEM, -1));
+        if (ignoreTarget != DragTarget.LIDERC)
+            list.add(new BoxBounds(config.lidercTimerX, config.lidercTimerY, (int)(80 * config.lidercTimerScale), (int)(16 * config.lidercTimerScale), DragTarget.LIDERC, -1));
 
         for (int i = 0; i < 9; i++) {
             if (ignoreTarget == DragTarget.SLOT && ignoreSlotIndex == i) continue;
@@ -362,6 +386,7 @@ public class HudPositionEditorScreen extends Screen {
             case ARROW -> (int) (80 * config.arrowScale);
             case TOTEM -> (int) (80 * config.totemScale);
             case OFFHAND -> (int) (18 * config.offhandScale);
+            case LIDERC -> (int) (80 * config.lidercTimerScale);
             case SLOT -> (int) (18 * config.hudSlotsScale[slotIndex]);
         };
     }
@@ -375,6 +400,7 @@ public class HudPositionEditorScreen extends Screen {
             case ARROW -> (int) (16 * config.arrowScale);
             case TOTEM -> (int) (16 * config.totemScale);
             case OFFHAND -> (int) (18 * config.offhandScale);
+            case LIDERC -> (int) (16 * config.lidercTimerScale);
             case SLOT -> (int) (18 * config.hudSlotsScale[slotIndex]);
         };
     }

@@ -8,6 +8,7 @@ import me.Gabix.chunk.ChunkLoadOptimizer;
 import me.Gabix.cooldown.CloneManager;
 import me.Gabix.cooldown.CooldownMod;
 import me.Gabix.cooldown.CooldownTracker;
+import me.Gabix.cooldown.LidercSetTracker;
 import me.Gabix.developer.DeveloperModClient;
 import me.Gabix.fireoverlay.FireOverlayMod;
 import me.Gabix.fpsreducer.FpsReducerMod;
@@ -119,6 +120,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
             }
             ModPlayerTracker.clear();
             HudMod.getArrowCounter().reset();
+            LidercSetTracker.INSTANCE.reset();
         });
 
         KeyBinding configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -131,6 +133,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
             CloneManager.INSTANCE.tick(globalTickCounter);
             HudMod.getFpsCpsCounter().tick(client);
             HudMod.getArrowCounter().tick(client);
+            LidercSetTracker.INSTANCE.tick(client, globalTickCounter);
 
             heartbeatCounter++;
             fetchCounter++;

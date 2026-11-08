@@ -3,6 +3,7 @@ package me.Gabix.hud;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.Gabix.cooldown.CloneManager;
 import me.Gabix.cooldown.CooldownTracker;
+import me.Gabix.cooldown.LidercSetTracker;
 import me.Gabix.core.ActionbarStorageClient;
 import me.Gabix.core.StorageConfig;
 import me.Gabix.core.WindowFocusState;
@@ -263,6 +264,16 @@ public final class CustomHudRenderer {
                     config.totemX, config.totemY, config.totemScale,
                     STAT_BOX_WIDTH, TOTEM_WIDTH_CACHE);
         }
+
+        if (config.showLidercTimer) {
+            boolean equipped = player != null && LidercSetTracker.INSTANCE.isFullSetEquipped(player);
+            boolean cooldownActive = LidercSetTracker.INSTANCE.hasCooldownActive(globalTick);
+            if (equipped || cooldownActive) {
+                renderStatBox(matrices, textRenderer, getLidercText(globalTick),
+                        config.lidercTimerX, config.lidercTimerY, config.lidercTimerScale,
+                        STAT_BOX_WIDTH, LIDERC_WIDTH_CACHE);
+            }
+        }
     }
 
     private static void renderStatBox(MatrixStack matrices, TextRenderer textRenderer,
@@ -367,6 +378,30 @@ public final class CustomHudRenderer {
             cachedTotemText = "§d" + total + " §fTotem";
         }
         return cachedTotemText;
+    }
+
+    private static String getLidercText(int currentTick) {
+        LidercSetTracker tracker = LidercSetTracker.INSTANCE;
+        boolean hasCd = tracker.hasCooldownActive(currentTick);
+        int remaining = tracker.getRemainingTicks(currentTick);
+        int tickBucket = currentTick >> 1;
+
+        if (lidercTextCache != null
+                && lidercTextTickBucket == tickBucket
+                && lidercTextHasCd == hasCd
+                && lidercTextRemaining == remaining) {
+            return lidercTextCache;
+        }
+
+        String text = hasCd
+                ? "§dLidérc: §e" + round1(remaining / 20.0) + "s"
+                : "§dLidérc: §a✔";
+
+        lidercTextCache = text;
+        lidercTextTickBucket = tickBucket;
+        lidercTextHasCd = hasCd;
+        lidercTextRemaining = remaining;
+        return text;
     }
 
     private static String getStatusTextCached(int cacheIndex, boolean rightSide, String key,
@@ -524,6 +559,11 @@ public final class CustomHudRenderer {
         cloneTextTickBucket = Integer.MIN_VALUE;
         cloneTextCloneCount = -1;
         cloneTextExpiry = -1;
+
+        lidercTextCache = null;
+        lidercTextTickBucket = Integer.MIN_VALUE;
+        lidercTextHasCd = false;
+        lidercTextRemaining = -1;
     }
 
     private static void invalidateSlotSettingsCaches() {
@@ -740,6 +780,11 @@ public final class CustomHudRenderer {
     private static int cloneTextCloneCount = -1;
     private static int cloneTextExpiry = -1;
 
+    private static String lidercTextCache;
+    private static int lidercTextTickBucket = Integer.MIN_VALUE;
+    private static boolean lidercTextHasCd;
+    private static int lidercTextRemaining = -1;
+
     private static int totemCountCache;
     private static int totemCacheTick = -1;
     private static boolean totemCacheValid;
@@ -770,6 +815,7 @@ public final class CustomHudRenderer {
     private static final WidthCache CPS_WIDTH_CACHE = new WidthCache();
     private static final WidthCache ARROW_WIDTH_CACHE = new WidthCache();
     private static final WidthCache TOTEM_WIDTH_CACHE = new WidthCache();
+    private static final WidthCache LIDERC_WIDTH_CACHE = new WidthCache();
 
     private static StatusCache[] createStatusCaches() {
         StatusCache[] caches = new StatusCache[CACHE_SIZE];

@@ -274,6 +274,7 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new CooldownReadyEntry(config));
                     addEntry(new FpsCpsToggleEntry(config));
                     addEntry(new ArrowTotemToggleEntry(config));
+                    addEntry(new LidercTimerEntry(config));            // ← ez az új sor
                     addEntry(new SectionHeader("HUD Slotok", 0xFF80FF80));
                     addEntry(new HudSlotsToggleEntry(config));
                 }
@@ -562,7 +563,29 @@ public class StorageConfigScreen extends Screen {
                         x + 260, y + 5, 0xAAAAAA);
             }
         }
+        private class LidercTimerEntry extends BaseEntry {
+            private final ButtonWidget toggle;
 
+            LidercTimerEntry(StorageConfig c) {
+                toggle = track(toggleButton(50,
+                        () -> c.showLidercTimer,
+                        v -> { c.showLidercTimer = v; StorageConfigSaver.requestSave(c); },
+                        "§aBE", "§cKI"));
+            }
+
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h,
+                               int mx, int my, boolean hov, float d) {
+                var cfg = StorageConfigScreen.this.config;
+                fillBg(m, x, y, w, h, 0x44AA55AA);
+                label(m, "§dLidérc cooldown láthatóság", x + 10, y + 5);
+                toggle.setX(x + w - 60);
+                toggle.setY(y + 1);
+                toggle.render(m, mx, my, d);
+                label(m, "§7(" + cfg.lidercTimerX + "," + cfg.lidercTimerY + ")",
+                        x + w - 160, y + 5, 0xAAAAAA);
+            }
+        }
         private class HudSlotsToggleEntry extends BaseEntry {
             private final List<ButtonWidget> slots = new ArrayList<>();
             HudSlotsToggleEntry(StorageConfig c) {
