@@ -4,7 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.Gabix.core.StorageConfig;
 import me.Gabix.core.StorageConfigSaver;
 import net.minecraft.client.MinecraftClient;
+//? if >=1.20 {
+/*import net.minecraft.client.gui.DrawContext;
+*///?} else {
 import net.minecraft.client.gui.DrawableHelper;
+//?}
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.GameRenderer;
@@ -81,9 +85,16 @@ public class FireOverlayConfigScreen extends Screen {
         StorageConfigSaver.requestSave(config);
     }
 
+    //? if >=1.20 {
+    /*@Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
+        MatrixStack matrices = context.getMatrices();
+    *///?} else {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
+    //?}
 
         if (config.fireOverlayHeight > 0 && this.client != null) {
             Sprite fireSprite = MinecraftClient.getInstance()
@@ -105,6 +116,11 @@ public class FireOverlayConfigScreen extends Screen {
             int maxOffset = fireHeight;
             int renderY = this.height - (int) (maxOffset * heightPercent);
 
+            //? if >=1.20 {
+            /*context.drawSprite(0, renderY, 0, fireWidth, fireHeight, fireSprite);
+
+            context.drawSprite(this.width - fireWidth, renderY, 0, fireWidth, fireHeight, fireSprite);
+            *///?} else {
             DrawableHelper.drawSprite(
                     matrices,
                     0, renderY,
@@ -120,37 +136,67 @@ public class FireOverlayConfigScreen extends Screen {
                     fireWidth, fireHeight,
                     fireSprite
             );
+            //?}
 
             matrices.pop();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.disableBlend();
         }
 
+        //? if >=1.20 {
+        /*context.drawCenteredTextWithShadow(this.textRenderer, "Tűz Overlay Magasság", this.width / 2, 20, 0xFFFFFF);
+        *///?} else {
         drawCenteredTextWithShadow(matrices, this.textRenderer, "Tűz Overlay Magasság", this.width / 2, 20, 0xFFFFFF);
+        //?}
 
         int panelX = sliderX - 30;
         int panelY = SLIDER_Y - 10;
         int panelW = SLIDER_WIDTH + 60;
         int panelH = SLIDER_HEIGHT + 20;
+        //? if >=1.20 {
+        /*context.fill(panelX + 2, panelY + 2, panelX + panelW + 2, panelY + panelH + 2, 0x55000000);
+        context.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC2D2D2D);
+
+        context.fill(sliderX, SLIDER_Y, sliderX + SLIDER_WIDTH, SLIDER_Y + SLIDER_HEIGHT, 0xFF111111);
+        *///?} else {
         fill(matrices, panelX + 2, panelY + 2, panelX + panelW + 2, panelY + panelH + 2, 0x55000000);
         fill(matrices, panelX, panelY, panelX + panelW, panelY + panelH, 0xCC2D2D2D);
 
         fill(matrices, sliderX, SLIDER_Y, sliderX + SLIDER_WIDTH, SLIDER_Y + SLIDER_HEIGHT, 0xFF111111);
+        //?}
         int filledHeight = (int) (config.fireOverlayHeight / 100.0 * SLIDER_HEIGHT);
         int filledY = SLIDER_Y + SLIDER_HEIGHT - filledHeight;
         if (filledHeight > 0) {
+            //? if >=1.20 {
+            /*context.fillGradient(sliderX + 1, filledY, sliderX + SLIDER_WIDTH - 1, SLIDER_Y + SLIDER_HEIGHT, 0xFFFF5500, 0xFFFF0000);
+            *///?} else {
             fillGradient(matrices, sliderX + 1, filledY, sliderX + SLIDER_WIDTH - 1, SLIDER_Y + SLIDER_HEIGHT, 0xFFFF5500, 0xFFFF0000);
+            //?}
         }
 
         int handleY = SLIDER_Y + SLIDER_HEIGHT - filledHeight - 6;
+        //? if >=1.20 {
+        /*context.fill(sliderX - 6 + 1, handleY + 1, sliderX + SLIDER_WIDTH + 6 + 1, handleY + 12 + 1, 0x55000000);
+        context.fill(sliderX - 6, handleY, sliderX + SLIDER_WIDTH + 6, handleY + 12, 0xFFFFFFFF);
+        context.fill(sliderX - 5, handleY + 1, sliderX + SLIDER_WIDTH + 5, handleY + 11, 0xFF333333);
+        *///?} else {
         fill(matrices, sliderX - 6 + 1, handleY + 1, sliderX + SLIDER_WIDTH + 6 + 1, handleY + 12 + 1, 0x55000000);
         fill(matrices, sliderX - 6, handleY, sliderX + SLIDER_WIDTH + 6, handleY + 12, 0xFFFFFFFF);
         fill(matrices, sliderX - 5, handleY + 1, sliderX + SLIDER_WIDTH + 5, handleY + 11, 0xFF333333);
+        //?}
         String percentText = config.fireOverlayHeight + "%";
         int textWidth = this.textRenderer.getWidth(percentText);
+        //? if >=1.20 {
+        /*context.drawTextWithShadow(this.textRenderer, percentText, sliderX + SLIDER_WIDTH / 2 - textWidth / 2, handleY + 2, 0xFFFF5555);
+        *///?} else {
         this.textRenderer.drawWithShadow(matrices, percentText, sliderX + SLIDER_WIDTH / 2 - textWidth / 2, handleY + 2, 0xFFFF5555);
+        //?}
 
+        //? if >=1.20 {
+        /*super.render(context, mouseX, mouseY, delta);
+        *///?} else {
         super.render(matrices, mouseX, mouseY, delta);
+        //?}
     }
 
     @Override

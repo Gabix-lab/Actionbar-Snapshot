@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
 
+    //? if <1.20 {
     private static final MatrixStack HUD_MATRIX = new MatrixStack();
 
     @Inject(method = "render", at = @At(value = "INVOKE",
@@ -25,4 +26,5 @@ public class GameRendererMixin {
             while (!HUD_MATRIX.isEmpty()) HUD_MATRIX.pop();
         }
     }
+    //?}
 }

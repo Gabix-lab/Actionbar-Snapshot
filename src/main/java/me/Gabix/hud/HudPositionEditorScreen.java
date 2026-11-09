@@ -2,6 +2,9 @@ package me.Gabix.hud;
 
 import me.Gabix.core.StorageConfig;
 import me.Gabix.core.StorageConfigSaver;
+//? if >=1.20 {
+/*import net.minecraft.client.gui.DrawContext;
+*///?}
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -273,11 +276,16 @@ public class HudPositionEditorScreen extends Screen {
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
+    //? if >=1.20 {
+    /*@Override
+    public void render(DrawContext matrices, int mouseX, int mouseY, float delta) {
+    *///?} else {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    //?}
         this.renderBackground(matrices);
 
-        drawCenteredTextWithShadow(matrices, this.textRenderer, "Húzás = Mozgatás | Görgő = Méretezés | Mágneses igazítás bekapcsolva", this.width / 2, 8, 0xFFFF55);
+        GuiCompat.drawCenteredText(this.textRenderer, matrices, "Húzás = Mozgatás | Görgő = Méretezés | Mágneses igazítás bekapcsolva", this.width / 2, 8, 0xFFFF55);
 
         int manaW = (int) (80 * config.manaScale);
         int manaH = (int) (16 * config.manaScale);
@@ -318,11 +326,11 @@ public class HudPositionEditorScreen extends Screen {
             boolean hovered = isHovered(sx, sy, slotSize, slotSize, mouseX, mouseY);
 
             int bgColor = hovered ? 0xAA00FF00 : (enabled ? 0x8822AA22 : 0x88AA2222);
-            fill(matrices, sx, sy, sx + slotSize, sy + slotSize, bgColor);
+            GuiCompat.fill(matrices, sx, sy, sx + slotSize, sy + slotSize, bgColor);
             drawCustomBorder(matrices, sx, sy, slotSize, slotSize, hovered ? 0xFF00FF00 : 0xFFFFFFFF);
 
             String label = String.valueOf(i + 1);
-            this.textRenderer.drawWithShadow(matrices, label, sx + slotSize / 2 - 3, sy + slotSize / 2 - 4, 0xFFFFFF);
+            GuiCompat.drawText(this.textRenderer, matrices, label, sx + slotSize / 2 - 3, sy + slotSize / 2 - 4, 0xFFFFFF);
         }
 
         super.render(matrices, mouseX, mouseY, delta);
@@ -405,22 +413,30 @@ public class HudPositionEditorScreen extends Screen {
         };
     }
 
+    //? if >=1.20 {
+    /*private void renderBox(DrawContext matrices, int x, int y, int w, int h, String text, boolean isEnabledInConfig, int mouseX, int mouseY) {
+    *///?} else {
     private void renderBox(MatrixStack matrices, int x, int y, int w, int h, String text, boolean isEnabledInConfig, int mouseX, int mouseY) {
+    //?}
         boolean hovered = isHovered(x, y, w, h, mouseX, mouseY);
         int bgColor = hovered ? 0xAA00FF00 : (isEnabledInConfig ? 0x77000000 : 0x77AA0000);
-        fill(matrices, x, y, x + w, y + h, bgColor);
+        GuiCompat.fill(matrices, x, y, x + w, y + h, bgColor);
         drawCustomBorder(matrices, x, y, w, h, hovered ? 0xFF00FF00 : (isEnabledInConfig ? 0xFFFFFFFF : 0xFFFF5555));
         String fullText = text + (isEnabledInConfig ? "" : " §c(KI)");
         int textX = x + 4;
         int textY = y + h / 2 - 4;
-        this.textRenderer.drawWithShadow(matrices, fullText, textX, textY, 0xFFFFFF);
+        GuiCompat.drawText(this.textRenderer, matrices, fullText, textX, textY, 0xFFFFFF);
     }
 
+    //? if >=1.20 {
+    /*private void drawCustomBorder(DrawContext matrices, int x, int y, int w, int h, int color) {
+    *///?} else {
     private void drawCustomBorder(MatrixStack matrices, int x, int y, int w, int h, int color) {
-        fill(matrices, x, y, x + w, y + 1, color);
-        fill(matrices, x, y + h - 1, x + w, y + h, color);
-        fill(matrices, x, y, x + 1, y + h, color);
-        fill(matrices, x + w - 1, y, x + w, y + h, color);
+    //?}
+        GuiCompat.fill(matrices, x, y, x + w, y + 1, color);
+        GuiCompat.fill(matrices, x, y + h - 1, x + w, y + h, color);
+        GuiCompat.fill(matrices, x, y, x + 1, y + h, color);
+        GuiCompat.fill(matrices, x + w - 1, y, x + w, y + h, color);
     }
 
     private boolean isHovered(int x, int y, int w, int h, double mouseX, double mouseY) {

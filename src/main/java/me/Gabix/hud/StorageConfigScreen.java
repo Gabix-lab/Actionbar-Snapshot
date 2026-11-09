@@ -6,6 +6,9 @@ import me.Gabix.core.StorageConfigSaver;
 import me.Gabix.developer.DevAccess;
 import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
 import net.minecraft.client.MinecraftClient;
+//? if >=1.20 {
+/*import net.minecraft.client.gui.DrawContext;
+*///?}
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
@@ -223,10 +226,15 @@ public class StorageConfigScreen extends Screen {
                 .dimensions(0, 0, w, 18).build();
     }
 
+    //? if >=1.20 {
+    /*@Override
+    public void render(DrawContext m, int mx, int my, float d) {
+    *///?} else {
     @Override
     public void render(MatrixStack m, int mx, int my, float d) {
+    //?}
         super.render(m, mx, my, d);
-        drawCenteredTextWithShadow(m, textRenderer, title, width / 2, 8, 0xFFFFFF);
+        GuiCompat.drawCenteredText(textRenderer, m, title, width / 2, 8, 0xFFFFFF);
 
         List<Category> visible = visibleCategories();
         int total = TAB_WIDTH * visible.size();
@@ -240,16 +248,16 @@ public class StorageConfigScreen extends Screen {
             int tx = startX + i * TAB_WIDTH;
 
             int bgColor = active ? 0x66000000 : (hovered ? 0x44FFFFFF : 0x22000000);
-            fill(m, tx, TAB_Y, tx + TAB_WIDTH - 2, TAB_Y + TAB_HEIGHT, bgColor);
-            fill(m, tx, TAB_Y, tx + TAB_WIDTH - 2, TAB_Y + 1, 0x44FFFFFF);
+            GuiCompat.fill(m, tx, TAB_Y, tx + TAB_WIDTH - 2, TAB_Y + TAB_HEIGHT, bgColor);
+            GuiCompat.fill(m, tx, TAB_Y, tx + TAB_WIDTH - 2, TAB_Y + 1, 0x44FFFFFF);
 
             String text = (active ? "§l" : "") + cat.name;
             int color = active ? cat.accent : (hovered ? 0xFFFFFF : 0xAAAAAA);
             int tw = textRenderer.getWidth(text);
-            textRenderer.drawWithShadow(m, Text.literal(text), tx + (TAB_WIDTH - 2 - tw) / 2, TAB_Y + (TAB_HEIGHT - 8) / 2, color);
+            GuiCompat.drawText(textRenderer, m, Text.literal(text), tx + (TAB_WIDTH - 2 - tw) / 2, TAB_Y + (TAB_HEIGHT - 8) / 2, color);
 
             if (active) {
-                fill(m, tx, TAB_Y + TAB_HEIGHT, tx + TAB_WIDTH - 2, TAB_Y + TAB_HEIGHT + 2, cat.accent | 0xFF000000);
+                GuiCompat.fill(m, tx, TAB_Y + TAB_HEIGHT, tx + TAB_WIDTH - 2, TAB_Y + TAB_HEIGHT + 2, cat.accent | 0xFF000000);
             }
         }
     }
@@ -383,26 +391,43 @@ public class StorageConfigScreen extends Screen {
                 children.add(b); selectables.add(b); return b;
             }
 
+            //? if >=1.20 {
+            /*protected void fillBg(DrawContext m, int x, int y, int w, int h, int color) {
+            *///?} else {
             protected void fillBg(MatrixStack m, int x, int y, int w, int h, int color) {
-                fill(m, x, y, x + w, y + h - 2, color);
-                fill(m, x, y, x + w, y + 1, (color & 0x00FFFFFF) | 0x66000000);
-                fill(m, x, y + h - 3, x + w, y + h - 2, 0x55000000);
+            //?}
+                GuiCompat.fill(m, x, y, x + w, y + h - 2, color);
+                GuiCompat.fill(m, x, y, x + w, y + 1, (color & 0x00FFFFFF) | 0x66000000);
+                GuiCompat.fill(m, x, y + h - 3, x + w, y + h - 2, 0x55000000);
             }
 
+            //? if >=1.20 {
+            /*protected void label(DrawContext m, String t, int x, int y, int c) {
+            *///?} else {
             protected void label(MatrixStack m, String t, int x, int y, int c) {
-                StorageConfigScreen.this.textRenderer.drawWithShadow(m, Text.literal(t), x, y, c);
+            //?}
+                GuiCompat.drawText(StorageConfigScreen.this.textRenderer, m, Text.literal(t), x, y, c);
             }
+            //? if >=1.20 {
+            /*protected void label(DrawContext m, String t, int x, int y) { label(m, t, x, y, 0xFFFFFF); }
+            *///?} else {
             protected void label(MatrixStack m, String t, int x, int y) { label(m, t, x, y, 0xFFFFFF); }
+            //?}
         }
 
         class SectionHeader extends Entry {
             final String title; final int color;
             SectionHeader(String title, int color) { this.title = title; this.color = color; }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-                fill(m, x, y + 4, x + w, y + h - 6, 0x33000000);
-                fill(m, x, y + 4, x + 4, y + h - 6, color | 0xFF000000);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(m,
+            //?}
+                GuiCompat.fill(m, x, y + 4, x + w, y + h - 6, 0x33000000);
+                GuiCompat.fill(m, x, y + 4, x + 4, y + h - 6, color | 0xFF000000);
+                GuiCompat.drawText(StorageConfigScreen.this.textRenderer, m,
                         Text.literal("§l" + title), x + 12, y + 8, 0xFFFFFF);
             }
             @Override public List<? extends Element> children() { return List.of(); }
@@ -412,9 +437,14 @@ public class StorageConfigScreen extends Screen {
         class EmptyEntry extends Entry {
             final String msg;
             EmptyEntry(String msg) { this.msg = msg; }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-                drawCenteredTextWithShadow(m, StorageConfigScreen.this.textRenderer,
+            //?}
+                GuiCompat.drawCenteredText(StorageConfigScreen.this.textRenderer, m,
                         Text.literal("§7" + msg), x + w / 2, y + h / 2 - 4, 0xAAAAAA);
             }
             @Override public List<? extends Element> children() { return List.of(); }
@@ -424,10 +454,15 @@ public class StorageConfigScreen extends Screen {
         class HintEntry extends Entry {
             final String msg;
             HintEntry(String msg) { this.msg = msg; }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-                fill(m, x, y, x + w, y + h - 2, 0x33000000);
-                StorageConfigScreen.this.textRenderer.drawWithShadow(m,
+            //?}
+                GuiCompat.fill(m, x, y, x + w, y + h - 2, 0x33000000);
+                GuiCompat.drawText(StorageConfigScreen.this.textRenderer, m,
                         Text.literal("§7§o" + msg), x + 10, y + 6, 0xAAAAAA);
             }
             @Override public List<? extends Element> children() { return List.of(); }
@@ -445,13 +480,18 @@ public class StorageConfigScreen extends Screen {
                         },
                         "§aBE", "§cKI"));
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, DevAccess.isToolsEnabled() ? 0x5540FF40 : 0x55FF4040);
                 label(m, "§e§lDev Eszközök használata", x + 10, y + 5);
                 toggleBtn.setX(x + w - 70);
                 toggleBtn.setY(y + 1);
-                toggleBtn.render(m, mx, my, d);
+                GuiCompat.renderWidget(toggleBtn, m, mx, my, d);
             }
         }
 
@@ -463,10 +503,16 @@ public class StorageConfigScreen extends Screen {
                         v -> { c.autoBossDetection = v; StorageConfigSaver.requestSave(c); },
                         "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4400AAAA);
                 label(m, "§bAuto Boss Felismerés", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -482,11 +528,16 @@ public class StorageConfigScreen extends Screen {
                     StorageConfigSaver.requestSave(c);
                 }).dimensions(0, 0, 110, 18).build());
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4400AAAA);
                 label(m, "§bBoss Értesítő", x + 10, y + 5);
-                cycle.setX(x + w - 116); cycle.setY(y + 1); cycle.render(m, mx, my, d);
+                cycle.setX(x + w - 116); cycle.setY(y + 1); GuiCompat.renderWidget(cycle, m, mx, my, d);
             }
         }
 
@@ -498,13 +549,18 @@ public class StorageConfigScreen extends Screen {
                 dmg  = track(toggleButton(50,
                         () -> c.showDamage, v -> { c.showDamage = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x445555AA);
                 label(m, "§bMana", x + 10, y + 5);
-                mana.setX(x + 60); mana.setY(y + 1); mana.render(m, mx, my, d);
+                mana.setX(x + 60); mana.setY(y + 1); GuiCompat.renderWidget(mana, m, mx, my, d);
                 label(m, "§cSebzés", x + 190, y + 5);
-                dmg.setX(x + 240); dmg.setY(y + 1); dmg.render(m, mx, my, d);
+                dmg.setX(x + 240); dmg.setY(y + 1); GuiCompat.renderWidget(dmg, m, mx, my, d);
             }
         }
 
@@ -516,11 +572,16 @@ public class StorageConfigScreen extends Screen {
                         v -> { c.cooldownReadyText = v; StorageConfigSaver.requestSave(c); },
                         "§eKész felirat", "§a✔ Pipa"));
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AAAA55);
                 label(m, "§eCooldown kész jelzés", x + 10, y + 5);
-                btn.setX(x + w - 120); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 120); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -532,13 +593,18 @@ public class StorageConfigScreen extends Screen {
                 cps = track(toggleButton(80,
                         () -> c.showCps, v -> { c.showCps = v; StorageConfigSaver.requestSave(c); }, "§aCPS BE", "§cCPS KI"));
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 var cfg = StorageConfigScreen.this.config;
                 fillBg(m, x, y, w, h, 0x44AA88AA);
                 label(m, "§dFPS / CPS", x + 10, y + 5);
-                fps.setX(x + 90); fps.setY(y + 1); fps.render(m, mx, my, d);
-                cps.setX(x + 175); cps.setY(y + 1); cps.render(m, mx, my, d);
+                fps.setX(x + 90); fps.setY(y + 1); GuiCompat.renderWidget(fps, m, mx, my, d);
+                cps.setX(x + 175); cps.setY(y + 1); GuiCompat.renderWidget(cps, m, mx, my, d);
                 label(m, "§7(" + cfg.fpsX + "," + cfg.fpsY + " | " + cfg.cpsX + "," + cfg.cpsY + ")",
                         x + 260, y + 5, 0xAAAAAA);
             }
@@ -552,13 +618,18 @@ public class StorageConfigScreen extends Screen {
                 totems = track(toggleButton(80,
                         () -> c.showTotems, v -> { c.showTotems = v; StorageConfigSaver.requestSave(c); }, "§aTOTEM BE", "§cTOTEM KI"));
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 var cfg = StorageConfigScreen.this.config;
                 fillBg(m, x, y, w, h, 0x44AAAA88);
                 label(m, "§eNyíl/mp / Totem", x + 10, y + 5);
-                arrows.setX(x + 90); arrows.setY(y + 1); arrows.render(m, mx, my, d);
-                totems.setX(x + 175); totems.setY(y + 1); totems.render(m, mx, my, d);
+                arrows.setX(x + 90); arrows.setY(y + 1); GuiCompat.renderWidget(arrows, m, mx, my, d);
+                totems.setX(x + 175); totems.setY(y + 1); GuiCompat.renderWidget(totems, m, mx, my, d);
                 label(m, "§7(" + cfg.arrowX + "," + cfg.arrowY + " | " + cfg.totemX + "," + cfg.totemY + ")",
                         x + 260, y + 5, 0xAAAAAA);
             }
@@ -573,15 +644,21 @@ public class StorageConfigScreen extends Screen {
                         "§aBE", "§cKI"));
             }
 
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h,
+                               int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h,
                                int mx, int my, boolean hov, float d) {
+            //?}
                 var cfg = StorageConfigScreen.this.config;
                 fillBg(m, x, y, w, h, 0x44AA55AA);
                 label(m, "§dLidérc cooldown láthatóság", x + 10, y + 5);
                 toggle.setX(x + w - 60);
                 toggle.setY(y + 1);
-                toggle.render(m, mx, my, d);
+                GuiCompat.renderWidget(toggle, m, mx, my, d);
                 label(m, "§7(" + cfg.lidercTimerX + "," + cfg.lidercTimerY + ")",
                         x + w - 160, y + 5, 0xAAAAAA);
             }
@@ -603,14 +680,19 @@ public class StorageConfigScreen extends Screen {
                     slots.add(b); track(b);
                 }
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4422AAAA);
                 label(m, "§eHUD Slotok (0 = offhand)", x + 10, y + 5);
                 int sx = x + w - 200;
                 for (int j = 0; j < slots.size(); j++) {
                     var b = slots.get(j);
-                    b.setX(sx + j * 20); b.setY(y + 1); b.render(m, mx, my, d);
+                    b.setX(sx + j * 20); b.setY(y + 1); GuiCompat.renderWidget(b, m, mx, my, d);
                 }
             }
         }
@@ -621,10 +703,16 @@ public class StorageConfigScreen extends Screen {
                 btn = track(toggleButton(50,
                         () -> c.noRenderOnInactive, v -> { c.noRenderOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6NoRender inaktív ablaknál", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -634,10 +722,16 @@ public class StorageConfigScreen extends Screen {
                 btn = track(toggleButton(50,
                         () -> c.muteOnInactive, v -> { c.muteOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6Némítás inaktív ablaknál", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -648,10 +742,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.pauseHudOnInactive,
                         v -> { c.pauseHudOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6HUD renderelés szüneteltetése inaktívkor", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -662,10 +762,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.pauseBossMonitorOnInactive,
                         v -> { c.pauseBossMonitorOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6BossMonitor tick szüneteltetése inaktívkor", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -676,10 +782,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.pauseChunkLoadingOnInactive,
                         v -> { c.pauseChunkLoadingOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6Chunk mesh építés szüneteltetése inaktívkor", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -697,16 +809,21 @@ public class StorageConfigScreen extends Screen {
                 selectables.add(slider);
             }
 
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6Render felbontás csökkentés inaktívkor", x + 10, y + 5);
                 toggleBtn.setX(x + w - 200);
                 toggleBtn.setY(y + 1);
-                toggleBtn.render(m, mx, my, d);
+                GuiCompat.renderWidget(toggleBtn, m, mx, my, d);
                 slider.setX(x + w - 140);
                 slider.setY(y + 1);
-                slider.render(m, mx, my, d);
+                GuiCompat.renderWidget(slider, m, mx, my, d);
             }
 
             @Override public boolean mouseClicked(double mx, double my, int b) {
@@ -745,19 +862,24 @@ public class StorageConfigScreen extends Screen {
                 });
                 children.add(field);
             }
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
             @Override
             public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 var cfg = StorageConfigScreen.this.config;
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6Auto FPS Limit idle", x + 10, y + 5);
-                toggle.setX(x + 140); toggle.setY(y + 1); toggle.render(m, mx, my, d);
-                minM.setX(x + 180); minM.setY(y + 1); minM.render(m, mx, my, d);
+                toggle.setX(x + 140); toggle.setY(y + 1); GuiCompat.renderWidget(toggle, m, mx, my, d);
+                minM.setX(x + 180); minM.setY(y + 1); GuiCompat.renderWidget(minM, m, mx, my, d);
                 label(m, cfg.fpsLimitMinutes + "m", x + 200, y + 5, 0xFFFF55);
-                minP.setX(x + 224); minP.setY(y + 1); minP.render(m, mx, my, d);
-                secM.setX(x + 248); secM.setY(y + 1); secM.render(m, mx, my, d);
+                minP.setX(x + 224); minP.setY(y + 1); GuiCompat.renderWidget(minP, m, mx, my, d);
+                secM.setX(x + 248); secM.setY(y + 1); GuiCompat.renderWidget(secM, m, mx, my, d);
                 label(m, cfg.fpsLimitSeconds + "s", x + 268, y + 5, 0xFFFF55);
-                secP.setX(x + 292); secP.setY(y + 1); secP.render(m, mx, my, d);
-                field.setX(x + 316); field.setY(y + 1); field.render(m, mx, my, d);
+                secP.setX(x + 292); secP.setY(y + 1); GuiCompat.renderWidget(secP, m, mx, my, d);
+                field.setX(x + 316); field.setY(y + 1); GuiCompat.renderWidget(field, m, mx, my, d);
             }
             @Override public boolean mouseClicked(double mx, double my, int b) {
                 return field.mouseClicked(mx, my, b) || super.mouseClicked(mx, my, b);
@@ -777,10 +899,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.fpsLimitImmediateOnInactive,
                         v -> { c.fpsLimitImmediateOnInactive = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6FPS Limit azonnal inaktívkor", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -795,10 +923,16 @@ public class StorageConfigScreen extends Screen {
             @Override public boolean mouseReleased(double mx, double my, int b) {
                 boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AAAA00);
                 label(m, "§eMax FPS Limit", x + 10, y + 5);
-                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+                slider.setX(x + 120); slider.setY(y + 1); GuiCompat.renderWidget(slider, m, mx, my, d);
             }
         }
 
@@ -818,10 +952,16 @@ public class StorageConfigScreen extends Screen {
                             StorageConfigSaver.requestSave(c);
                         }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AAAA00);
                 label(m, "§eV-Sync", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -832,10 +972,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.chunkLoadOptimization,
                         v -> { c.chunkLoadOptimization = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4455AA55);
                 label(m, "§aChunk betöltés optimalizálás", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -850,10 +996,16 @@ public class StorageConfigScreen extends Screen {
             @Override public boolean mouseReleased(double mx, double my, int b) {
                 boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4455AA55);
                 label(m, "§eChunk build budget / frame", x + 10, y + 5);
-                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+                slider.setX(x + 120); slider.setY(y + 1); GuiCompat.renderWidget(slider, m, mx, my, d);
             }
         }
 
@@ -864,10 +1016,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.chunkDistancePriority,
                         v -> { c.chunkDistancePriority = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4455AA55);
                 label(m, "§eTávolság prioritás (közeli chunk előbb)", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -878,10 +1036,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.chunkOcclusionCulling,
                         v -> { c.chunkOcclusionCulling = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4455AA55);
                 label(m, "§eOcclusion culling (teljesen takart chunkok)", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -892,10 +1056,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.chunkLodEnabled,
                         v -> { c.chunkLodEnabled = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4455AA55);
                 label(m, "§eLOD: távoli chunk rebuild ritkítás", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -906,10 +1076,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.chunkFadeInEnabled,
                         v -> { c.chunkFadeInEnabled = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4460C0FF);
                 label(m, "§bChunk fade-in", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -924,10 +1100,16 @@ public class StorageConfigScreen extends Screen {
             @Override public boolean mouseReleased(double mx, double my, int b) {
                 boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4460C0FF);
                 label(m, "§bFade időtartam", x + 10, y + 5);
-                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+                slider.setX(x + 120); slider.setY(y + 1); GuiCompat.renderWidget(slider, m, mx, my, d);
             }
         }
 
@@ -938,10 +1120,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.chunkFadeInUseSkip,
                         v -> { c.chunkFadeInUseSkip = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4460C0FF);
                 label(m, "§bKezdeti fade kihagyása", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -956,10 +1144,16 @@ public class StorageConfigScreen extends Screen {
             @Override public boolean mouseReleased(double mx, double my, int b) {
                 boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x4460C0FF);
                 label(m, "§bKihagyás hossza", x + 10, y + 5);
-                slider.setX(x + 120); slider.setY(y + 1); slider.render(m, mx, my, d);
+                slider.setX(x + 120); slider.setY(y + 1); GuiCompat.renderWidget(slider, m, mx, my, d);
             }
         }
 
@@ -970,10 +1164,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.hideBlockBreakingParticles,
                         v -> { c.hideBlockBreakingParticles = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA5500);
                 label(m, "§6Block Break részecskék", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -984,10 +1184,16 @@ public class StorageConfigScreen extends Screen {
                         () -> c.hideAllParticles,
                         v -> { c.hideAllParticles = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x55CC0000);
                 label(m, "§c§lMINDEN PARTICLE KIKAPCSOLÁSA", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -1002,11 +1208,17 @@ public class StorageConfigScreen extends Screen {
                                 new FireOverlayConfigScreen(c, StorageConfigScreen.this));
                 }).dimensions(0, 0, 80, 18).build());
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44CC5500);
                 label(m, "§cTűz Overlay", x + 10, y + 5);
-                toggle.setX(x + 120); toggle.setY(y + 1); toggle.render(m, mx, my, d);
-                cfgBtn.setX(x + 162); cfgBtn.setY(y + 1); cfgBtn.render(m, mx, my, d);
+                toggle.setX(x + 120); toggle.setY(y + 1); GuiCompat.renderWidget(toggle, m, mx, my, d);
+                cfgBtn.setX(x + 162); cfgBtn.setY(y + 1); GuiCompat.renderWidget(cfgBtn, m, mx, my, d);
             }
         }
 
@@ -1022,10 +1234,16 @@ public class StorageConfigScreen extends Screen {
                         }, 
                         "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA88AA);
                 label(m, "§dSzerver HUD effektek (PUA) elrejtése a title-ből és subtitle-ből", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
@@ -1037,10 +1255,16 @@ public class StorageConfigScreen extends Screen {
                         b -> StorageConfigScreen.this.applyMcSettings()
                 ).dimensions(0, 0, 130, 18).build());
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44404040);
                 label(m, "§eMC Beállítások Alkalmazása", x + 10, y + 5);
-                applyBtn.setX(x + w - 140); applyBtn.setY(y + 1); applyBtn.render(m, mx, my, d);
+                applyBtn.setX(x + w - 140); applyBtn.setY(y + 1); GuiCompat.renderWidget(applyBtn, m, mx, my, d);
             }
         }
 
@@ -1051,16 +1275,28 @@ public class StorageConfigScreen extends Screen {
                         () -> c.hideBlockTextures,
                         v -> { c.hideBlockTextures = v; StorageConfigSaver.requestSave(c); }, "§aBE", "§cKI"));
             }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x55FF00FF);
                 label(m, "§d§lBLOKK TEXTÚRÁK ELREJTÉSE", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); btn.render(m, mx, my, d);
+                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
             }
         }
 
         private class DebugInfoEntry extends BaseEntry {
             DebugInfoEntry(StorageConfig c) {}
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x22808080);
                 var cfg = StorageConfigScreen.this.config;
                 String info = "§7Items: §f" + (cfg.normalItems == null ? 0 : cfg.normalItems.size())
@@ -1073,7 +1309,13 @@ public class StorageConfigScreen extends Screen {
         class NormalItemEntry extends BaseEntry {
             final StorageConfig.ItemPreset preset;
             NormalItemEntry(StorageConfig.ItemPreset p) { this.preset = p; }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, hov ? 0x44FFFFFF : 0x22FFFFFF);
                 label(m, "§f" + preset.name + " §7(CMD: " + preset.customModelData + ")", x + 10, y + 6, 0xE0E0E0);
                 String info = "§7B: §e" + (preset.leftCD / 20.0f) + "s §7| J: §d" + (preset.rightCD / 20.0f) + "s";
@@ -1095,9 +1337,15 @@ public class StorageConfigScreen extends Screen {
                 }).dimensions(0, 0, 22, 18).build());
             }
             boolean isExpanded() { return expanded; }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
                 fillBg(m, x, y, w, h, 0x44AA00AA);
-                toggleBtn.setX(x + 4); toggleBtn.setY(y + 1); toggleBtn.render(m, mx, my, d);
+                toggleBtn.setX(x + 4); toggleBtn.setY(y + 1); GuiCompat.renderWidget(toggleBtn, m, mx, my, d);
                 label(m, "§6" + preset.name + " §7(CMD: " + preset.customModelData + ") §d[Fejleszthető]",
                         x + 32, y + 5);
             }
@@ -1106,10 +1354,16 @@ public class StorageConfigScreen extends Screen {
         class LevelSubEntry extends BaseEntry {
             final StorageConfig.ItemLevel level;
             LevelSubEntry(StorageConfig.ItemLevel l) { this.level = l; }
-            @Override public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-                fill(m, x + 15, y, x + w, y + h - 2, hov ? 0x44000000 : 0x22000000);
-                fill(m, x + 8, y, x + 9, y + h, 0x44FFFFFF);
-                fill(m, x + 8, y + (h / 2), x + 14, y + (h / 2) + 1, 0x44FFFFFF);
+            //? if >=1.20 {
+            /*@Override
+            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            *///?} else {
+            @Override
+            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
+            //?}
+                GuiCompat.fill(m, x + 15, y, x + w, y + h - 2, hov ? 0x44000000 : 0x22000000);
+                GuiCompat.fill(m, x + 8, y, x + 9, y + h, 0x44FFFFFF);
+                GuiCompat.fill(m, x + 8, y + (h / 2), x + 14, y + (h / 2) + 1, 0x44FFFFFF);
                 label(m, "§b• " + level.levelNameIndicator, x + 20, y + 6, 0xE0E0E0);
                 String stats = "§7B: §e" + (level.leftCD / 20.0f) + "s (" + level.leftMana + "m)"
                         + " §7| J: §d" + (level.rightCD / 20.0f) + "s (" + level.rightMana + "m)";

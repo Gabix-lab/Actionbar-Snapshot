@@ -9,6 +9,9 @@ import me.Gabix.core.StorageConfig;
 import me.Gabix.core.WindowFocusState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+//? if >=1.20 {
+/*import net.minecraft.client.gui.DrawContext;
+*///?}
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
@@ -53,6 +56,43 @@ public final class CustomHudRenderer {
 
     private CustomHudRenderer() {
     }
+
+    //? if >=1.20 {
+    /*private static DrawContext activeContext;
+
+    public static void render(DrawContext context, float tickDelta) {
+        activeContext = context;
+        try {
+            render(context.getMatrices(), tickDelta);
+        } finally {
+            activeContext = null;
+        }
+    }
+
+    private static void drawText(TextRenderer textRenderer, MatrixStack matrices, String text, int x, int y, int color) {
+        activeContext.drawTextWithShadow(textRenderer, text, x, y, color);
+    }
+
+    private static void drawItem(MatrixStack matrices, ItemStack stack, int x, int y) {
+        activeContext.drawItem(stack, x, y);
+    }
+
+    private static void drawItemOverlay(MatrixStack matrices, TextRenderer textRenderer, ItemStack stack, int x, int y) {
+        activeContext.drawItemInSlot(textRenderer, stack, x, y);
+    }
+    *///?} else {
+    private static void drawText(TextRenderer textRenderer, MatrixStack matrices, String text, int x, int y, int color) {
+        textRenderer.drawWithShadow(matrices, text, x, y, color);
+    }
+
+    private static void drawItem(MatrixStack matrices, ItemStack stack, int x, int y) {
+        MinecraftClient.getInstance().getItemRenderer().renderInGuiWithOverrides(matrices, stack, x, y);
+    }
+
+    private static void drawItemOverlay(MatrixStack matrices, TextRenderer textRenderer, ItemStack stack, int x, int y) {
+        MinecraftClient.getInstance().getItemRenderer().renderGuiItemOverlay(matrices, textRenderer, stack, x, y);
+    }
+    //?}
 
     public static void render(MatrixStack matrices, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -158,20 +198,20 @@ public final class CustomHudRenderer {
             String right = getStatusTextCached(slot, true, settings.cooldownKey(),
                     settings.rightCD(), globalTick, readyText);
 
-            textRenderer.drawWithShadow(matrices, getStatusLine(slot, left, right),
+            drawText(textRenderer, matrices, getStatusLine(slot, left, right),
                     textX, textY, 0xFFFFFF);
 
             if (settings.cooldownKey().startsWith(CLONE_COOLDOWN_PREFIX)) {
                 String cloneText = getCloneText(globalTick);
                 if (cloneText != null) {
-                    textRenderer.drawWithShadow(matrices, cloneText,
+                    drawText(textRenderer, matrices, cloneText,
                             textX, slotY + (int) (14 * scale), 0xFFFFFF);
                 }
             }
 
             addCooldownBars(RECT_BATCH, slotX, slotY, slotSize, settings, globalTick);
         } else {
-            textRenderer.drawWithShadow(matrices, NO_COOLDOWN_LINE, textX, textY, 0xFFFFFF);
+            drawText(textRenderer, matrices, NO_COOLDOWN_LINE, textX, textY, 0xFFFFFF);
         }
     }
 
@@ -194,7 +234,7 @@ public final class CustomHudRenderer {
             String right = getStatusTextCached(OFFHAND_INDEX, true, settings.cooldownKey(),
                     settings.rightCD(), globalTick, readyText);
 
-            textRenderer.drawWithShadow(matrices, getStatusLine(OFFHAND_INDEX, left, right),
+            drawText(textRenderer, matrices, getStatusLine(OFFHAND_INDEX, left, right),
                     offX + offSize + 4, offY + (int) (5 * offScale), 0xFFFFAA);
 
             addCooldownBars(RECT_BATCH, offX, offY, offSize, settings, globalTick);
@@ -206,8 +246,8 @@ public final class CustomHudRenderer {
         matrices.push();
         matrices.translate(slotX + 1, slotY + 1, 0);
         matrices.scale(scale, scale, 1.0f);
-        client.getItemRenderer().renderInGuiWithOverrides(matrices, stack, 0, 0);
-        client.getItemRenderer().renderGuiItemOverlay(matrices, client.textRenderer, stack, 0, 0);
+        drawItem(matrices, stack, 0, 0);
+        drawItemOverlay(matrices, client.textRenderer, stack, 0, 0);
         matrices.pop();
     }
 
@@ -310,7 +350,7 @@ public final class CustomHudRenderer {
                     statTextBoxY[i] + statTextBoxTextY[i] * scale,
                     0);
             matrices.scale(scale, scale, 1.0f);
-            textRenderer.drawWithShadow(matrices, statTextBoxText[i], 0, 0, 0xFFFFFF);
+            drawText(textRenderer, matrices, statTextBoxText[i], 0, 0, 0xFFFFFF);
             matrices.pop();
         }
         statTextBoxCount = 0;

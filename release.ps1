@@ -63,13 +63,47 @@ if ($ghUser -ne $repoOwner) {
     Write-Host "Van irasi jog, folytatas..." -ForegroundColor Green
 }
 
+$branch = git rev-parse --abbrev-ref HEAD
+if ($LASTEXITCODE -ne 0 -or -not $branch) {
+    Write-Host "HIBA: Nem git repo a jelenlegi mappa!" -ForegroundColor Red
+    exit 1
+}
+if ($branch -ne "main" -and $branch -ne "master") {
+    Write-Host "FIGYELEM: Nem a main/master branch-en vagy: $branch" -ForegroundColor Yellow
+    $ok = Read-Host "Biztosan release? (y/N)"
+    if ($ok -ne "y") { exit 1 }
+}
+
+$dirty = git status --porcelain --untracked-files=normal |
+         Where-Object { $_ -notmatch 'gradle\.properties$' -and $_ -notmatch 'build/' }
+if ($dirty) {
+    Write-Host "HIBA: Nem commitolt valtozasok vannak a working tree-ben!" -ForegroundColor Red
+    Write-Host "A release csak tiszta tree-bol megy, kulonben a JAR nem egyezik a taggel." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Erintett fajlok:" -ForegroundColor Yellow
+    $dirty | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+    Write-Host ""
+    Write-Host "Commitold vagy stash-eld oket, majd futtasd ujra:" -ForegroundColor Yellow
+    Write-Host "  git add -A ; git commit -m '...'" -ForegroundColor Gray
+    Write-Host "  vagy: git stash" -ForegroundColor Gray
+    exit 1
+}
+
+$existingTag = git tag -l "v$Version"
+if ($existingTag) {
+    Write-Host "HIBA: A v$Version tag mar letezik!" -ForegroundColor Red
+    Write-Host "Torles: git tag -d v$Version ; git push origin :refs/tags/v$Version" -ForegroundColor Yellow
+    Write-Host "  vagy hasznalj uj verziot." -ForegroundColor Yellow
+    exit 1
+}
+
 Write-Host "Release v$Version..." -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "Verzio frissitese: $GradleProps..." -ForegroundColor Yellow
 $content = Get-Content $GradleProps -Raw
 $content = $content -replace '(?m)^(\s*mod_version\s*=\s*).*$', "`${1}$Version"
-Set-Content $GradleProps -Value $content -NoNewline
+Set-Content $GradleProps -Value ($content.TrimEnd() + "`n") -NoNewline
 
 Write-Host "Build..." -ForegroundColor Yellow
 .\gradlew clean build --no-daemon
@@ -94,14 +128,6 @@ Write-Host "Jar: $($jar.Name) ($([math]::Round($jar.Length / 1KB)) KB)" -Foregro
 
 Write-Host "Git commit + tag + push..." -ForegroundColor Yellow
 
-$existingTag = git tag -l "v$Version"
-if ($existingTag) {
-    Write-Host "HIBA: A v$Version tag mar letezik!" -ForegroundColor Red
-    Write-Host "Torles: git tag -d v$Version ; git push origin :refs/tags/v$Version" -ForegroundColor Yellow
-    Write-Host "  vagy hasznalj uj verziot." -ForegroundColor Yellow
-    exit 1
-}
-
 git add $GradleProps
 git diff --cached --quiet
 if ($LASTEXITCODE -ne 0) {
@@ -114,12 +140,24 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Nincs valtozas, commit kihagyva." -ForegroundColor Yellow
 }
 
+git pull --rebase
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "HIBA: git pull --rebase sikertelen (konfliktus?)" -ForegroundColor Red
+    exit 1
+}
+
 git tag "v$Version"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "HIBA: git tag sikertelen!" -ForegroundColor Red
+    exit 1
+}
+
 git push
 if ($LASTEXITCODE -ne 0) {
     Write-Host "HIBA: git push sikertelen!" -ForegroundColor Red
     exit 1
 }
+
 git push origin "v$Version"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "HIBA: tag push sikertelen!" -ForegroundColor Red
@@ -130,7 +168,9 @@ Write-Host "GitHub Release..." -ForegroundColor Yellow
 gh release create "v$Version" "$($jar.FullName)" `
     --repo $Repo `
     --title "v$Version" `
-    --notes "Release v$Version"
+    --notes "Release v$Version" `
+    --latest `
+    --target $branch
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "HIBA: Release sikertelen!" -ForegroundColor Red

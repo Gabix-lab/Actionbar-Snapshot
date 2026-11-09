@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinPostChain {
 
     @Shadow @Final private String name;
-    @Shadow private Matrix4f orthoMatrix;
+    @Shadow private Matrix4f projectionMatrix;
 
     @Unique
     private double renderScale$invScale() {
@@ -38,8 +38,8 @@ public abstract class MixinPostChain {
     @Inject(method = "setupDimensions", at = @At("TAIL"), require = 0)
     private void renderScale$scaleOrtho(int width, int height, CallbackInfo ci) {
         double inv = renderScale$invScale();
-        if (inv != 1.0 && this.orthoMatrix != null) {
-            this.orthoMatrix.scale((float) inv, (float) inv, 1.0f);
+        if (inv != 1.0 && this.projectionMatrix != null) {
+            this.projectionMatrix.scale((float) inv, (float) inv, 1.0f);
         }
     }
 }
