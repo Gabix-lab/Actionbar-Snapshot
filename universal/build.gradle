@@ -1,0 +1,264 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '9.6.1'
+}
+
+def modVersion = rootProject.property('mod_version')
+def archivesName = rootProject.property('archives_base_name')
+
+group = rootProject.property('maven_group')
+version = modVersion
+
+base {
+    archivesName = archivesName
+}
+
+repositories {
+    mavenCentral()
+    maven { url = uri('https://maven.fabricmc.net/') }
+    maven { url = uri('https://maven.ladysnake.org/releases') }
+}
+
+configurations {
+    variant1194 {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+    variant120 {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+    variant1201 {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+    satin1194 {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+    satin120 {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+    satin1201 {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+}
+
+dependencies {
+    compileOnly "net.fabricmc:fabric-loader:${rootProject.property('loader_version')}"
+    compileOnly 'net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5'
+
+    variant1194 project(path: ':1.19.4', configuration: 'universalJar')
+    variant120 project(path: ':1.20', configuration: 'universalJar')
+    variant1201 project(path: ':1.20.1', configuration: 'universalJar')
+
+    satin1194 'io.github.ladysnake:satin:1.12.1'
+    satin120 'io.github.ladysnake:satin:1.13.0'
+    satin1201 'org.ladysnake:satin:1.14.0'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+def variants = [
+        [mc: '1.19.4', prefix: 'mvp_1194', variant: configurations.variant1194, satin: configurations.satin1194],
+        [mc: '1.20', prefix: 'mvp_120', variant: configurations.variant120, satin: configurations.satin120],
+        [mc: '1.20.1', prefix: 'mvp_1201', variant: configurations.variant1201, satin: configurations.satin1201]
+]
+
+def partTasks = [:]
+variants.each { variant ->
+    def part = tasks.register("part${variant.prefix}", ShadowJar) {
+        group = 'build'
+        description = "Relocates the ${variant.mc} variant into ${variant.prefix}."
+        archiveBaseName = "${archivesName}-part"
+        archiveVersion = ''
+        archiveClassifier = variant.prefix
+        destinationDirectory = layout.buildDirectory.dir('parts')
+        configurations = []
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+        inputs.files(variant.variant, variant.satin)
+
+        from({ variant.variant.collect { zipTree(it) } }) {
+            include '**/*.class'
+            exclude 'META-INF/**'
+            exclude 'module-info.class'
+        }
+        from({ variant.satin.collect { zipTree(it) } }) {
+            include 'ladysnake/satin/**/*.class'
+            exclude 'module-info.class'
+        }
+
+        relocate 'me.Gabix', "${variant.prefix}.me.Gabix"
+        relocate 'ladysnake.satin', "${variant.prefix}.ladysnake.satin"
+    }
+    partTasks[variant.prefix] = part
+}
+
+def generatedResources = layout.buildDirectory.dir('generated/universal-resources')
+
+def generateResources = tasks.register('generateUniversalResources') {
+    group = 'build'
+    description = 'Writes the universal fabric.mod.json, mixin configs and merged refmap.'
+
+    inputs.files(variants.collectMany { [it.variant, it.satin] })
+    outputs.dir(generatedResources)
+
+    doLast {
+        File out = generatedResources.get().asFile
+        out.deleteDir()
+        out.mkdirs()
+
+        def refmap = [mappings: [:]]
+        List<String> mixinConfigs = []
+
+        variants.each { variant ->
+            String prefix = variant.prefix
+
+            new java.util.zip.ZipFile(variant.variant.singleFile).withCloseable { zip ->
+                zip.entries().each { entry ->
+                    if (!entry.directory && entry.name.endsWith('.mixins.json')) {
+                        def json = new JsonSlurper().parse(zip.getInputStream(entry))
+                        json.package = "${prefix}.${json.package}"
+                        json.refmap = 'mvp-refmap.json'
+                        json.plugin = 'me.Gabix.universal.UniversalMixinPlugin'
+                        String newName = "${prefix}.${entry.name}"
+                        new File(out, newName).setText(JsonOutput.prettyPrint(JsonOutput.toJson(json)), 'UTF-8')
+                        mixinConfigs.add(newName)
+                    }
+                }
+
+                def refmapEntry = zip.getEntry('MVP-refmap.json')
+                if (refmapEntry == null) {
+                    throw new GradleException("MVP refmap is missing from ${variant.variant.singleFile}")
+                }
+                def variantRefmap = new JsonSlurper().parse(zip.getInputStream(refmapEntry))
+                variantRefmap.mappings.each { mixinClass, mappings ->
+                    refmap.mappings["${prefix}/${mixinClass}"] = mappings
+                }
+            }
+
+            new java.util.zip.ZipFile(variant.satin.singleFile).withCloseable { zip ->
+                def configEntry = zip.getEntry('mixins.satin.client.json')
+                if (configEntry == null) {
+                    throw new GradleException("Satin mixin config is missing from ${variant.satin.singleFile}")
+                }
+                def satinConfig = new JsonSlurper().parse(zip.getInputStream(configEntry))
+                satinConfig.package = "${prefix}.${satinConfig.package}"
+                satinConfig.refmap = 'mvp-refmap.json'
+                satinConfig.plugin = 'me.Gabix.universal.UniversalMixinPlugin'
+                String satinConfigName = "${prefix}.satin.mixins.json"
+                new File(out, satinConfigName).setText(JsonOutput.prettyPrint(JsonOutput.toJson(satinConfig)), 'UTF-8')
+                mixinConfigs.add(satinConfigName)
+
+                def satinRefmapEntry = zip.getEntry('satin-refmap.json')
+                if (satinRefmapEntry == null) {
+                    throw new GradleException("Satin refmap is missing from ${variant.satin.singleFile}")
+                }
+                def satinRefmap = new JsonSlurper().parse(zip.getInputStream(satinRefmapEntry))
+                satinRefmap.mappings.each { mixinClass, mappings ->
+                    refmap.mappings["${prefix}/${mixinClass}"] = mappings
+                }
+
+                def licenseEntry = zip.getEntry('LICENSE_satin')
+                if (licenseEntry != null) {
+                    new File(out, 'LICENSE_satin').setText(
+                            zip.getInputStream(licenseEntry).getText('UTF-8'), 'UTF-8')
+                }
+            }
+        }
+
+        new File(out, 'mvp-refmap.json').setText(
+                JsonOutput.prettyPrint(JsonOutput.toJson(refmap)), 'UTF-8')
+
+        def modJson = [
+                schemaVersion: 1,
+                id           : 'mvp',
+                version      : modVersion,
+                name         : 'MVP Mod',
+                description  : 'Actionbar olvasó és HUD mod cooldown, mana és sebzés kijelzéssel',
+                authors      : ['Gabix'],
+                contact      : [:],
+                license      : 'All-Rights-Reserved',
+                icon         : 'assets/mvp/icon.png',
+                environment  : 'client',
+                entrypoints  : [
+                        main  : ['me.Gabix.universal.UniversalMain'],
+                        client: ['me.Gabix.universal.UniversalClient']
+                ],
+                mixins       : mixinConfigs,
+                accessWidener: 'satin.accesswidener',
+                depends      : [
+                        fabricloader: '>=0.14.0',
+                        'fabric-api': '*',
+                        minecraft   : '>=1.19.4 <1.20.2'
+                ],
+                conflicts    : [
+                        optifabric: '*'
+                ]
+        ]
+        new File(out, 'fabric.mod.json').setText(
+                JsonOutput.prettyPrint(JsonOutput.toJson(modJson)), 'UTF-8')
+    }
+}
+
+def universalJar = tasks.register('universalJar', Jar) {
+    group = 'build'
+    description = 'Builds the single jar containing all Minecraft version variants.'
+    dependsOn tasks.named('classes'), generateResources
+    partTasks.each { prefix, part -> dependsOn part }
+
+    archiveBaseName = archivesName
+    archiveVersion = modVersion
+    archiveClassifier = 'universal'
+    destinationDirectory = rootProject.layout.buildDirectory.dir('libs')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes(
+                'Implementation-Title': 'MVP Mod',
+                'Implementation-Version': modVersion
+        )
+    }
+
+    from(sourceSets.main.output)
+    from(generatedResources)
+    partTasks.each { prefix, part ->
+        from({ zipTree(part.get().archiveFile.get().asFile) }) {
+            exclude 'META-INF/**'
+        }
+    }
+    from(rootProject.file('src/main/resources/assets')) {
+        into 'assets'
+    }
+    from(rootProject.file('LICENSE.txt')) {
+        rename { 'LICENSE_MVP' }
+    }
+}
+
+tasks.named('build') {
+    dependsOn universalJar
+}
+
+tasks.named('shadowJar') {
+    enabled = false
+}

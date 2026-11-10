@@ -20,3 +20,5 @@ stonecutter {
         vcsVersion = "1.19.4"
     }
 }
+
+include("universal")

@@ -106,19 +106,18 @@ $content = $content -replace '(?m)^(\s*mod_version\s*=\s*).*$', "`${1}$Version"
 Set-Content $GradleProps -Value ($content.TrimEnd() + "`n") -NoNewline
 
 Write-Host "Build..." -ForegroundColor Yellow
-.\gradlew clean build --no-daemon
+.\gradlew clean universalBuild --no-daemon
 if ($LASTEXITCODE -ne 0) {
     Write-Host "HIBA: Build sikertelen!" -ForegroundColor Red
     exit 1
 }
 
-$jar = Get-ChildItem "build/libs" -Filter "*.jar" |
-        Where-Object { $_.Name -notmatch '-(sources|dev|raw|javadoc)\.jar$' } |
+$jar = Get-ChildItem "build/libs" -Filter "*-universal.jar" |
         Sort-Object Length -Descending |
         Select-Object -First 1
 
 if (-not $jar) {
-    Write-Host "HIBA: Nem talalhato jar a build/libs mappaban!" -ForegroundColor Red
+    Write-Host "HIBA: Nem talalhato univerzalis jar a build/libs mappaban!" -ForegroundColor Red
     Get-ChildItem "build/libs" -Filter "*.jar" -ErrorAction SilentlyContinue |
         ForEach-Object { Write-Host "  $($_.Name)" }
     exit 1

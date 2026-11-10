@@ -8,3 +8,14 @@ stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chisele
     setGroup "project"
     ofTask "buildAndCollect"
 }
+
+// Builds every version variant and merges them into the single universal jar.
+// The task must be invoked by this exact name, because Stonecutter only enables
+// its chiseled source processing when a registered chiseled task name is present
+// in the command-line task list.
+stonecutter.registerChiseled tasks.register("universalBuild", stonecutter.chiseled) {
+    setGroup "build"
+    description "Builds the single MVP jar for Minecraft 1.19.4, 1.20 and 1.20.1."
+    ofTask "remapJar"
+    finalizedBy ":universal:universalJar"
+}
