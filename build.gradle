@@ -104,9 +104,17 @@ artifacts {
 tasks.register('buildAndCollect', Copy) {
     group = 'build'
     description = 'Builds this version and stages its remapped jar for debugging.'
-    dependsOn tasks.named('build')
+    dependsOn tasks.named('remapJar')
     from tasks.named('remapJar').flatMap { it.archiveFile }
     into rootProject.layout.buildDirectory.dir('variants')
+}
+
+// A plain `build` in a version project cannot generate chiseled sources, so it
+// would assemble an empty jar and fail during remapping. The root `build` task
+// (registered in stonecutter.gradle) drives the universal pipeline instead.
+tasks.named('build') {
+    enabled = false
+    description = 'Disabled; run the root build or universalBuild task instead.'
 }
 
 publishing {

@@ -255,8 +255,12 @@ def universalJar = tasks.register('universalJar', Jar) {
     }
 }
 
+// The root `build` task is the canonical entry point: it drives Stonecutter's
+// chiseled source preparation before these variant remap tasks run. Running a
+// bare `:universal:build` would bypass that preparation, so it is disabled.
 tasks.named('build') {
-    dependsOn universalJar
+    enabled = false
+    description = 'Disabled; run the root build or universalBuild task instead.'
 }
 
 tasks.named('shadowJar') {

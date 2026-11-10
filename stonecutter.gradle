@@ -19,3 +19,13 @@ stonecutter.registerChiseled tasks.register("universalBuild", stonecutter.chisel
     ofTask "remapJar"
     finalizedBy ":universal:universalJar"
 }
+
+// `build` is what IDEs and `gradlew build` invoke. Alias it to the same
+// chiseled pipeline so a normal Build action produces the universal jar
+// instead of trying to assemble three incomplete standalone variants.
+stonecutter.registerChiseled tasks.register("build", stonecutter.chiseled) {
+    setGroup "build"
+    description "Builds the single MVP jar for Minecraft 1.19.4, 1.20 and 1.20.1."
+    ofTask "remapJar"
+    finalizedBy ":universal:universalJar"
+}
