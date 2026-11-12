@@ -166,6 +166,14 @@ def generateResources = tasks.register('generateUniversalResources') {
                 satinConfig.package = "${prefix}.${satinConfig.package}"
                 satinConfig.refmap = 'mvp-refmap.json'
                 satinConfig.plugin = 'me.Gabix.universal.UniversalMixinPlugin'
+                // Standalone Satin can be present along with the shaded copy. Universal's config
+                // runs after Satin's so its mixins apply later, and the equal-priority redirect
+                // check then skips the duplicates here instead of aborting the shader transform.
+                satinConfig.priority = 1500
+                if (satinConfig.injectors == null) {
+                    satinConfig.injectors = [:]
+                }
+                satinConfig.injectors.defaultRequire = 0
                 String satinConfigName = "${prefix}.satin.mixins.json"
                 new File(out, satinConfigName).setText(JsonOutput.prettyPrint(JsonOutput.toJson(satinConfig)), 'UTF-8')
                 mixinConfigs.add(satinConfigName)
