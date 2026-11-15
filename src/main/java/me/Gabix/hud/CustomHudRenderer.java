@@ -49,7 +49,6 @@ public final class CustomHudRenderer {
     private static final String READY_CHECKMARK = "§a✔";
     private static final String READY_TEXT = "§akész";
     private static final String NO_COOLDOWN_LINE = "§7- §f| §7-";
-    private static final String CLONE_COOLDOWN_PREFIX = "minecraft:paper:581";
 
     private static final int TOTEM_REFRESH_TICKS = 2;
     private static final int SETTINGS_REFRESH_TICKS = 20;
@@ -201,12 +200,10 @@ public final class CustomHudRenderer {
             drawText(textRenderer, matrices, getStatusLine(slot, left, right),
                     textX, textY, 0xFFFFFF);
 
-            if (settings.cooldownKey().startsWith(CLONE_COOLDOWN_PREFIX)) {
-                String cloneText = getCloneText(globalTick);
-                if (cloneText != null) {
-                    drawText(textRenderer, matrices, cloneText,
-                            textX, slotY + (int) (14 * scale), 0xFFFFFF);
-                }
+            String cloneText = getCloneText(slot, settings, globalTick);
+            if (cloneText != null) {
+                drawText(textRenderer, matrices, cloneText,
+                        textX, slotY + (int) (14 * scale), 0xFFFFFF);
             }
 
             addCooldownBars(RECT_BATCH, slotX, slotY, slotSize, settings, globalTick);
@@ -236,6 +233,12 @@ public final class CustomHudRenderer {
 
             drawText(textRenderer, matrices, getStatusLine(OFFHAND_INDEX, left, right),
                     offX + offSize + 4, offY + (int) (5 * offScale), 0xFFFFAA);
+
+            String cloneText = getCloneText(OFFHAND_INDEX, settings, globalTick);
+            if (cloneText != null) {
+                drawText(textRenderer, matrices, cloneText,
+                        offX + offSize + 4, offY + (int) (14 * offScale), 0xFFFFFF);
+            }
 
             addCooldownBars(RECT_BATCH, offX, offY, offSize, settings, globalTick);
         }
@@ -508,31 +511,44 @@ public final class CustomHudRenderer {
         return line;
     }
 
-    private static String getCloneText(int currentTick) {
-        int cloneCount = CloneManager.INSTANCE.getActiveClonesCount();
-        if (cloneCount < 2) {
-            cloneTextCache = null;
+    private static String getCloneText(int cacheIndex, ActionbarStorageClient.SlotSettings settings,
+                                       int currentTick) {
+        if (settings == null || settings.cooldownKey() == null || !settings.spawnsClone()) {
             return null;
         }
 
-        int expiry = CloneManager.INSTANCE.getNextExpiryTick();
+        String key = settings.cooldownKey();
+        int cloneCount = CloneManager.INSTANCE.getActiveClonesCount(key);
+        int cloneLimit = Math.max(1, settings.maxCharges());
+        CloneTextCache cache = CLONE_TEXT_CACHE[cacheIndex];
+
+        if (cloneCount < cloneLimit) {
+            cache.reset();
+            return null;
+        }
+
+        int expiry = CloneManager.INSTANCE.getNextExpiryTick(key);
         int tickBucket = currentTick >> 1;
 
-        if (cloneTextCache != null
-                && cloneTextTickBucket == tickBucket
-                && cloneTextCloneCount == cloneCount
-                && cloneTextExpiry == expiry) {
-            return cloneTextCache;
+        if (cache.text != null
+                && key.equals(cache.key)
+                && cache.tickBucket == tickBucket
+                && cache.cloneCount == cloneCount
+                && cache.cloneLimit == cloneLimit
+                && cache.expiry == expiry) {
+            return cache.text;
         }
 
         int remainingTicks = Math.max(0, expiry - currentTick);
         float secondsLeft = remainingTicks / 20.0f;
 
-        cloneTextCache = "§cFOGLALT §7(" + round1(secondsLeft) + "s)";
-        cloneTextTickBucket = tickBucket;
-        cloneTextCloneCount = cloneCount;
-        cloneTextExpiry = expiry;
-        return cloneTextCache;
+        cache.key = key;
+        cache.tickBucket = tickBucket;
+        cache.cloneCount = cloneCount;
+        cache.cloneLimit = cloneLimit;
+        cache.expiry = expiry;
+        cache.text = "§cFOGLALT §7(" + round1(secondsLeft) + "s)";
+        return cache.text;
     }
 
     private static String round1(double value) {
@@ -595,10 +611,9 @@ public final class CustomHudRenderer {
         totemCacheValid = false;
         lastSettingsRefreshTick = Integer.MIN_VALUE;
 
-        cloneTextCache = null;
-        cloneTextTickBucket = Integer.MIN_VALUE;
-        cloneTextCloneCount = -1;
-        cloneTextExpiry = -1;
+        for (CloneTextCache cache : CLONE_TEXT_CACHE) {
+            cache.reset();
+        }
 
         lidercTextCache = null;
         lidercTextTickBucket = Integer.MIN_VALUE;
@@ -815,10 +830,7 @@ public final class CustomHudRenderer {
     private static final String[] STATUS_LINE_LEFT_CACHE = new String[CACHE_SIZE];
     private static final String[] STATUS_LINE_RIGHT_CACHE = new String[CACHE_SIZE];
 
-    private static String cloneTextCache;
-    private static int cloneTextTickBucket = Integer.MIN_VALUE;
-    private static int cloneTextCloneCount = -1;
-    private static int cloneTextExpiry = -1;
+    private static final CloneTextCache[] CLONE_TEXT_CACHE = createCloneTextCaches();
 
     private static String lidercTextCache;
     private static int lidercTextTickBucket = Integer.MIN_VALUE;
@@ -865,6 +877,14 @@ public final class CustomHudRenderer {
         return caches;
     }
 
+    private static CloneTextCache[] createCloneTextCaches() {
+        CloneTextCache[] caches = new CloneTextCache[CACHE_SIZE];
+        for (int i = 0; i < caches.length; i++) {
+            caches[i] = new CloneTextCache();
+        }
+        return caches;
+    }
+
     private static final class StatusCache {
         private String key;
         private int cooldownTicks = -1;
@@ -880,6 +900,24 @@ public final class CustomHudRenderer {
             tickBucket = Integer.MIN_VALUE;
             readyText = READY_CHECKMARK;
             text = DASH;
+        }
+    }
+
+    private static final class CloneTextCache {
+        private String key;
+        private int tickBucket = Integer.MIN_VALUE;
+        private int cloneCount = -1;
+        private int cloneLimit = -1;
+        private int expiry = -1;
+        private String text;
+
+        void reset() {
+            key = null;
+            tickBucket = Integer.MIN_VALUE;
+            cloneCount = -1;
+            cloneLimit = -1;
+            expiry = -1;
+            text = null;
         }
     }
 

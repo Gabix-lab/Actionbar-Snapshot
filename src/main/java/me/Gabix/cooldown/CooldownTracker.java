@@ -27,11 +27,12 @@ public class CooldownTracker {
         leftExpiryTicks.put(key, currentTick + cooldownTicks);
     }
 
-    public void registerRightClick(String key, int currentTick, int cooldownTicks) {
+    public void registerRightClick(String key, int currentTick, int cooldownTicks, int cloneExpiryTicks) {
         rightExpiryTicks.put(key, currentTick + cooldownTicks);
         List<Integer> timers = activeCloneTimers.computeIfAbsent(key,
                 k -> new ArrayList<>(2));
-        timers.add(currentTick + 226);
+        int expiry = cloneExpiryTicks > 0 ? cloneExpiryTicks : 226;
+        timers.add(currentTick + expiry);
     }
 
     public void resetCooldowns(String key) {

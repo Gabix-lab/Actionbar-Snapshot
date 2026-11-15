@@ -125,7 +125,12 @@ public class StorageConfig implements ConfigProvider {
         list.add(new ItemPreset("Skeleton dragon staff", "minecraft:paper", 10637, 10, 600, 2, 12, 2, 0));
         list.add(new ItemPreset("Lunar horseshoe staff", "minecraft:paper", 10641, 10, 160, 2, 15, 2, 0));
         list.add(new ItemPreset("Easter slingshot", "minecraft:paper", 585, 600, 10, 8, 0, 2, 0));
-        list.add(new ItemPreset("Lunar snake staff", "minecraft:paper", 581, 10, 26, 1, 15, 2, 2));
+
+        ItemPreset lunarSnake = new ItemPreset("Lunar snake staff", "minecraft:paper", 581, 10, 26, 1, 15, 2, 2);
+        lunarSnake.spawnsClone = true;
+        lunarSnake.cloneExpiryTicks = 227;
+        list.add(lunarSnake);
+
         list.add(new ItemPreset("Bölcsek Bájitala", "minecraft:paper", 7004, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("Istenek Bájitala", "minecraft:paper", 7005, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("Botanikusok Bájitala", "minecraft:paper", 7007, 0, 3600, 0, 0, 1, 0));
@@ -133,6 +138,12 @@ public class StorageConfig implements ConfigProvider {
         list.add(new ItemPreset("Bestiák Bájitala", "minecraft:paper", 7009, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("Gyógyítók Bájitala", "minecraft:paper", 7010, 0, 3600, 0, 0, 1, 0));
         list.add(new ItemPreset("☠ Csontváz Gyógyító Pálca", "minecraft:blaze_rod", 11221, 14, 200, 4, 30, 2,  0));
+
+        ItemPreset endStaff = new ItemPreset("End Staff", "minecraft:blaze_rod", 10823, 12, 40, 1, 14, 2, 2);
+        endStaff.spawnsClone = true;
+        endStaff.cloneExpiryTicks = 200;
+        list.add(endStaff);
+
         list.add(createSneakBowPreset("Halloween Íj - Csontváz", 11228));
         list.add(createSneakBowPreset("Halloween Íj - Denevér", 11229));
         list.add(createSneakBowPreset("Halloween Íj - Tök", 11227));
@@ -300,6 +311,8 @@ public class StorageConfig implements ConfigProvider {
         public int autoMode;
         public int maxCharges;
         public boolean sneakShotOnly;
+        public boolean spawnsClone = false;
+        public int cloneExpiryTicks = 227;
         public ItemPreset() {}
         public ItemPreset(String name, String itemId, int customModelData, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges) {
             this.name = name;

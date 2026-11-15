@@ -121,6 +121,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
             ModPlayerTracker.clear();
             HudMod.getArrowCounter().reset();
             LidercSetTracker.INSTANCE.reset();
+            CloneManager.INSTANCE.reset();
         });
 
         KeyBinding configKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -172,6 +173,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
                     SlotSettings settings = getSlotSettings(activeSlot);
                     if (settings != null && settings.cooldownKey() != null) {
                         CooldownTracker.INSTANCE.resetCooldowns(settings.cooldownKey());
+                        CloneManager.INSTANCE.resetKey(settings.cooldownKey());
                     }
                 }
                 if (isLeftClicked) handleLeftClick(client, activeSlot);
@@ -234,9 +236,9 @@ public class ActionbarStorageClient implements ClientModInitializer {
         boolean mainhandReady = false;
         if (mainhandSettings != null && mainhandSettings.cooldownKey() != null && mainhandSettings.rightCD() > 0
                 && isRightClickAllowed(mainhandSettings, sneaking, isUsePressedEdge)) {
-            if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
+            if (mainhandSettings.spawnsClone()) {
                 if (CooldownTracker.INSTANCE.isReady(mainhandSettings.cooldownKey(), mainhandSettings, globalTickCounter, HudMod.getManaManager().getCurrentMana(), true)
-                        && CloneManager.INSTANCE.getActiveClonesCount() < 2) {
+                        && CloneManager.INSTANCE.getActiveClonesCount(mainhandSettings.cooldownKey()) < Math.max(1, mainhandSettings.maxCharges())) {
                     mainhandReady = true;
                 }
             } else {
@@ -247,15 +249,15 @@ public class ActionbarStorageClient implements ClientModInitializer {
         }
 
         if (offhandReady && offhandSettings != null && offhandSettings.cooldownKey() != null) {
-            CooldownTracker.INSTANCE.registerRightClick(offhandSettings.cooldownKey(), globalTickCounter, offhandSettings.rightCD());
+            CooldownTracker.INSTANCE.registerRightClick(offhandSettings.cooldownKey(), globalTickCounter, offhandSettings.rightCD(), 226);
         }
 
         if (mainhandReady && mainhandSettings != null && mainhandSettings.cooldownKey() != null) {
-            if (mainhandSettings.cooldownKey().startsWith("minecraft:paper:581")) {
-                CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
-                CloneManager.INSTANCE.spawnClone(globalTickCounter, mainhandSettings.maxCharges());
+            if (mainhandSettings.spawnsClone()) {
+                CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD(), mainhandSettings.cloneExpiryTicks());
+                CloneManager.INSTANCE.spawnClone(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.maxCharges(), mainhandSettings.cloneExpiryTicks());
             } else {
-                CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD());
+                CooldownTracker.INSTANCE.registerRightClick(mainhandSettings.cooldownKey(), globalTickCounter, mainhandSettings.rightCD(), 226);
             }
         }
     }
@@ -318,7 +320,7 @@ public class ActionbarStorageClient implements ClientModInitializer {
         if (config.normalItems != null) {
             for (StorageConfig.ItemPreset preset : config.normalItems) {
                 if (preset.itemId.equals(itemId) && preset.customModelData == customModelData) {
-                    return new SlotSettings(globalKey, currentItemName, preset.leftCD, preset.rightCD, preset.leftMana, preset.rightMana, preset.autoMode, preset.maxCharges, preset.sneakShotOnly);
+                    return new SlotSettings(globalKey, currentItemName, preset.leftCD, preset.rightCD, preset.leftMana, preset.rightMana, preset.autoMode, preset.maxCharges, preset.sneakShotOnly, preset.spawnsClone, preset.cloneExpiryTicks);
                 }
             }
         }
@@ -341,12 +343,12 @@ public class ActionbarStorageClient implements ClientModInitializer {
                             }
                         }
                     }
-                    return new SlotSettings(levelKey, currentItemName, leftCd, rightCd, leftMana, rightMana, preset.autoMode, preset.maxCharges, preset.sneakShotOnly);
+                    return new SlotSettings(levelKey, currentItemName, leftCd, rightCd, leftMana, rightMana, preset.autoMode, preset.maxCharges, preset.sneakShotOnly, preset.spawnsClone, preset.cloneExpiryTicks);
                 }
             }
         }
         return null;
     }
 
-    public record SlotSettings(String cooldownKey, String displayName, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges, boolean sneakShotOnly) {}
+    public record SlotSettings(String cooldownKey, String displayName, int leftCD, int rightCD, int leftMana, int rightMana, int autoMode, int maxCharges, boolean sneakShotOnly, boolean spawnsClone, int cloneExpiryTicks) {}
 }
