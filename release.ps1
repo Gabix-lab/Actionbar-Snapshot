@@ -112,8 +112,8 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$jar = Get-ChildItem "build/libs" -Filter "*-universal.jar" |
-        Sort-Object Length -Descending |
+$jar = Get-ChildItem "build/libs" -Filter "*-$Version-universal.jar" |
+        Sort-Object LastWriteTime -Descending |
         Select-Object -First 1
 
 if (-not $jar) {
