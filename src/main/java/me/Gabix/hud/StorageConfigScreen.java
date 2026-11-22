@@ -5,7 +5,6 @@ import me.Gabix.core.StorageConfig;
 import me.Gabix.core.StorageConfigSaver;
 import me.Gabix.developer.DevAccess;
 import me.Gabix.fireoverlay.screen.FireOverlayConfigScreen;
-import net.minecraft.client.MinecraftClient;
 //? if >=1.20 {
 /*import net.minecraft.client.gui.DrawContext;
 *///?}
@@ -297,9 +296,6 @@ public class StorageConfigScreen extends Screen {
                     addEntry(new SectionHeader("FPS Limit", 0xFFFF6060));
                     addEntry(new FpsLimitEntry(config));
                     addEntry(new FpsLimitImmediateEntry(config));
-                    addEntry(new SectionHeader("Egyéb", 0xFF60C0FF));
-                    addEntry(new MaxFpsEntry(config));
-                    addEntry(new VsyncEntry(config));
                     addEntry(new SectionHeader("Chunk optimalizálás", 0xFF60FF60));
                     addEntry(new ChunkOptimizeEntry(config));
                     addEntry(new ChunkBudgetEntry(config));
@@ -912,59 +908,6 @@ public class StorageConfigScreen extends Screen {
             }
         }
 
-        private class MaxFpsEntry extends BaseEntry {
-            private final FpsSlider slider;
-            MaxFpsEntry(StorageConfig c) {
-                slider = new FpsSlider(0, 0, 220, 18, c);
-                children.add(slider); selectables.add(slider);
-            }
-            @Override public boolean mouseClicked(double mx, double my, int b) { return slider.mouseClicked(mx, my, b); }
-            @Override public boolean mouseDragged(double mx, double my, int b, double dx, double dy) { return slider.mouseDragged(mx, my, b, dx, dy); }
-            @Override public boolean mouseReleased(double mx, double my, int b) {
-                boolean r = slider.mouseReleased(mx, my, b); StorageConfigSaver.requestSave(config); return r;
-            }
-            //? if >=1.20 {
-            /*@Override
-            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-            *///?} else {
-            @Override
-            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-            //?}
-                fillBg(m, x, y, w, h, 0x44AAAA00);
-                label(m, "§eMax FPS Limit", x + 10, y + 5);
-                slider.setX(x + 120); slider.setY(y + 1); GuiCompat.renderWidget(slider, m, mx, my, d);
-            }
-        }
-
-        private class VsyncEntry extends BaseEntry {
-            private final ButtonWidget btn;
-            VsyncEntry(StorageConfig c) {
-                btn = track(toggleButton(50,
-                        () -> c.vsyncEnabled, v -> {
-                            c.vsyncEnabled = v;
-                            MinecraftClient mc = MinecraftClient.getInstance();
-                            if (mc != null && mc.options != null) {
-                                try {
-                                    mc.options.getEnableVsync().setValue(v);
-                                    if (mc.getWindow() != null) mc.getWindow().setVsync(v);
-                                } catch (Throwable ignored) {}
-                            }
-                            StorageConfigSaver.requestSave(c);
-                        }, "§aBE", "§cKI"));
-            }
-            //? if >=1.20 {
-            /*@Override
-            public void render(DrawContext m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-            *///?} else {
-            @Override
-            public void render(MatrixStack m, int i, int y, int x, int w, int h, int mx, int my, boolean hov, float d) {
-            //?}
-                fillBg(m, x, y, w, h, 0x44AAAA00);
-                label(m, "§eV-Sync", x + 10, y + 5);
-                btn.setX(x + w - 60); btn.setY(y + 1); GuiCompat.renderWidget(btn, m, mx, my, d);
-            }
-        }
-
         private class ChunkOptimizeEntry extends BaseEntry {
             private final ButtonWidget btn;
             ChunkOptimizeEntry(StorageConfig c) {
@@ -1369,27 +1312,6 @@ public class StorageConfigScreen extends Screen {
                         + " §7| J: §d" + (level.rightCD / 20.0f) + "s (" + level.rightMana + "m)";
                 int sw = StorageConfigScreen.this.textRenderer.getWidth(stats);
                 label(m, stats, x + w - sw - 8, y + 6, 0xCCCCCC);
-            }
-        }
-    }
-
-    private static class FpsSlider extends SliderWidget {
-        private final StorageConfig config;
-        FpsSlider(int x, int y, int w, int h, StorageConfig c) {
-            super(x, y, w, h, Text.empty(), (c.maxFps - 10) / 250.0);
-            this.config = c;
-            this.updateMessage();
-        }
-        @Override protected void updateMessage() {
-            int v = 10 + (int) Math.round(this.value * 250);
-            this.setMessage(Text.literal(v >= 260 ? "§aVégtelen (∞)" : "§e" + v + " FPS"));
-        }
-        @Override protected void applyValue() {
-            int v = Math.max(10, Math.min(260, 10 + (int) Math.round(this.value * 250)));
-            config.maxFps = v;
-            MinecraftClient mc = MinecraftClient.getInstance();
-            if (mc != null && mc.options != null) {
-                try { mc.options.getMaxFps().setValue(v); } catch (Throwable ignored) {}
             }
         }
     }
